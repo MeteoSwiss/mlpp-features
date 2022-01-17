@@ -18,7 +18,6 @@ def aspect_500m(data: Dict[str, xr.Dataset], *coords, **kwargs):
         .preproc.get("ASPECT_500M_SIGRATIO1")
         .preproc.interp(*coords)
         .astype("float32")
-        .load()
     )
 
 
