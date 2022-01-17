@@ -12,7 +12,6 @@ requirements = [
 
 setup(
     name="mlpp-features",
-    packages=["mlpp_features"],
     install_requires=requirements,
     packages=find_packages(include=['mlpp_features']),
 )
