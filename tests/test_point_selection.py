@@ -17,7 +17,7 @@ COORDS_STA = [
 ]
 
 
-def test_point_selection_regular(raw_dataset, get_point_coords):
+def test_point_selection_regular(raw_dataset):
     """Test selection of point for irregular grids"""
 
     grid_res_meters = 1000
@@ -25,10 +25,11 @@ def test_point_selection_regular(raw_dataset, get_point_coords):
     selector = ps.EuclideanNearestRegular(model, "epsg:2056")
     assert selector.grid_res == pytest.approx(grid_res_meters)
 
-    coords_points = get_point_coords(COORDS_STA)
-    index = selector.query(coords_points)
+    sta_lon = [sta[0] for sta in COORDS_STA]
+    sta_lat = [sta[1] for sta in COORDS_STA]
+    index = selector.query(sta_lon, sta_lat)
     assert index.ndim == 1
-    assert index.size == coords_points.shape[0]
+    assert index.size == len(sta_lon)
     model_on_sta = model.stack(point=("y", "x")).isel(point=index)
     for n, coords in enumerate(COORDS_STA):
         lon = model_on_sta.lon.isel(point=n).values
@@ -36,7 +37,7 @@ def test_point_selection_regular(raw_dataset, get_point_coords):
         assert (float(lon), float(lat)) == pytest.approx(coords, abs=0.01)
 
 
-def test_point_selection_irregular(raw_dataset, get_point_coords):
+def test_point_selection_irregular(raw_dataset):
     """Test selection of point for irregular grids"""
 
     grid_res_meters = 1000
@@ -44,10 +45,11 @@ def test_point_selection_irregular(raw_dataset, get_point_coords):
     selector = ps.EuclideanNearestIrregular(model)
     assert selector.grid_res == pytest.approx(grid_res_meters)
 
-    coords_points = get_point_coords(COORDS_STA)
-    index = selector.query(coords_points)
+    sta_lon = [sta[0] for sta in COORDS_STA]
+    sta_lat = [sta[1] for sta in COORDS_STA]
+    index = selector.query(sta_lon, sta_lat)
     assert index.ndim == 1
-    assert index.size == coords_points.shape[0]
+    assert index.size == len(sta_lon)
     model_on_sta = model.stack(point=("y", "x")).isel(point=index)
     for n, coords in enumerate(COORDS_STA):
         lon = model_on_sta.lon.isel(point=n).values

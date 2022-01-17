@@ -17,13 +17,13 @@ class PointSelector(ABC):
     """Represent a point neighbor selector method."""
 
     @abstractmethod
-    def query(self, coords: np.ndarray, **kwargs) -> np.ndarray:
+    def query(self, *coords, **kwargs) -> np.ndarray:
         """
         Get the nearest grid cell to a given point.
 
         Parameters
         ----------
-        coords: array_like, shape (n, 2)
+        coords: lon, lat(, height)
 
         Return
         ------
@@ -42,6 +42,7 @@ class EuclideanNearestRegular(PointSelector):
     # Derived variables (init=False)
     src_proj: CRS = field(init=False, repr=False)
     dst_proj: CRS = field(init=False, repr=False)
+    tranformer: Transformer = field(init=False, repr=False)
     x_coords: np.ndarray = field(init=False, repr=False)
     y_coords: np.ndarray = field(init=False, repr=False)
     hsurf: np.ndarray = field(init=False, repr=False, default=None)
@@ -57,6 +58,9 @@ class EuclideanNearestRegular(PointSelector):
             # TODO: should give it more thoughts, but to be safe, let's not allow
             # reprojecting 1D grid coordinated for now...
             raise NotImplementedError("cannot reproject 1D grid coordinates")
+        self.transformer = Transformer.from_crs(
+            CRS("epsg:4326"), dst_proj, always_xy=True
+        )
         if self.grid_res is None:
             x_grid_res = np.abs(np.gradient(self.x_coords)).mean()
             y_grid_res = np.abs(np.gradient(self.y_coords)).mean()
@@ -67,7 +71,10 @@ class EuclideanNearestRegular(PointSelector):
             self.fr_land = self.dataset.FR_LAND.values
         del self.dataset
 
-    def query(self, coord_points, search_radius=1.415, vertical_weight=0):
+    def query(self, *coords, search_radius=1.415, vertical_weight=0):
+
+        lon, lat = coords[:2]
+        x_coords, y_coords = self.transformer.transform(lon, lat)
 
         # Approximate a safe number of nearest neighbors and the
         # corresponding maximum distance
@@ -75,12 +82,12 @@ class EuclideanNearestRegular(PointSelector):
         max_distance = search_radius * self.grid_res
 
         x_grid = np.expand_dims(self.x_coords, axis=1)
-        x_points = np.expand_dims(coord_points[:, 0], axis=0)
+        x_points = np.expand_dims(x_coords, axis=0)
         x_diff = np.abs(x_grid - x_points)
         x_index = np.argpartition(x_diff, range(k), axis=0)[:k]
 
         y_grid = np.expand_dims(self.y_coords, axis=1)
-        y_stations = np.expand_dims(coord_points[:, 1], axis=0)
+        y_stations = np.expand_dims(y_coords, axis=0)
         y_diff = np.abs(y_grid - y_stations)
         y_index = np.argpartition(y_diff, range(k), axis=0)[:k]
 
@@ -101,10 +108,10 @@ class EuclideanNearestRegular(PointSelector):
 
         # Include vertical emphasis
         if vertical_weight > 0:
+            height = coords[2]
             hsurf = self.hsurf[y_index, x_index]
-            z_points = coord_points[:, 2]
-            z_diff = np.abs(hsurf - z_points)
-            distance = horizontal_distance + vertical_weight * z_diff
+            height_diff = np.abs(hsurf - height)
+            distance = horizontal_distance + vertical_weight * height_diff
         else:
             distance = horizontal_distance.copy()
 
@@ -135,6 +142,7 @@ class EuclideanNearestIrregular(PointSelector):
 
     # Derived variables (init=False)
     dst_proj: CRS = field(init=False, repr=False)
+    tranformer: Transformer = field(init=False, repr=False)
     coords: np.ndarray = field(init=False, repr=False)
     tree: Optional[KDTree] = field(init=False, repr=False, default=None)
     hsurf: np.ndarray = field(init=False, repr=False, default=None)
@@ -145,8 +153,8 @@ class EuclideanNearestIrregular(PointSelector):
         lon = self.dataset.lon.values
         src_proj = CRS("epsg:4326")
         dst_proj = CRS(self.dst_crs)
-        transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
-        x_coords, y_coords = transformer.transform(lon, lat)
+        self.transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
+        x_coords, y_coords = self.transformer.transform(lon, lat)
         self.coords = np.column_stack((x_coords.ravel(), y_coords.ravel()))
         self.tree = KDTree(self.coords)
         if self.grid_res is None:
@@ -159,14 +167,17 @@ class EuclideanNearestIrregular(PointSelector):
             self.fr_land = self.dataset.FR_LAND.values
         del self.dataset
 
-    def query(self, coord_points, search_radius=1.415, vertical_weight=0):
+    def query(self, *coords, search_radius=1.415, vertical_weight=0):
+
+        lon, lat = coords[:2]
+        xy_coords = np.column_stack(self.transformer.transform(lon, lat))
 
         # Approximate a safe number of nearest neighbors and the
         # corresponding maximum distance
         k = int(np.ceil(2 * search_radius) ** 2)
         max_distance = search_radius * self.grid_res
 
-        horizontal_distance, index = self.tree.query(coord_points, k)
+        horizontal_distance, index = self.tree.query(xy_coords, k)
         horizontal_distance = np.array(horizontal_distance)
         index = np.array(index)
 
@@ -181,10 +192,10 @@ class EuclideanNearestIrregular(PointSelector):
 
         # Include vertical emphasis
         if vertical_weight > 0:
+            height = coords[2][:, None]
             hsurf = self.hsurf.ravel()[index]
-            z_coords = coord_points[:, 2][:, None]
-            z_diff = np.abs(hsurf - z_coords)
-            distance = horizontal_distance + vertical_weight * z_diff
+            height_diff = np.abs(hsurf - height)
+            distance = horizontal_distance + vertical_weight * height_diff
         else:
             distance = horizontal_distance.copy()
 

@@ -1,14 +1,12 @@
 import logging
+from typing import Dict
 
 import xarray as xr
 
 LOGGER = logging.getLogger(__name__)
 
-# Set global options
-xr.set_options(keep_attrs=True)
 
-
-def wind_speed_ensavg(data, **kwargs):
+def wind_speed_ensavg(data: Dict[str, xr.Dataset], *coords, **kwargs):
     """
     Ensemble mean of wind speed
     """
@@ -17,7 +15,7 @@ def wind_speed_ensavg(data, **kwargs):
         .preproc.get(["eastward_wind", "northward_wind"])
         .preproc.norm()
         .mean("member")
-        .preproc.interp(kwargs["points"])
+        .preproc.interp(*coords)
         .astype("float32")
         .load()
     )

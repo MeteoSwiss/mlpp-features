@@ -6,22 +6,6 @@ from pyproj import CRS, Transformer
 
 
 @pytest.fixture
-def get_point_coords():
-    def _data(list_coords_latlon):
-        coords_points_latlon = np.stack(list_coords_latlon)
-        src_proj = CRS("epsg:4326")
-        dst_proj = CRS("epsg:2056")
-        transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
-        return np.column_stack(
-            transformer.transform(
-                coords_points_latlon[:, 0], coords_points_latlon[:, 1]
-            )
-        )
-
-    return _data
-
-
-@pytest.fixture
 def raw_dataset():
     """Create dataset as if loaded from zarr files, still unprocessed."""
 
