@@ -1,6 +1,6 @@
 # minimal setup.y until poetry supports PEP660
 # https://github.com/python-poetry/poetry/issues/34
-from setuptools import setup
+from setuptools import setup, find_packages
 
 requirements = [
     "zarr",
@@ -14,4 +14,5 @@ setup(
     name="mlpp-features",
     packages=["mlpp_features"],
     install_requires=requirements,
+    packages=find_packages(include=['mlpp_features']),
 )
