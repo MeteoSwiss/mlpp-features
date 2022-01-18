@@ -9,25 +9,20 @@ LOGGER = logging.getLogger(__name__)
 xr.set_options(keep_attrs=True)
 
 
-def aspect_500m(data: Dict[str, xr.Dataset], *coords, **kwargs):
+def aspect_500m(data: Dict[str, xr.Dataset], coords, **kwargs) -> xr.Dataset:
     """
     Terrain aspect at a 500m scale
     """
     return (
         data["terrain"]
         .preproc.get("ASPECT_500M_SIGRATIO1")
-        .preproc.interp(*coords)
+        .preproc.interp(coords)
         .astype("float32")
     )
 
 
-def elevation(data: Dict[str, xr.Dataset], *coords, **kwargs) -> xr.Dataset:
+def elevation(data: Dict[str, xr.Dataset], coords, **kwargs) -> xr.Dataset:
     """
-    Extract height of POI from DEM
+    Terrain elevation.
     """
-    return (
-        data["terrain"]
-        .preproc.get("dem_50m")
-        .preproc.interp(kwargs["target"], {"method": "nearest"})
-        .astype("float32")
-    )
+    return data["terrain"].preproc.get("DEM").preproc.interp(coords).astype("float32")

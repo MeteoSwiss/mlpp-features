@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Tuple
 
 from scipy.spatial import KDTree
 
@@ -17,17 +17,19 @@ class PointSelector(ABC):
     """Represent a point neighbor selector method."""
 
     @abstractmethod
-    def query(self, *coords, **kwargs) -> np.ndarray:
+    def query(self, coords, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
         Get the nearest grid cell to a given point.
 
         Parameters
         ----------
-        coords: lon, lat(, height)
+        points: tuple of lists
+            lon, lat(, height)
 
         Return
         ------
-        ravel_index: array_like, shape (n,)
+        ravel_index: array_like, shape (<=n,)
+        mask: array_like, shape (n,)
         """
 
 
@@ -71,7 +73,7 @@ class EuclideanNearestRegular(PointSelector):
             self.fr_land = self.dataset.FR_LAND.values
         del self.dataset
 
-    def query(self, *coords, search_radius=1.415, vertical_weight=0):
+    def query(self, coords, search_radius=1.415, vertical_weight=0):
 
         lon, lat = coords[:2]
         x_coords, y_coords = self.transformer.transform(lon, lat)
@@ -126,10 +128,13 @@ class EuclideanNearestRegular(PointSelector):
         x_index = x_index[distance < max_distance]
         y_index = y_index[distance < max_distance]
 
-        return np.ravel_multi_index(
+        mask = np.array([True if d < max_distance else False for d in distance])
+
+        index = np.ravel_multi_index(
             (y_index, x_index),
             (self.y_coords.size, self.x_coords.size),
         )
+        return index, mask
 
 
 @dataclass
@@ -167,7 +172,7 @@ class EuclideanNearestIrregular(PointSelector):
             self.fr_land = self.dataset.FR_LAND.values
         del self.dataset
 
-    def query(self, *coords, search_radius=1.415, vertical_weight=0):
+    def query(self, coords, search_radius=1.415, vertical_weight=0):
 
         lon, lat = coords[:2]
         xy_coords = np.column_stack(self.transformer.transform(lon, lat))
@@ -204,5 +209,9 @@ class EuclideanNearestIrregular(PointSelector):
         index_ = (np.arange(distance.shape[0]), np.argmin(distance, axis=1))
         distance = horizontal_distance[index_]
 
+        mask = np.array([True if d < max_distance else False for d in distance])
+
         # Filter out stations that are too distant
-        return index[index_][distance < max_distance]
+        index = index[index_][distance < max_distance]
+
+        return index, mask
