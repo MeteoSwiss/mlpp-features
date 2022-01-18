@@ -5,6 +5,9 @@ import xarray as xr
 
 LOGGER = logging.getLogger(__name__)
 
+# Set global options
+xr.set_options(keep_attrs=True)
+
 
 def wind_speed_ensavg(data: Dict[str, xr.Dataset], coords, **kwargs) -> xr.Dataset:
     """

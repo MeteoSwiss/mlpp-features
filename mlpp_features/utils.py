@@ -1,6 +1,7 @@
 """"""
 import logging
 from dataclasses import dataclass, field
+from typing import List, Union
 
 import numpy as np
 import xarray as xr
@@ -30,20 +31,16 @@ class PreprocDatasetAccessor:
         else:
             self.selector = ps.EuclideanNearestRegular(self.ds)
 
-    def get(self, var):
+    def get(self, var: Union[str, List[str]]) -> xr.Dataset:
         """
         Get one or more variables from a Dataset.
         """
+        if isinstance(var, str):
+            var = [var]
         try:
-            out = self.ds[var]
+            return self.ds[var]
         except KeyError:
             raise KeyError(var)
-        try:
-            return out.to_dataset(name=var)
-        except AttributeError:
-            return out
-        except ValueError:
-            return out.coords.to_dataset().reset_coords(var)
 
     def interp(self, points, **kwargs):
         """

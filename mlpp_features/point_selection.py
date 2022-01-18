@@ -38,7 +38,7 @@ class EuclideanNearestRegular(PointSelector):
     """Get Euclidean nearest neighbor in the case of a regular input grid."""
 
     dataset: xr.Dataset = field(repr=False)
-    dst_crs: str = "epsg:2056"
+    dst_crs: str = "epsg:21781"
     grid_res: Optional[float] = None
 
     # Derived variables (init=False)
@@ -142,7 +142,7 @@ class EuclideanNearestIrregular(PointSelector):
     """Get Euclidean nearest neighbor in the case of an irregular input grid."""
 
     dataset: xr.Dataset = field(repr=False)
-    dst_crs: str = "epsg:2056"
+    dst_crs: str = "epsg:21781"
     grid_res: Optional[float] = None
 
     # Derived variables (init=False)
