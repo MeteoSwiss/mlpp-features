@@ -45,7 +45,7 @@ class PreprocDatasetAccessor:
         except ValueError:
             return out.coords.to_dataset().reset_coords(var)
 
-    def interp(self, *points, **kwargs):
+    def interp(self, points, **kwargs):
         """
         Interpolate all variables in the dataset onto a set of target points.
         """
