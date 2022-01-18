@@ -36,7 +36,7 @@ def test_point_selection(raw_dataset, selector_method):
 
     selector = selector_method(model, "epsg:2056")
     index, sta_mask = selector.query((sta_lon, sta_lat))
-    model_on_sta = model.stack(point=("y", "x")).isel(point=index)
+    model_on_sta = model.stack(point=("y", "x")).isel(point=index).reset_index("point")
 
     assert selector.grid_res == pytest.approx(grid_res_meters)
     assert index.ndim == 1

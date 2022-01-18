@@ -51,9 +51,9 @@ class PreprocDatasetAccessor:
         """
         point_names = points[0]
         point_coords = points[1:]
-        index = self.selector.query(point_coords, **kwargs)
+        index, mask = self.selector.query(point_coords, **kwargs)
         ds_out = self.ds.stack(point=("y", "x")).isel(point=index).reset_index("point")
-        point_names = [p for p, m in zip(point_names, self.selector.mask) if m]
+        point_names = [p for p, m in zip(point_names, mask) if m]
         ds_out = ds_out.assign_coords({"point": point_names})
         return ds_out
 
