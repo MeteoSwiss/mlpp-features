@@ -46,6 +46,6 @@ def test_point_selection(raw_dataset, selector_method):
     for n, sta in enumerate(zip(sta_lon, sta_lat, sta_mask)):
         if not sta[2]:
             continue
-        lon = model_on_sta.lon.isel(point=n).values
-        lat = model_on_sta.lat.isel(point=n).values
-        assert (float(lon), float(lat)) == pytest.approx(sta[:2], abs=0.01)
+        longitude = model_on_sta.longitude.isel(point=n).values
+        latitude = model_on_sta.latitude.isel(point=n).values
+        assert (float(longitude), float(latitude)) == pytest.approx(sta[:2], abs=0.01)

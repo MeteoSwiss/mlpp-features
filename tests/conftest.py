@@ -25,7 +25,7 @@ def raw_dataset():
         src_proj = CRS("epsg:2056")
         dst_proj = CRS("epsg:4326")
         transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
-        lon, lat = transformer.transform(xx, yy)
+        longitude, latitude = transformer.transform(xx, yy)
 
         # define dummy variables
         var_shape = (n_reftimes, n_leadtimes, n_members, y.size, x.size)
@@ -50,8 +50,8 @@ def raw_dataset():
                 ),
             },
             coords={
-                "lat": (["y", "x"], lat),
-                "lon": (["y", "x"], lon),
+                "latitude": (["y", "x"], latitude),
+                "longitude": (["y", "x"], longitude),
                 "x": x,
                 "y": y,
                 "forecast_reference_time": reftimes,

@@ -24,7 +24,7 @@ class PointSelector(ABC):
         Parameters
         ----------
         points: tuple of lists
-            lon, lat(, height)
+            longitude, latitude(, height)
 
         Return
         ------
@@ -75,8 +75,8 @@ class EuclideanNearestRegular(PointSelector):
 
     def query(self, coords, search_radius=1.415, vertical_weight=0):
 
-        lon, lat = coords[:2]
-        x_coords, y_coords = self.transformer.transform(lon, lat)
+        longitude, latitude = coords[:2]
+        x_coords, y_coords = self.transformer.transform(longitude, latitude)
 
         # Approximate a safe number of nearest neighbors and the
         # corresponding maximum distance
@@ -154,12 +154,12 @@ class EuclideanNearestIrregular(PointSelector):
     fr_land: np.ndarray = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
-        lat = self.dataset.lat.values
-        lon = self.dataset.lon.values
+        latitude = self.dataset.latitude.values
+        longitude = self.dataset.longitude.values
         src_proj = CRS("epsg:4326")
         dst_proj = CRS(self.dst_crs)
         self.transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
-        x_coords, y_coords = self.transformer.transform(lon, lat)
+        x_coords, y_coords = self.transformer.transform(longitude, latitude)
         self.coords = np.column_stack((x_coords.ravel(), y_coords.ravel()))
         self.tree = KDTree(self.coords)
         if self.grid_res is None:
@@ -174,8 +174,8 @@ class EuclideanNearestIrregular(PointSelector):
 
     def query(self, coords, search_radius=1.415, vertical_weight=0):
 
-        lon, lat = coords[:2]
-        xy_coords = np.column_stack(self.transformer.transform(lon, lat))
+        longitude, latitude = coords[:2]
+        xy_coords = np.column_stack(self.transformer.transform(longitude, latitude))
 
         # Approximate a safe number of nearest neighbors and the
         # corresponding maximum distance

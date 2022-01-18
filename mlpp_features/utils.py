@@ -26,7 +26,7 @@ class PreprocDatasetAccessor:
     selector: ps.PointSelector = field(init=False, repr=True)
 
     def __post_init__(self):
-        if "lat" in self.ds:
+        if "latitude" in self.ds:
             self.selector = ps.EuclideanNearestIrregular(self.ds)
         else:
             self.selector = ps.EuclideanNearestRegular(self.ds)
