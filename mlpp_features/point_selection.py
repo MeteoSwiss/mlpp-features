@@ -215,3 +215,60 @@ class EuclideanNearestIrregular(PointSelector):
         index = index[index_][distance < max_distance]
 
         return index, mask
+
+# NOTE: this is a first component for the nowcasting, it works by passing the dwh dataset (dwh.zarr)
+# and then query a list of points derived by the dwh dataset itself
+
+@dataclass
+class EuclideanNearestSparse(PointSelector):
+    """Get Euclidean nearest neighbor in the case of a sparse collection of points."""
+
+    dataset: xr.Dataset = field(repr=False)
+    dst_crs: str = "epsg:21781"
+    grid_res: Optional[float] = None
+
+    # Derived variables (init=False)
+    dst_proj: CRS = field(init=False, repr=False)
+    tranformer: Transformer = field(init=False, repr=False)
+    coords: np.ndarray = field(init=False, repr=False)
+    tree: Optional[KDTree] = field(init=False, repr=False, default=None)
+    height: np.ndarray = field(init=False, repr=False, default=None)
+
+    def __post_init__(self):
+        latitude = self.dataset["station_lat"].values
+        longitude = self.dataset["station_lon"].values
+        src_proj = CRS("epsg:4326")
+        dst_proj = CRS(self.dst_crs)
+        self.transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
+        x_coords, y_coords = self.transformer.transform(longitude, latitude)
+        self.coords = np.column_stack((x_coords.ravel(), y_coords.ravel()))
+        self.tree = KDTree(self.coords)
+
+        self.height = self.dataset["station_height"].values
+
+        del self.dataset
+
+    def query(self, coords, k=5, vertical_weight=0):
+
+        longitude, latitude = coords[:2]
+        xy_coords = np.column_stack(self.transformer.transform(longitude, latitude))
+
+        horizontal_distance, index = self.tree.query(xy_coords, k)
+        horizontal_distance = np.array(horizontal_distance)
+        index = np.array(index)
+
+        # Include vertical emphasis
+        if vertical_weight > 0:
+            height_points = coords[2][:, None]
+            height = self.height.ravel()[index]
+            height_diff = np.abs(height - height_points)
+            distance = horizontal_distance + vertical_weight * height_diff
+        else:
+            distance = horizontal_distance.copy()
+
+        # Query nearest neighbour
+        sorted_distance = np.argsort(distance, axis=1)
+        distance = np.take_along_axis(distance, sorted_distance, axis = 1)
+        index = np.take_along_axis(index, sorted_distance, axis = 1)
+
+        return distance, index
