@@ -14,7 +14,7 @@ def wind_speed_ensavg(data: Dict[str, xr.Dataset], *coords, **kwargs):
         data["nwp"]
         .preproc.get(["eastward_wind", "northward_wind"])
         .preproc.norm()
-        .mean("member")
+        .mean("realization")
         .preproc.interp(*coords)
         .astype("float32")
     )

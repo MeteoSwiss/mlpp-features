@@ -37,15 +37,15 @@ def raw_dataset():
         ds = xr.Dataset(
             {
                 "eastward_wind": (
-                    ["reftime", "leadtime", "member", "y", "x"],
+                    ["forecast_reference_time", "t", "realization", "y", "x"],
                     eastward_wind,
                 ),
                 "northward_wind": (
-                    ["reftime", "leadtime", "member", "y", "x"],
+                    ["forecast_reference_time", "t", "realization", "y", "x"],
                     northward_wind,
                 ),
                 "wind_speed_of_gust": (
-                    ["reftime", "leadtime", "member", "y", "x"],
+                    ["forecast_reference_time", "t", "realization", "y", "x"],
                     wind_speed_of_gust,
                 ),
             },
@@ -54,15 +54,15 @@ def raw_dataset():
                 "lon": (["y", "x"], lon),
                 "x": x,
                 "y": y,
-                "reftime": reftimes,
-                "leadtime": leadtimes,
-                "member": np.arange(n_members),
+                "forecast_reference_time": reftimes,
+                "t": leadtimes,
+                "realization": np.arange(n_members),
             },
         )
 
         # Add validtime
         ds = ds.assign_coords(
-            validtime=ds.reftime + ds.leadtime.astype("timedelta64[h]")
+            validtime=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
         )
 
         ds.attrs.update({"crs": "epsg:2056"})
