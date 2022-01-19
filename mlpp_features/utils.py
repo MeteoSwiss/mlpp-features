@@ -27,7 +27,10 @@ class PreprocDatasetAccessor:
 
     def __post_init__(self):
         if "latitude" in self.ds:
-            self.selector = ps.EuclideanNearestIrregular(self.ds)
+            if "station" in self.ds:
+                self.selector = ps.EuclideanNearestSparse(self.ds)
+            else:
+                self.selector = ps.EuclideanNearestIrregular(self.ds)
         else:
             self.selector = ps.EuclideanNearestRegular(self.ds)
 
