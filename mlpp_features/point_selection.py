@@ -216,8 +216,10 @@ class EuclideanNearestIrregular(PointSelector):
 
         return index, mask
 
+
 # NOTE: this is a first component for the nowcasting, it works by passing the dwh dataset (dwh.zarr)
 # and then query a list of points derived by the dwh dataset itself
+
 
 @dataclass
 class EuclideanNearestSparse(PointSelector):
@@ -248,18 +250,15 @@ class EuclideanNearestSparse(PointSelector):
 
         del self.dataset
 
-    def query(self, coords, k=5, vertical_weight=0):
+    def query(self, k=5, vertical_weight=0):
 
-        longitude, latitude = coords[:2]
-        xy_coords = np.column_stack(self.transformer.transform(longitude, latitude))
-
-        horizontal_distance, index = self.tree.query(xy_coords, k)
+        horizontal_distance, index = self.tree.query(self.coords, k)
         horizontal_distance = np.array(horizontal_distance)
         index = np.array(index)
 
         # Include vertical emphasis
         if vertical_weight > 0:
-            height_points = coords[2][:, None]
+            height_points = self.height[:, None]
             height = self.height.ravel()[index]
             height_diff = np.abs(height - height_points)
             distance = horizontal_distance + vertical_weight * height_diff
@@ -268,7 +267,7 @@ class EuclideanNearestSparse(PointSelector):
 
         # Query nearest neighbour
         sorted_distance = np.argsort(distance, axis=1)
-        distance = np.take_along_axis(distance, sorted_distance, axis = 1)
-        index = np.take_along_axis(index, sorted_distance, axis = 1)
+        distance = np.take_along_axis(distance, sorted_distance, axis=1)
+        index = np.take_along_axis(index, sorted_distance, axis=1)
 
         return distance, index
