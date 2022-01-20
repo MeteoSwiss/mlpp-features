@@ -62,7 +62,7 @@ def variable_select_rank(obs, rank, k):
     return obs.transpose("time", "station_id")
 
 
-def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset], **kwargs) -> xr.Dataset:
+def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
     """
     Nearest observed wind speed.
     """
