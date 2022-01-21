@@ -23,7 +23,7 @@ GRID_SELECTORS_METHODS = [
 ]
 
 SPARSE_SELECTORS_METHODS = [
-    ps.EuclideanNearestSparse
+    ps.EuclideanNearestSparse,
 ]
 
 
@@ -54,18 +54,15 @@ def test_point_selection(raw_dataset, selector_method):
         latitude = model_on_sta.latitude.isel(point=n).values
         assert (float(longitude), float(latitude)) == pytest.approx(sta[:2], abs=0.01)
 
-@pytest.mark.parametrize("selector_method", SPARSE_SELECTORS_METHODS)
-def test_point_selection(raw_obs_dataset, selector_method):
-    """Test selection of point for sparse dataset"""
 
-    sta_name = [sta[0] for sta in COORDS_STA]
-    sta_lon = [sta[1] for sta in COORDS_STA]
-    sta_lat = [sta[2] for sta in COORDS_STA]
+@pytest.mark.parametrize("selector_method", SPARSE_SELECTORS_METHODS)
+def test_obs_point_selection(raw_obs_dataset, selector_method):
+    """Test selection of point for sparse dataset"""
 
     obs = raw_obs_dataset()
 
     selector = selector_method(obs)
-    distance, index = selector.query((sta_lon, sta_lat))
+    distance, index = selector.query()
 
     assert index.ndim == 2
     assert distance.mean() < 1e6
