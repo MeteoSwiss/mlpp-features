@@ -67,3 +67,9 @@ class PreprocDatasetAccessor:
         for var in vars:
             ds["norm"] += self.ds[var] ** 2
         return np.sqrt(ds[["norm"]])
+
+    def difference(self, var1: str, var2: str) -> xr.Dataset:
+        """
+        Compute the difference between two variables in the input dataset
+        """
+        return (self.ds[var1] - self.ds[var2]).to_dataset(name="difference")
