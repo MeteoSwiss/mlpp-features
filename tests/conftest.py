@@ -78,8 +78,8 @@ def raw_obs_dataset():
 
     def _data():
 
-        variables = ["wind_speed", "wind_from_direction","wind_speed_of_gust"]
-        stations = ["AAA", "BBB", "CCC", "DDD", "EEE"]
+        variables = ["wind_speed", "wind_from_direction", "wind_speed_of_gust"]
+        stations = np.arange(10, dtype=int)
         times = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=10)
 
         n_variables = len(variables)
@@ -98,28 +98,24 @@ def raw_obs_dataset():
         # define dummy variables
         var_shape = (n_variables, n_times, n_stations)
         measurements = np.random.randn(*var_shape)
+        nan_idx = [np.random.randint(0, d, 60) for d in var_shape]
+        measurements[nan_idx[0], nan_idx[1], nan_idx[2]] = np.nan
         plausibility = np.random.randn(*var_shape)
 
         ds = xr.Dataset(
             {
-                "measurement": (
-                    ["variable", "time", "station"],
-                    measurements
-                ),
-                "plausibility": (
-                    ["variable", "time", "station"],
-                    plausibility
-                )
+                "measurement": (["variable", "time", "station_id"], measurements),
+                "plausibility": (["variable", "time", "station_id"], plausibility),
             },
-            coords = {
+            coords={
                 "variable": variables,
                 "time": times,
-                "station": stations,
-                "station_lon": ("station", longitude),
-                "station_lat": ("station", latitude),
-                "station_height": ("station", z)
-            }
+                "station_id": stations,
+                "station_lon": ("station_id", longitude),
+                "station_lat": ("station_id", latitude),
+                "station_height": ("station_id", z),
+            },
         )
-
         return ds
+
     return _data
