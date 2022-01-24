@@ -17,18 +17,21 @@ def test_variable_euclidean_nearest_k(raw_obs_dataset):
     obs_dataset = raw_obs_dataset()[["measurement"]].sel(variable="wind_speed")
     obs_nearest_k = obs.variable_euclidean_nearest_k(obs_dataset, k=k)
 
-    good_dims = ["time", "station_id", "neighbour_rank"]
+    good_dims = ["time", "point", "neighbour_rank"]
     assert list(obs_nearest_k.dims) == good_dims
 
-    np.testing.assert_equal(
-        obs_dataset.measurement.loc[:, 1].values,
-        obs_nearest_k.measurement.loc[:, 1, 0].values,
+    obs_at_aaa_original = obs_dataset.measurement.loc[:, 0].values
+    obs_at_aaa_rank_zero = obs_nearest_k.measurement.loc[:, "AAA", 0].values
+    np.testing.assert_equal(obs_at_aaa_original, obs_at_aaa_rank_zero)
+
+    obs_at_rank_one_for_aaa_original = (
+        obs_dataset.swap_dims({"station_id": "station_name"})
+        .measurement.loc[:, obs_nearest_k.neighbour_name.loc["AAA", 1]]
+        .values
     )
 
-    np.testing.assert_equal(
-        obs_dataset.measurement.loc[:, obs_nearest_k.neighbour_id.loc[1, 1]].values,
-        obs_nearest_k.measurement.loc[:, 1, 1].values,
-    )
+    obs_at_rank_one_for_aaa = obs_nearest_k.measurement.loc[:, "AAA", 1].values
+    np.testing.assert_equal(obs_at_rank_one_for_aaa_original, obs_at_rank_one_for_aaa)
 
 
 @pytest.mark.parametrize("ranking_method", NEIGHBOURS_RANKING_METHODS)
@@ -41,7 +44,7 @@ def test_variable_select_rank(raw_obs_dataset, ranking_method):
     obs_best_k = ranking_method(obs_dataset, k=k)
     obs_best_rank = obs.variable_select_rank(obs_best_k, rank=rank, k=k)
 
-    good_dims = ["time", "station_id"]
+    good_dims = ["time", "point"]
     assert list(obs_best_rank.dims) == good_dims
 
     # check that missing samples are subsituted by a following ranked neighbour
@@ -53,13 +56,14 @@ def test_variable_select_rank(raw_obs_dataset, ranking_method):
     nan_idx = list(
         zip(
             obs_dataset.time[nan_idx[:, 0]].values,
-            obs_dataset.station_id[nan_idx[:, 1]].values,
+            obs_dataset.station_name[nan_idx[:, 1]].values,
         )
     )
-    nan_subs = obs_best_rank.stack(sample=["time", "station_id"]).sel(sample=nan_idx)
-    nan_subs_idx = list(zip(nan_subs.time.values, nan_subs.neighbour_id.values))
+    nan_subs = obs_best_rank.stack(sample=["time", "point"]).sel(sample=nan_idx)
+    nan_subs_idx = list(zip(nan_subs.time.values, nan_subs.neighbour_name.values))
     nan_sub_original = (
-        obs_dataset.stack(sample=["time", "station_id"])
+        obs_dataset.swap_dims({"station_id": "station_name"})
+        .stack(sample=["time", "station_name"])
         .sel(sample=nan_subs_idx)
         .measurement
     )

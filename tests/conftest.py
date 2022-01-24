@@ -79,7 +79,8 @@ def raw_obs_dataset():
     def _data():
 
         variables = ["wind_speed", "wind_from_direction", "wind_speed_of_gust"]
-        stations = np.arange(10, dtype=int)
+        stations = np.arange(6, dtype=int)
+        names = ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF"]
         times = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=10)
 
         n_variables = len(variables)
@@ -111,6 +112,7 @@ def raw_obs_dataset():
                 "variable": variables,
                 "time": times,
                 "station_id": stations,
+                "station_name": ("station_id", names),
                 "station_lon": ("station_id", longitude),
                 "station_lat": ("station_id", latitude),
                 "station_height": ("station_id", z),

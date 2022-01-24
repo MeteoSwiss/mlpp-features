@@ -15,20 +15,24 @@ def variable_euclidean_nearest_k(obs, k):
     Select k nearest neighbours using euclidean distance.
     """
 
+    obs = obs.swap_dims({"station_id": "station_name"}).rename(
+        {"station_name": "point"}
+    )
+
     distance, index = obs.preproc.selector.query(k=k)
 
-    stations_id = obs.station_id.values
-    c = [stations_id, range(index.shape[1])]
-    d = ["station_id", "neighbour_rank"]
+    points = obs.point.values
+    c = [points, range(index.shape[1])]
+    d = ["point", "neighbour_rank"]
 
-    stations_id = xr.DataArray(stations_id[index], coords=c, dims=d)
+    stations_name = xr.DataArray(points[index], coords=c, dims=d)
     distance = xr.DataArray(distance, coords=c, dims=d)
 
     return (
-        obs.rename({"station_id": "neighbour_id"})
+        obs.rename({"point": "neighbour_name"})
         .reset_coords(drop=True)
         .assign_coords(neighbour_distance=distance)
-        .sel(neighbour_id=stations_id)
+        .sel(neighbour_name=stations_name)
     )
 
 
@@ -48,8 +52,8 @@ def variable_select_rank(obs, rank, k):
     # add the requested rank to the prefix
     time_dependent_index = xr.DataArray(
         index_prefix + rank,
-        coords=[obs.time, obs.station_id],
-        dims=["time", "station_id"],
+        coords=[obs.time, obs.point],
+        dims=["time", "point"],
     )
     # make sure no index is > k
     time_dependent_index = xr.where(
@@ -59,7 +63,7 @@ def variable_select_rank(obs, rank, k):
     # select at each timestep
     obs = obs.isel(neighbour_rank=time_dependent_index)
 
-    return obs.transpose("time", "station_id")
+    return obs.transpose("time", "point")
 
 
 def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
