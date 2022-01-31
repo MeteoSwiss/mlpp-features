@@ -41,7 +41,7 @@ def variable_select_rank(obs, rank, k):
     Select the ranked observations at each timestep.
     """
 
-    obs = obs["measurement"]
+    obs = obs["measurement"].sel(neighbour_rank=slice(rank, None))
 
     # find index of nearest non-missing measurement at each time
     mask = ~np.isnan(obs)
@@ -51,7 +51,7 @@ def variable_select_rank(obs, rank, k):
 
     # add the requested rank to the prefix
     time_dependent_index = xr.DataArray(
-        index_prefix + rank,
+        index_prefix,
         coords=[obs.time, obs.point],
         dims=["time", "point"],
     )
