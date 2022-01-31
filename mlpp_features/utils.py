@@ -23,16 +23,6 @@ class PreprocDatasetAccessor:
     """
 
     ds: xr.Dataset
-    selector: ps.PointSelector = field(init=False, repr=True)
-
-    def __post_init__(self):
-
-        if "station_id" in self.ds:
-            self.selector = ps.EuclideanNearestSparse(self.ds)
-        elif "latitude" in self.ds:
-            self.selector = ps.EuclideanNearestIrregular(self.ds)
-        else:
-            self.selector = ps.EuclideanNearestRegular(self.ds)
 
     def get(self, var: Union[str, List[str]]) -> xr.Dataset:
         """
@@ -49,9 +39,17 @@ class PreprocDatasetAccessor:
         """
         Interpolate all variables in the dataset onto a set of target points.
         """
+
+        if "station_id" in self.ds:
+            selector = ps.EuclideanNearestSparse(self.ds)
+        elif "latitude" in self.ds:
+            selector = ps.EuclideanNearestIrregular(self.ds)
+        else:
+            selector = ps.EuclideanNearestRegular(self.ds)
+
         point_names = points[0]
         point_coords = points[1:]
-        index, mask = self.selector.query(point_coords, **kwargs)
+        index, mask = selector.query(point_coords, **kwargs)
         ds_out = self.ds.stack(point=("y", "x")).isel(point=index).reset_index("point")
         point_names = [p for p, m in zip(point_names, mask) if m]
         ds_out = ds_out.assign_coords({"point": point_names})
