@@ -71,3 +71,15 @@ class PreprocDatasetAccessor:
         Compute the difference between two variables in the input dataset
         """
         return (self.ds[var1] - self.ds[var2]).to_dataset(name="difference")
+
+    def apply_func(self, f):
+        """
+        Apply a function to the input dataset.
+        """
+        return f(self.ds)
+
+    def asarray(self, name):
+        """
+        Convert the input dataset to a dataarray with a new name.
+        """
+        return self.ds.to_array(name=name)[0].drop_vars("variable")
