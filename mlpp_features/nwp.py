@@ -119,7 +119,7 @@ def eastward_wind_ensavg(data: Dict[str, xr.Dataset], coords, **kwargs) -> xr.Da
     )
 
 
-def heat_index_ensavg(data: Dict[str, xr.Dataset], coords, **kwargs):
+def heat_index_ensavg(data: Dict[str, xr.Dataset], coords, **kwargs) -> xr.DataArray:
 
     t_fahrenheit = temperature_ensavg(data, coords) * 1.8 + 32
     u = relative_humidity_ensavg(data, coords)
