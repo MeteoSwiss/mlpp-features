@@ -4,6 +4,8 @@ from typing import Dict
 import xarray as xr
 import numpy as np
 
+from mlpp_features.utils import asarray
+
 LOGGER = logging.getLogger(__name__)
 
 # Set global options
@@ -81,39 +83,33 @@ def variable_euclidean_nearest(
 
 
 # wind speed
-def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
-    return variable_euclidean_nearest(data, "wind_speed", 1).rename(
-        "wind_speed_euclidean_nearest_1"
-    )
+@asarray
+def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed", 1)
 
 
-def wind_speed_euclidean_nearest_2(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
-    return variable_euclidean_nearest(data, "wind_speed", 2).rename(
-        "wind_speed_euclidean_nearest_2"
-    )
+@asarray
+def wind_speed_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed", 2)
 
 
 # wind speed of gust
-def wind_speed_of_gust_euclidean_nearest_1(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
-    return variable_euclidean_nearest(data, "wind_speed_of_gust", 1).rename(
-        "wind_speed_of_gust_euclidean_nearest_1"
-    )
+@asarray
+def wind_speed_of_gust_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed_of_gust", 1)
 
 
-def wind_speed_of_gust_euclidean_nearest_2(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
-    return variable_euclidean_nearest(data, "wind_speed_of_gust", 2).rename(
-        "wind_speed_of_gust_euclidean_nearest_2"
-    )
+@asarray
+def wind_speed_of_gust_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed_of_gust", 2)
 
 
 # wind direction
-def wind_direction_euclidean_nearest_1(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
-    return variable_euclidean_nearest(data, "wind_from_direction", 1).rename(
-        "wind_from_direction_euclidean_nearest_1"
-    )
+@asarray
+def wind_direction_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_from_direction", 1)
 
 
-def wind_direction_euclidean_nearest_2(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
-    return variable_euclidean_nearest(data, "wind_from_direction", 2).rename(
-        "wind_from_direction_euclidean_nearest_2"
-    )
+@asarray
+def wind_direction_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_from_direction", 2)
