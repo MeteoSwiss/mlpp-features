@@ -2,7 +2,6 @@
 import logging
 from dataclasses import dataclass, field
 from typing import List, Union
-from functools import wraps
 
 import numpy as np
 import xarray as xr
@@ -82,16 +81,3 @@ class PreprocDatasetAccessor:
         Apply a function to the input dataset.
         """
         return f(self.ds)
-
-
-def asarray(func):
-    @wraps(func)
-    def inner(*args, **kwargs):
-        out = func(*args, **kwargs)
-        if isinstance(out, xr.Dataset):
-            out = out.to_array(name=func.__name__).sequeeze("variable", drop=True)
-        elif isinstance(out, xr.DataArray):
-            out = out.rename(func.__name__)
-        return out
-
-    return inner

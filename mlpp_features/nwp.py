@@ -4,7 +4,7 @@ from typing import Dict
 import xarray as xr
 import numpy as np
 
-from mlpp_features.utils import asarray
+from mlpp_features.decorators import asarray
 
 LOGGER = logging.getLogger(__name__)
 
