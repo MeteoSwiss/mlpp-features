@@ -4,6 +4,8 @@ from typing import Dict
 import xarray as xr
 import numpy as np
 
+from mlpp_features.decorators import asarray
+
 LOGGER = logging.getLogger(__name__)
 
 # Set global options
@@ -41,7 +43,7 @@ def variable_select_rank(obs, rank, k):
     Select the ranked observations at each timestep.
     """
 
-    obs = obs["measurement"]
+    obs = obs["measurement"].sel(neighbour_rank=slice(rank, None))
 
     # find index of nearest non-missing measurement at each time
     mask = ~np.isnan(obs)
@@ -51,7 +53,7 @@ def variable_select_rank(obs, rank, k):
 
     # add the requested rank to the prefix
     time_dependent_index = xr.DataArray(
-        index_prefix + rank,
+        index_prefix,
         coords=[obs.time, obs.point],
         dims=["time", "point"],
     )
@@ -66,16 +68,48 @@ def variable_select_rank(obs, rank, k):
     return obs.transpose("time", "point")
 
 
-def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset], *args) -> xr.Dataset:
+def variable_euclidean_nearest(
+    data: Dict[str, xr.Dataset], variable, rank: int, k=5
+) -> xr.Dataset:
     """
     Nearest observed wind speed.
     """
-    rank = 0
-    k = 5
-
-    wind_speed = data["obs"][["measurement"]].sel(variable="wind_speed")
+    wind_speed = data["obs"][["measurement"]].sel(variable=variable)
     wind_speed_euclidean_nearest_k = variable_euclidean_nearest_k(wind_speed, k)
-    wind_speed_euclidean_nearest_1 = variable_select_rank(
+    wind_speed_euclidean_nearest_rank = variable_select_rank(
         wind_speed_euclidean_nearest_k, rank=rank, k=k
     )
-    return wind_speed_euclidean_nearest_1.to_dataset().astype("float32")
+    return wind_speed_euclidean_nearest_rank.astype("float32")
+
+
+# wind speed
+@asarray
+def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed", 1)
+
+
+@asarray
+def wind_speed_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed", 2)
+
+
+# wind speed of gust
+@asarray
+def wind_speed_of_gust_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed_of_gust", 1)
+
+
+@asarray
+def wind_speed_of_gust_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_speed_of_gust", 2)
+
+
+# wind direction
+@asarray
+def wind_direction_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_from_direction", 1)
+
+
+@asarray
+def wind_direction_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.DataArray:
+    return variable_euclidean_nearest(data, "wind_from_direction", 2)
