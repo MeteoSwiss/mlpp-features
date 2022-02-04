@@ -326,6 +326,24 @@ def wind_speed_ensavg(data: Dict[str, xr.Dataset], coords, **kwargs) -> xr.DataA
 
 
 @asarray
+def wind_speed_error(data: Dict[str, xr.Dataset], coords, **kwargs) -> xr.DataArray:
+    """Forecast error of the ensemble mean wind speed"""
+    nwp = wind_speed_ensavg(data, coords, **kwargs)
+    obs = data["obs"][["measurement"]].sel(variable="wind_speed")
+    obs = obs.swap_dims({"station_id": "station_name"}).rename(
+        {"station_name": "point"}
+    )
+    obs = (
+        obs.preproc.unstack_time(
+            reftimes=nwp.forecast_reference_time.values, leadtimes=nwp.t.values
+        )
+        .to_array(name="wind_speed")
+        .squeeze("variable", drop=True)
+    )
+    return nwp - obs
+
+
+@asarray
 def wind_speed_of_gust_ensavg(
     data: Dict[str, xr.Dataset], coords, **kwargs
 ) -> xr.DataArray:

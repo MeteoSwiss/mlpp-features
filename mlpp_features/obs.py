@@ -82,7 +82,16 @@ def variable_euclidean_nearest(
     return wind_speed_euclidean_nearest_rank.astype("float32")
 
 
-# wind speed
+@asarray
+def wind_speed(data: Dict[str, xr.Dataset], *args, **kwargs) -> xr.DataArray:
+    return (
+        data["obs"][["measurement"]]
+        .sel(variable="wind_speed")
+        .swap_dims({"station_id": "station_name"})
+        .rename({"station_name": "point"})
+    )
+
+
 @asarray
 def wind_speed_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
     return variable_euclidean_nearest(data, "wind_speed", 1)
@@ -93,7 +102,6 @@ def wind_speed_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.DataArray:
     return variable_euclidean_nearest(data, "wind_speed", 2)
 
 
-# wind speed of gust
 @asarray
 def wind_speed_of_gust_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
     return variable_euclidean_nearest(data, "wind_speed_of_gust", 1)
@@ -104,7 +112,6 @@ def wind_speed_of_gust_euclidean_nearest_2(data: Dict[str, xr.Dataset]) -> xr.Da
     return variable_euclidean_nearest(data, "wind_speed_of_gust", 2)
 
 
-# wind direction
 @asarray
 def wind_direction_euclidean_nearest_1(data: Dict[str, xr.Dataset]) -> xr.DataArray:
     return variable_euclidean_nearest(data, "wind_from_direction", 1)

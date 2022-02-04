@@ -1,10 +1,12 @@
 from functools import wraps
-import xarray as xr 
+import xarray as xr
+
 
 def asarray(func):
     """
     Make every feature function return a DataArray names like the function itself.
     """
+
     @wraps(func)
     def inner(*args, **kwargs):
         out = func(*args, **kwargs)
@@ -13,4 +15,5 @@ def asarray(func):
         elif isinstance(out, xr.DataArray):
             out = out.rename(func.__name__)
         return out
+
     return inner
