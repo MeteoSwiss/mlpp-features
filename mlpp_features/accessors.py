@@ -139,6 +139,49 @@ class PreprocDatasetAccessor:
         ds_out = ds_out.assign_coords({"point": point_names})
         return ds_out
 
+    def euclidean_nearest_k(self, k: int) -> xr.Dataset:
+        """
+        Select k nearest neighbours using euclidean distance.
+        """
+
+        selector = ps.EuclideanNearestSparse(self.ds)
+        distance, index = selector.query(k=k)
+
+        points = self.ds.point.values
+        coords = [points, range(index.shape[1])]
+        dims = ["point", "neighbour_rank"]
+
+        stations_name = xr.DataArray(points[index], coords=coords, dims=dims)
+        distance = xr.DataArray(distance, coords=coords, dims=dims)
+
+        return (
+            self.ds.rename({"point": "neighbour_name"})
+            .reset_coords(drop=True)
+            .assign_coords(neighbour_distance=distance)
+            .sel(neighbour_name=stations_name)
+        )
+
+    def select_rank(self, rank: int) -> xr.Dataset:
+        """
+        Select the ranked observations at each timestep.
+        """
+
+        k = len(self.ds.neighbour_rank.values)
+
+        # only consider neighbours >= rank
+        self.ds = self.ds.sel(neighbour_rank=slice(rank, None))
+
+        # find index of nearest non-missing measurement at each time
+        mask = ~np.isnan(self.ds.to_array().squeeze(drop=True))
+        index = xr.where(
+            mask.any(dim="neighbour_rank"), mask.argmax(dim="neighbour_rank"), -1
+        )
+
+        # make sure no index is > k
+        index = xr.where(index <= k, index, k - 1)
+
+        return self.ds.isel(neighbour_rank=index).transpose("time", "point")
+
     def norm(self):
         """
         Compute the Euclidean norm of all variables in the input dataset.
