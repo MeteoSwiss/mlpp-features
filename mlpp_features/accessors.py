@@ -1,13 +1,15 @@
 """"""
 import logging
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Union
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 
-import mlpp_features.point_selection as ps
+import mlpp_features.selectors as sel
 
 
 LOGGER = logging.getLogger(__name__)
@@ -24,12 +26,12 @@ class PreprocDatasetAccessor:
     """
 
     ds: xr.Dataset
-    selector: ps.PointSelector = field(init=False, repr=False)
+    selector: sel.StationSelector = field(init=False, repr=False)
 
     def __post_init__(self):
 
         if "station_id" in self.ds:
-            self.selector = ps.EuclideanNearestSparse(self.ds)
+            self.selector = sel.EuclideanNearestSparse(self.ds)
 
     def get(self, var: Union[str, List[str]]) -> xr.Dataset:
         """Get one or more variables from a Dataset."""
@@ -42,14 +44,16 @@ class PreprocDatasetAccessor:
 
     def align_time(self, reftimes: List[datetime], leadtimes: List[int]) -> xr.Dataset:
         """Select most recently available run, consider availability time"""
+
         ds = self.ds
-        if len(ds) == 0:
-            return ds
         if not "forecast_reference_time" in ds.dims:
             return ds
+
+        # Rearrange coordinates
         ds = ds.assign_coords(init_time=ds.forecast_reference_time)
         if "arrival_time" in ds:
             ds["forecast_reference_time"] = ds.arrival_time.dt.floor("H")
+
         # take closest model run from the past (method="ffill")
         try:
             ds = ds.sortby("forecast_reference_time").sel(
@@ -64,15 +68,14 @@ class PreprocDatasetAccessor:
                 f"\n\tmodel runs: ({arrival_times.min()}, {arrival_times.max()})"
             )
 
-        # cast leadtimes to int
+        #  Cast leadtimes to int
         new_leadtimes = ds["t"].astype("timedelta64[h]")
         new_leadtimes = new_leadtimes // np.timedelta64(1, "h")
         ds["t"] = new_leadtimes
 
         # Compute the time lag between model and reftimes
-        lags_timedelta = (ds.forecast_reference_time - ds.init_time).astype(
-            "timedelta64[h]"
-        )
+        reftimes = np.array(list(map(np.datetime64, reftimes)))
+        lags_timedelta = (reftimes - ds.init_time).astype("timedelta64[h]")
         lags_int = lags_timedelta // np.timedelta64(1, "h")
         lags_unique = sorted(list(set(lags_int.values)))
 
@@ -83,23 +86,28 @@ class PreprocDatasetAccessor:
             ds_ = ds_.interp(
                 t=leadtimes + lag, method="nearest", kwargs={"fill_value": np.nan}
             )
+            ds_["t"] = leadtimes
+            ds_["leadtime"] = ("t", leadtimes + lag)
             new_ds.append(ds_)
 
-        # with warnings.catch_warnings():
-        #     # Suppress PerformanceWarning
-        #     warnings.simplefilter("ignore")
-        new_ds = xr.concat(new_ds, dim="forecast_reference_time").sortby(
-            "forecast_reference_time"
-        )
+        with warnings.catch_warnings():
+            # Suppress PerformanceWarning
+            warnings.simplefilter("ignore")
+            new_ds = xr.concat(new_ds, dim="forecast_reference_time").sortby(
+                "forecast_reference_time"
+            )
 
         # Correct for static variables after concat
         for var in ds.data_vars:
             if not "forecast_reference_time" in ds[var].dims:
                 new_ds[var] = new_ds[var].isel(forecast_reference_time=0, drop=True)
+
         # Finally update coordinates
         new_ds["forecast_reference_time"] = reftimes
         new_ds["t"] = leadtimes
-        return new_ds.drop_vars(["arrival_time", "init_time"], errors="ignore")
+        new_ds = new_ds.drop_vars(["arrival_time", "init_time"], errors="ignore")
+
+        return new_ds
 
     def unstack_time(
         self, reftimes: List[datetime], leadtimes: List[int]
@@ -119,68 +127,96 @@ class PreprocDatasetAccessor:
         )
         times = times.where(times.isin(self.ds.time))
         times = times.dropna("forecast_reference_time", how="any")
-        return self.ds.sel(time=times)
+        new_ds = self.ds.sel(time=times)
+        return new_ds.drop_vars("time", errors="ignore")
 
-    def interp(self, points, **kwargs):
-        """
-        Interpolate all variables in the dataset onto a set of target points.
-        """
+    def persist_observations(
+        self, reftimes: List[datetime], leadtimes: List[int]
+    ) -> xr.Dataset:
+        """Persist the latest observation to all leadtimes."""
+        if not "time" in self.ds.dims:
+            return self.ds
+        reftimes = np.array(reftimes)
+        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+        times = xr.DataArray(
+            reftimes[:, None] + leadtimes,
+            coords=[reftimes, leadtimes],
+            dims=["forecast_reference_time", "t"],
+        )
+        ds = self.ds.sel(time=reftimes).rename({"time": "forecast_reference_time"})
+        ds = ds.expand_dims(t=leadtimes, axis=1).assign_coords(time=times)
+        return ds
 
+    def interp(self, stations: pd.DataFrame, **kwargs):
+        """
+        Interpolate all variables in the dataset onto a set of target stations.
+        """
         if "latitude" in self.ds:
-            selector = ps.EuclideanNearestIrregular(self.ds)
+            selector = sel.EuclideanNearestIrregular(self.ds)
         else:
-            selector = ps.EuclideanNearestRegular(self.ds)
-
-        point_names = points[0]
-        point_coords = points[1:]
-        index, mask = selector.query(point_coords, **kwargs)
-        ds_out = self.ds.stack(point=("y", "x")).isel(point=index).reset_index("point")
-        point_names = [p for p, m in zip(point_names, mask) if m]
-        ds_out = ds_out.assign_coords({"point": point_names})
+            selector = sel.EuclideanNearestRegular(self.ds)
+        index = selector.query(stations, **kwargs)
+        index = index.where(index.valid, drop=True).astype(int)
+        ds_out = (
+            self.ds.stack(point=("y", "x"))
+            .isel(point=index)
+            .reset_index(("station", "valid"))
+        )
         return ds_out
 
     def euclidean_nearest_k(self, k: int) -> xr.Dataset:
         """
-        Select k nearest neighbours using euclidean distance.
+        Select k nearest neighbors using euclidean distance.
         """
 
-        selector = ps.EuclideanNearestSparse(self.ds)
-        distance, index = selector.query(k=k)
+        selector = sel.EuclideanNearestSparse(self.ds)
 
-        points = self.ds.point.values
-        coords = [points, range(index.shape[1])]
-        dims = ["point", "neighbour_rank"]
-
-        stations_name = xr.DataArray(points[index], coords=coords, dims=dims)
-        distance = xr.DataArray(distance, coords=coords, dims=dims)
-
-        return (
-            self.ds.rename({"point": "neighbour_name"})
-            .reset_coords(drop=True)
-            .assign_coords(neighbour_distance=distance)
-            .sel(neighbour_name=stations_name)
+        stations = self.ds[
+            ["station_name", "station_lon", "station_lat", "station_height"]
+        ].to_pandas()
+        stations = stations.rename(
+            columns={
+                "station_name": "name",
+                "station_lon": "longitude",
+                "station_lat": "latitude",
+                "station_height": "elevation",
+            }
         )
+        stations = stations.reset_index().set_index("name")
+        index = selector.query(stations, k=k)
+
+        neighbors = self.ds.rename(
+            {
+                "station_id": "neighbor_id",
+                "station_name": "neighbor_name",
+                "station_lon": "neighbor_longitude",
+                "station_lat": "neighbor_latitude",
+                "station_height": "neighbor_elevation",
+            }
+        )
+
+        return neighbors.isel(neighbor_id=index)
 
     def select_rank(self, rank: int) -> xr.Dataset:
         """
         Select the ranked observations at each timestep.
         """
 
-        k = len(self.ds.neighbour_rank.values)
+        k = len(self.ds.neighbor_rank.values)
 
         # only consider neighbours >= rank
-        self.ds = self.ds.sel(neighbour_rank=slice(rank, None))
+        self.ds = self.ds.sel(neighbor_rank=slice(rank, None))
 
         # find index of nearest non-missing measurement at each time
         mask = ~np.isnan(self.ds.to_array().squeeze(drop=True))
         index = xr.where(
-            mask.any(dim="neighbour_rank"), mask.argmax(dim="neighbour_rank"), -1
+            mask.any(dim="neighbor_rank"), mask.argmax(dim="neighbor_rank"), -1
         )
 
         # make sure no index is > k
         index = xr.where(index <= k, index, k - 1)
 
-        return self.ds.isel(neighbour_rank=index).transpose("time", "point")
+        return self.ds.isel(neighbor_rank=index).transpose("time", "station")
 
     def norm(self):
         """

@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 from scipy.spatial import KDTree
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 from pyproj import CRS, Transformer
 
@@ -13,28 +14,29 @@ from pyproj import CRS, Transformer
 LOGGER = logging.getLogger(__name__)
 
 
-class PointSelector(ABC):
-    """Represent a point neighbor selector method."""
+class StationSelector(ABC):
+    """Represent a station neighbor selector method."""
 
     @abstractmethod
-    def query(self, coords, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+    def query(self, stations: pd.DataFrame, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Get the nearest grid cell to a given point.
+        Get the indices to the nearest grid cells to a set of stations.
 
         Parameters
         ----------
-        points: tuple of lists
-            longitude, latitude(, height)
+        stations: pd.DataFrame
+            A collection of stations. The dataframe must include
+            the  columns 'longitude', 'latitude', and (optionally)
+            'elevation'.
 
         Return
         ------
-        ravel_index: array_like, shape (<=n,)
-        mask: array_like, shape (n,)
+        ravel_index: xr.DataArray
         """
 
 
 @dataclass
-class EuclideanNearestRegular(PointSelector):
+class EuclideanNearestRegular(StationSelector):
     """Get Euclidean nearest neighbor in the case of a regular input grid."""
 
     dataset: xr.Dataset = field(repr=False)
@@ -73,24 +75,25 @@ class EuclideanNearestRegular(PointSelector):
             self.fr_land = self.dataset.FR_LAND.values
         del self.dataset
 
-    def query(self, coords, search_radius=1.415, vertical_weight=0):
+    def query(self, stations, search_radius=1.415, vertical_weight=0):
 
-        longitude, latitude = coords[:2]
-        x_coords, y_coords = self.transformer.transform(longitude, latitude)
+        sta_lon = stations["longitude"]
+        sta_lat = stations["latitude"]
+        sta_x, sta_y = self.transformer.transform(sta_lon, sta_lat)
 
         # Approximate a safe number of nearest neighbors and the
         # corresponding maximum distance
         k = int(np.ceil(2 * search_radius) ** 2)
         max_distance = search_radius * self.grid_res
 
-        x_grid = np.expand_dims(self.x_coords, axis=1)
-        x_points = np.expand_dims(x_coords, axis=0)
-        x_diff = np.abs(x_grid - x_points)
+        grid_x = np.expand_dims(self.x_coords, axis=1)
+        sta_x = np.expand_dims(sta_x, axis=0)
+        x_diff = np.abs(grid_x - sta_x)
         x_index = np.argpartition(x_diff, range(k), axis=0)[:k]
 
-        y_grid = np.expand_dims(self.y_coords, axis=1)
-        y_stations = np.expand_dims(y_coords, axis=0)
-        y_diff = np.abs(y_grid - y_stations)
+        grid_y = np.expand_dims(self.y_coords, axis=1)
+        sta_y = np.expand_dims(sta_y, axis=0)
+        y_diff = np.abs(grid_y - sta_y)
         y_index = np.argpartition(y_diff, range(k), axis=0)[:k]
 
         # Also query distance, as to discard values too far away from any
@@ -110,35 +113,37 @@ class EuclideanNearestRegular(PointSelector):
 
         # Include vertical emphasis
         if vertical_weight > 0:
-            height = coords[2]
+            sta_elevation = stations["elevation"]
             hsurf = self.hsurf[y_index, x_index]
-            height_diff = np.abs(hsurf - height)
+            height_diff = np.abs(hsurf - sta_elevation)
             distance = horizontal_distance + vertical_weight * height_diff
         else:
             distance = horizontal_distance.copy()
 
         # Query nearest neighbour
         distance[~valid] *= 1e6
-        index = (np.argmin(distance, axis=0), np.arange(distance.shape[-1]))
-        distance = horizontal_distance[index]
-        x_index = x_index[index]
-        y_index = y_index[index]
+        ind_nearest = (np.argmin(distance, axis=0), np.arange(distance.shape[-1]))
+        distance = horizontal_distance[ind_nearest]
+        x_index = x_index[ind_nearest]
+        y_index = y_index[ind_nearest]
 
-        # Filter out stations that are too distant
-        x_index = x_index[distance < max_distance]
-        y_index = y_index[distance < max_distance]
-
-        mask = np.array([True if d < max_distance else False for d in distance])
-
-        index = np.ravel_multi_index(
+        ravel_index = np.ravel_multi_index(
             (y_index, x_index),
             (self.y_coords.size, self.x_coords.size),
         )
-        return index, mask
+        return xr.DataArray(
+            ravel_index,
+            dims="station",
+            coords={
+                "station": stations.index.values,
+                "distance": ("station", distance),
+                "valid": ("station", distance < max_distance),
+            },
+        ).astype(int)
 
 
 @dataclass
-class EuclideanNearestIrregular(PointSelector):
+class EuclideanNearestIrregular(StationSelector):
     """Get Euclidean nearest neighbor in the case of an irregular input grid."""
 
     dataset: xr.Dataset = field(repr=False)
@@ -172,17 +177,18 @@ class EuclideanNearestIrregular(PointSelector):
             self.fr_land = self.dataset.FR_LAND.values
         del self.dataset
 
-    def query(self, coords, search_radius=1.415, vertical_weight=0):
+    def query(self, stations, search_radius=1.415, vertical_weight=0):
 
-        longitude, latitude = coords[:2]
-        xy_coords = np.column_stack(self.transformer.transform(longitude, latitude))
+        sta_lon = stations["longitude"]
+        sta_lat = stations["latitude"]
+        sta_coords = np.column_stack(self.transformer.transform(sta_lon, sta_lat))
 
         # Approximate a safe number of nearest neighbors and the
         # corresponding maximum distance
         k = int(np.ceil(2 * search_radius) ** 2)
         max_distance = search_radius * self.grid_res
 
-        horizontal_distance, index = self.tree.query(xy_coords, k)
+        horizontal_distance, index = self.tree.query(sta_coords, k)
         horizontal_distance = np.array(horizontal_distance)
         index = np.array(index)
 
@@ -197,33 +203,32 @@ class EuclideanNearestIrregular(PointSelector):
 
         # Include vertical emphasis
         if vertical_weight > 0:
-            height = coords[2][:, None]
+            sta_elevation = np.expand_dims(stations["elevation"], axis=1)
             hsurf = self.hsurf.ravel()[index]
-            height_diff = np.abs(hsurf - height)
+            height_diff = np.abs(hsurf - sta_elevation)
             distance = horizontal_distance + vertical_weight * height_diff
         else:
             distance = horizontal_distance.copy()
 
         # Query nearest neighbour
         distance[~valid] *= 1e6
-        index_ = (np.arange(distance.shape[0]), np.argmin(distance, axis=1))
-        distance = horizontal_distance[index_]
+        index_nearest = (np.arange(distance.shape[0]), np.argmin(distance, axis=1))
+        distance = horizontal_distance[index_nearest]
 
-        mask = np.array([True if d < max_distance else False for d in distance])
-
-        # Filter out stations that are too distant
-        index = index[index_][distance < max_distance]
-
-        return index, mask
-
-
-# NOTE: this is a first component for the nowcasting, it works by passing the dwh dataset (dwh.zarr)
-# and then query a list of points derived by the dwh dataset itself
+        return xr.DataArray(
+            index[index_nearest],
+            dims="station",
+            coords={
+                "station": stations.index.values,
+                "distance": ("station", distance),
+                "valid": ("station", distance < max_distance),
+            },
+        ).astype(int)
 
 
 @dataclass
-class EuclideanNearestSparse(PointSelector):
-    """Get Euclidean nearest neighbor in the case of a sparse collection of points."""
+class EuclideanNearestSparse(StationSelector):
+    """Get Euclidean nearest neighbor in the case of a sparse collection of stations."""
 
     dataset: xr.Dataset = field(repr=False)
     dst_crs: str = "epsg:21781"
@@ -234,7 +239,7 @@ class EuclideanNearestSparse(PointSelector):
     tranformer: Transformer = field(init=False, repr=False)
     coords: np.ndarray = field(init=False, repr=False)
     tree: Optional[KDTree] = field(init=False, repr=False, default=None)
-    height: np.ndarray = field(init=False, repr=False, default=None)
+    elevation: np.ndarray = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
         latitude = self.dataset["station_lat"].values
@@ -246,28 +251,40 @@ class EuclideanNearestSparse(PointSelector):
         self.coords = np.column_stack((x_coords.ravel(), y_coords.ravel()))
         self.tree = KDTree(self.coords)
 
-        self.height = self.dataset["station_height"].values
+        self.elevation = self.dataset["station_height"].values
 
         del self.dataset
 
-    def query(self, k=5, vertical_weight=0):
+    def query(self, stations, k=5, vertical_weight=0):
 
-        horizontal_distance, index = self.tree.query(self.coords, k)
+        sta_lon = stations["longitude"]
+        sta_lat = stations["latitude"]
+        sta_coords = np.column_stack(self.transformer.transform(sta_lon, sta_lat))
+
+        horizontal_distance, index = self.tree.query(sta_coords, k)
         horizontal_distance = np.array(horizontal_distance)
         index = np.array(index)
 
         # Include vertical emphasis
         if vertical_weight > 0:
-            height_points = self.height[:, None]
-            height = self.height.ravel()[index]
-            height_diff = np.abs(height - height_points)
+            height_stations = self.elevation[:, None]
+            height = self.elevation.ravel()[index]
+            height_diff = np.abs(height - height_stations)
             distance = horizontal_distance + vertical_weight * height_diff
         else:
             distance = horizontal_distance.copy()
 
-        # Query nearest neighbour
+        # Query nearest neighbors
         sorted_distance = np.argsort(distance, axis=1)
         distance = np.take_along_axis(distance, sorted_distance, axis=1)
         index = np.take_along_axis(index, sorted_distance, axis=1)
 
-        return distance, index
+        return xr.DataArray(
+            index,
+            dims=("station", "neighbor_rank"),
+            coords={
+                "station": stations.index.values,
+                "neighbor_rank": range(k),
+                "distance": (("station", "neighbor_rank"), distance),
+            },
+        ).astype(int)

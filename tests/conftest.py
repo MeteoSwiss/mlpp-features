@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -119,5 +121,40 @@ def raw_obs_dataset():
             },
         )
         return ds
+
+    return _data
+
+
+@pytest.fixture
+def preproc_dataset():
+    def _data():
+        reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
+        leadtimes = [timedelta(hours=t) for t in range(0, 49)]
+        stations = ["OTL", "GVE", "KLO"]
+
+        # define dummy dimensions
+        n_reftimes = len(reftimes)
+        n_leadtimes = len(leadtimes)
+        n_stations = len(stations)
+
+        test_ds = xr.Dataset(
+            coords={
+                "station": ("station", stations),
+                "forecast_reference_time": ("forecast_reference_time", reftimes),
+                "t": ("t", leadtimes),
+            },
+            data_vars={
+                "foo": (
+                    "station",
+                    np.random.randn(n_stations),
+                ),
+                "bar": (
+                    ("station", "forecast_reference_time", "t"),
+                    np.random.randn(n_stations, n_reftimes, n_leadtimes),
+                ),
+            },
+        )
+        test_ds = test_ds.transpose("forecast_reference_time", "t", "station")
+        return test_ds.astype("float32", casting="same_kind")
 
     return _data
