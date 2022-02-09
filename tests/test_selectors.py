@@ -44,7 +44,10 @@ def test_station_selection(stations_dataframe, raw_dataset, selector_method):
             continue
         longitude = model_on_sta.longitude.sel(station=name).values
         latitude = model_on_sta.latitude.sel(station=name).values
-        assert (float(longitude), float(latitude)) == pytest.approx(coords, abs=0.01)
+        latlon_ref = coords[["latitude", "longitude"]]
+        assert (float(latitude), float(longitude)) == pytest.approx(
+            latlon_ref, abs=0.01
+        )
 
 
 @pytest.mark.parametrize("selector_method", SPARSE_SELECTORS_METHODS)

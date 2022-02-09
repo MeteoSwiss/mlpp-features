@@ -120,7 +120,7 @@ class EuclideanNearestRegular(StationSelector):
         else:
             distance = horizontal_distance.copy()
 
-        # Query nearest neighbour
+        # Query nearest neighbor
         distance[~valid] *= 1e6
         ind_nearest = (np.argmin(distance, axis=0), np.arange(distance.shape[-1]))
         distance = horizontal_distance[ind_nearest]
@@ -210,7 +210,7 @@ class EuclideanNearestIrregular(StationSelector):
         else:
             distance = horizontal_distance.copy()
 
-        # Query nearest neighbour
+        # Query nearest neighbor
         distance[~valid] *= 1e6
         index_nearest = (np.arange(distance.shape[0]), np.argmin(distance, axis=1))
         distance = horizontal_distance[index_nearest]
@@ -242,8 +242,8 @@ class EuclideanNearestSparse(StationSelector):
     elevation: np.ndarray = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
-        latitude = self.dataset["station_lat"].values
-        longitude = self.dataset["station_lon"].values
+        latitude = self.dataset["latitude"].values
+        longitude = self.dataset["longitude"].values
         src_proj = CRS("epsg:4326")
         dst_proj = CRS(self.dst_crs)
         self.transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
@@ -251,7 +251,7 @@ class EuclideanNearestSparse(StationSelector):
         self.coords = np.column_stack((x_coords.ravel(), y_coords.ravel()))
         self.tree = KDTree(self.coords)
 
-        self.elevation = self.dataset["station_height"].values
+        self.elevation = self.dataset["elevation"].values
 
         del self.dataset
 

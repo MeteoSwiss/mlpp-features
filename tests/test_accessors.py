@@ -3,7 +3,7 @@ from datetime import timedelta
 import pandas as pd
 import xarray as xr
 
-import mlpp_features
+import mlpp_features  # type: ignore
 
 
 def test_align_time(preproc_dataset):

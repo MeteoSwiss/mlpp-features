@@ -30,7 +30,7 @@ class PreprocDatasetAccessor:
 
     def __post_init__(self):
 
-        if "station_id" in self.ds:
+        if "station" in self.ds:
             self.selector = sel.EuclideanNearestSparse(self.ds)
 
     def get(self, var: Union[str, List[str]]) -> xr.Dataset:
@@ -168,21 +168,17 @@ class PreprocDatasetAccessor:
         """
         Select k nearest neighbors using euclidean distance.
         """
-
         selector = sel.EuclideanNearestSparse(self.ds)
         index = selector.query(stations, k=k)
-
-        neighbors = self.ds.rename(
+        neighbors = self.ds.rename({"station": "neighbor"})
+        neighbors = neighbors.assign_coords(
             {
-                "station_id": "neighbor_id",
-                "station_name": "neighbor_name",
-                "station_lon": "neighbor_longitude",
-                "station_lat": "neighbor_latitude",
-                "station_height": "neighbor_elevation",
+                "neighbor_longitude": neighbors.longitude,
+                "neighbor_latitude": neighbors.latitude,
+                "neighbor_elevation": neighbors.elevation,
             }
         )
-
-        return neighbors.isel(neighbor_id=index)
+        return neighbors.isel(neighbor=index)
 
     def select_rank(self, rank: int) -> xr.Dataset:
         """

@@ -387,15 +387,8 @@ def wind_speed_error(
 ) -> xr.DataArray:
     """Forecast error of the ensemble mean wind speed"""
     nwp = wind_speed_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-    obs = data["obs"][["measurement"]].sel(variable="wind_speed")
-    obs = obs.swap_dims({"station_id": "station_name"}).rename(
-        {"station_name": "point"}
-    )
-    obs = (
-        obs.preproc.unstack_time(reftimes, leadtimes)
-        .to_array(name="wind_speed")
-        .squeeze("variable", drop=True)
-    )
+    obs = data["obs"][["wind_speed"]]
+    obs = obs.preproc.unstack_time(reftimes, leadtimes).to_array(name="wind_speed")
     return (nwp - obs).astype("float32")
 
 

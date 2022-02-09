@@ -7,25 +7,29 @@ import xarray as xr
 from pyproj import CRS, Transformer
 
 
+def _stations_dataframe():
+    stations = pd.DataFrame(
+        [
+            ("KLO", 8.536, 47.48, 428),
+            ("SCU", 10.283, 46.793, 1306),
+            ("LUZ", 8.301, 47.036, 456),
+            ("DIS", 8.853, 46.707, 1199),
+            ("PMA", 9.529, 46.577, 2670),
+            ("CEV", 8.603, 46.32, 421),
+            ("MLS", 7.018, 46.546, 1976),
+            ("PAY", 6.942, 46.811, 491),
+            ("NAP", 7.94, 47.005, 1406),
+            ("Tromso", 18.96, 69.6, np.nan),  # a station far away  ...
+        ],
+        columns=["station", "longitude", "latitude", "elevation"],
+    )
+    return stations.set_index("station")
+
+
 @pytest.fixture
 def stations_dataframe():
     def _data():
-        stations = pd.DataFrame(
-            [
-                ("KLO", 8.536, 47.48),
-                ("SCU", 10.283, 46.793),
-                ("LUZ", 8.301, 47.036),
-                ("DIS", 8.853, 46.707),
-                ("PMA", 9.529, 46.577),
-                ("CEV", 8.603, 46.32),
-                ("MLS", 7.018, 46.546),
-                ("PAY", 6.942, 46.811),
-                ("NAP", 7.94, 47.005),
-                ("Tromso", 18.96, 69.6),  # a station far away  ...
-            ],
-            columns=["name", "longitude", "latitude"],
-        )
-        return stations.set_index("name")
+        return _stations_dataframe()
 
     return _data
 
@@ -104,45 +108,28 @@ def raw_obs_dataset():
     def _data():
 
         variables = ["wind_speed", "wind_from_direction", "wind_speed_of_gust"]
-        stations = np.arange(6, dtype=int)
-        names = ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF"]
+        stations = _stations_dataframe()
         times = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=10)
 
-        n_variables = len(variables)
         n_times = len(times)
         n_stations = len(stations)
 
-        x = np.random.uniform(2500000, 2800000, n_stations)
-        y = np.random.uniform(1080000, 1300000, n_stations)
-        z = np.random.uniform(100, 1000, n_stations)
-
-        src_proj = CRS("epsg:2056")
-        dst_proj = CRS("epsg:4326")
-        transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
-        longitude, latitude = transformer.transform(x, y)
-
-        # define dummy variables
-        var_shape = (n_variables, n_times, n_stations)
-        measurements = np.random.randn(*var_shape)
-        nan_idx = [np.random.randint(0, d, 60) for d in var_shape]
-        measurements[nan_idx[0], nan_idx[1], nan_idx[2]] = np.nan
-        plausibility = np.random.randn(*var_shape)
-
+        var_shape = (n_times, n_stations)
         ds = xr.Dataset(
-            {
-                "measurement": (["variable", "time", "station_id"], measurements),
-                "plausibility": (["variable", "time", "station_id"], plausibility),
-            },
+            None,
             coords={
-                "variable": variables,
                 "time": times,
-                "station_id": stations,
-                "station_name": ("station_id", names),
-                "station_lon": ("station_id", longitude),
-                "station_lat": ("station_id", latitude),
-                "station_height": ("station_id", z),
+                "station": stations.index,
+                "longitude": ("station", stations.longitude),
+                "latitude": ("station", stations.latitude),
+                "elevation": ("station", stations.elevation),
             },
         )
+        for var in variables:
+            measurements = np.random.randn(*var_shape)
+            nan_idx = [np.random.randint(0, d, 60) for d in var_shape]
+            measurements[nan_idx[0], nan_idx[1]] = np.nan
+            ds[var] = (("time", "station"), measurements)
         return ds
 
     return _data
@@ -153,7 +140,7 @@ def preproc_dataset():
     def _data():
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
         leadtimes = [timedelta(hours=t) for t in range(0, 49)]
-        stations = ["OTL", "GVE", "KLO"]
+        stations = _stations_dataframe()
 
         # define dummy dimensions
         n_reftimes = len(reftimes)
@@ -162,7 +149,10 @@ def preproc_dataset():
 
         test_ds = xr.Dataset(
             coords={
-                "station": ("station", stations),
+                "station": stations.index,
+                "longitude": ("station", stations.longitude),
+                "latitude": ("station", stations.latitude),
+                "elevation": ("station", stations.elevation),
                 "forecast_reference_time": ("forecast_reference_time", reftimes),
                 "t": ("t", leadtimes),
             },
