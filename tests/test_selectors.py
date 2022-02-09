@@ -5,23 +5,6 @@ import xarray as xr
 import mlpp_features.selectors as sel
 
 
-STATIONS = pd.DataFrame(
-    [
-        ("KLO", 8.536, 47.48),
-        ("SCU", 10.283, 46.793),
-        ("LUZ", 8.301, 47.036),
-        ("DIS", 8.853, 46.707),
-        ("PMA", 9.529, 46.577),
-        ("CEV", 8.603, 46.32),
-        ("MLS", 7.018, 46.546),
-        ("PAY", 6.942, 46.811),
-        ("NAP", 7.94, 47.005),
-        ("Tromso", 18.96, 69.6),  # a station far away  ...
-    ],
-    columns=["name", "longitude", "latitude"],
-)
-STATIONS = STATIONS.set_index("name")
-
 GRID_SELECTORS_METHODS = [
     sel.EuclideanNearestRegular,
     sel.EuclideanNearestIrregular,
@@ -33,29 +16,30 @@ SPARSE_SELECTORS_METHODS = [
 
 
 @pytest.mark.parametrize("selector_method", GRID_SELECTORS_METHODS)
-def test_station_selection(raw_dataset, selector_method):
+def test_station_selection(stations_dataframe, raw_dataset, selector_method):
     """Test selection of station for grids"""
 
     grid_res_meters = 1000
 
+    stations = stations_dataframe()
     model = raw_dataset(grid_res_meters=grid_res_meters)
 
     selector = selector_method(model, "epsg:2056")
     assert selector.grid_res == pytest.approx(grid_res_meters)
 
-    index = selector.query(STATIONS)
+    index = selector.query(stations)
     assert index.dtype == "int"
     assert isinstance(index, xr.DataArray)
     assert index.ndim == 1
     assert "station" in index.dims
-    assert index.size == len(STATIONS)
+    assert index.size == len(stations)
 
     index = index.where(index.valid, drop=True).astype(int)  # where() casts to float
-    assert index.size == len(STATIONS) - 1  # Tromso must be excluded
+    assert index.size == len(stations) - 1  # Tromso must be excluded
 
     model_on_sta = model.stack(point=("y", "x")).isel(point=index)
     assert "Tromso" not in model_on_sta.station
-    for name, coords in STATIONS.iterrows():
+    for name, coords in stations.iterrows():
         if name == "Tromso":
             continue
         longitude = model_on_sta.longitude.sel(station=name).values
@@ -64,15 +48,16 @@ def test_station_selection(raw_dataset, selector_method):
 
 
 @pytest.mark.parametrize("selector_method", SPARSE_SELECTORS_METHODS)
-def test_obs_station_selection(raw_obs_dataset, selector_method):
+def test_obs_station_selection(stations_dataframe, raw_obs_dataset, selector_method):
     """Test selection of station for sparse dataset"""
+    stations = stations_dataframe()
     obs = raw_obs_dataset()
     selector = selector_method(obs)
-    index = selector.query(STATIONS, k=5)
+    index = selector.query(stations, k=5)
     assert index.dtype == "int"
     assert isinstance(index, xr.DataArray)
     assert index.ndim == 2
     assert "station" in index.dims
     assert "neighbor_rank" in index.dims
-    assert index.shape == (len(STATIONS), 5)
+    assert index.shape == (len(stations), 5)
     assert index.distance.mean() < 1e6  # TODO: ?

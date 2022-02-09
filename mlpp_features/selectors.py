@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, Tuple
+from typing import Optional
 
 from scipy.spatial import KDTree
 
@@ -18,7 +18,7 @@ class StationSelector(ABC):
     """Represent a station neighbor selector method."""
 
     @abstractmethod
-    def query(self, stations: pd.DataFrame, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+    def query(self, stations: pd.DataFrame, **kwargs) -> xr.DataArray:
         """
         Get the indices to the nearest grid cells to a set of stations.
 

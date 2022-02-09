@@ -164,25 +164,12 @@ class PreprocDatasetAccessor:
         )
         return ds_out
 
-    def euclidean_nearest_k(self, k: int) -> xr.Dataset:
+    def euclidean_nearest_k(self, stations: pd.DataFrame, k: int) -> xr.Dataset:
         """
         Select k nearest neighbors using euclidean distance.
         """
 
         selector = sel.EuclideanNearestSparse(self.ds)
-
-        stations = self.ds[
-            ["station_name", "station_lon", "station_lat", "station_height"]
-        ].to_pandas()
-        stations = stations.rename(
-            columns={
-                "station_name": "name",
-                "station_lon": "longitude",
-                "station_lat": "latitude",
-                "station_height": "elevation",
-            }
-        )
-        stations = stations.reset_index().set_index("name")
         index = selector.query(stations, k=k)
 
         neighbors = self.ds.rename(

@@ -137,6 +137,13 @@ def heat_index_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
 
+    # try/except block necessary to expose all the required input data
+    try:
+        data["nwp"]["air_temperature"]
+        data["nwp"]["dew_point_temperature"]
+    except KeyError:
+        raise KeyError(["air_temperature", "dew_point_temperature"])
+
     t_celsius = temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     u = relative_humidity_ensavg(data, stations, reftimes, leadtimes, **kwargs)
 
@@ -173,6 +180,13 @@ def model_height_difference(
     """
     Difference between model height and height from the more precise DEM
     """
+    # try/except block necessary to expose all the required input data
+    try:
+        data["nwp"]["HSURF"]
+        data["terrain"]["DEM"]
+    except KeyError:
+        raise KeyError(["HSURF", "DEM"])
+
     hsurf_on_poi = data["nwp"].preproc.get("HSURF").preproc.interp(stations)
     dem_on_poi = data["terrain"].preproc.get("DEM").preproc.interp(stations)
     ds = xr.merge([hsurf_on_poi, dem_on_poi])
@@ -221,7 +235,6 @@ def relative_humidity_ensavg(
     """
     Ensemble mean of relative humidity
     """
-
     e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     e_s = water_vapor_saturation_pressure_ensavg(
         data, stations, reftimes, leadtimes, **kwargs
@@ -286,6 +299,15 @@ def temperature_ensavg(
 def water_vapor_mixing_ratio_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    # try/except block necessary to expose all the required input data
+    try:
+        data["nwp"]["dew_point_temperature"]
+        data["nwp"]["air_temperature"]
+        data["nwp"]["surface_air_pressure"]
+    except KeyError:
+        raise KeyError(
+            ["dew_point_temperature", "air_temperature", "surface_air_pressure"]
+        )
 
     try:
         q = specific_humidity_ensavg(data, stations, reftimes, leadtimes, **kwargs)
@@ -300,6 +322,12 @@ def water_vapor_mixing_ratio_ensavg(
 def water_vapor_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    # try/except block necessary to expose all the required input data
+    try:
+        data["nwp"]["dew_point_temperature"]
+        data["nwp"]["air_temperature"]
+    except KeyError:
+        raise KeyError(["dew_point_temperature", "air_temperature"])
 
     dew_point_temperature = dew_point_ensavg(data, stations)
     air_temperature = temperature_ensavg(data, stations)

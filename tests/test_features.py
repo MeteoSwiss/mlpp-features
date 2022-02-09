@@ -1,14 +1,29 @@
 import numpy as np
 
-from mlpp_features import obs
+import mlpp_features  # type: ignore
+
+
+def stations_df_from_obs_ds(obs_dataset):
+    stations = obs_dataset[
+        ["station_name", "station_lon", "station_lat", "station_height"]
+    ].to_pandas()
+    stations = stations.rename(
+        columns={
+            "station_name": "name",
+            "station_lon": "longitude",
+            "station_lat": "latitude",
+            "station_height": "elevation",
+        }
+    )
+    return stations.reset_index().set_index("name").drop(columns="variable")
 
 
 def test_variable_euclidean_nearest_k(raw_obs_dataset):
 
     k = 5
-
     obs_dataset = raw_obs_dataset()[["measurement"]].sel(variable="wind_speed")
-    obs_nearest_k = obs_dataset.preproc.euclidean_nearest_k(k)
+    stations = stations_df_from_obs_ds(obs_dataset)
+    obs_nearest_k = obs_dataset.preproc.euclidean_nearest_k(stations, k)
 
     good_dims = ["time", "station", "neighbor_rank"]
     assert list(obs_nearest_k.dims) == good_dims
@@ -33,7 +48,8 @@ def test_variable_select_rank(raw_obs_dataset):
     rank = 0
 
     obs_dataset = raw_obs_dataset()[["measurement"]].sel(variable="wind_speed")
-    obs_nearest_k = obs_dataset.preproc.euclidean_nearest_k(k)
+    stations = stations_df_from_obs_ds(obs_dataset)
+    obs_nearest_k = obs_dataset.preproc.euclidean_nearest_k(stations, k)
     obs_best_rank = obs_nearest_k.preproc.select_rank(rank)
 
     good_dims = ["time", "station"]

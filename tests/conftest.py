@@ -8,6 +8,29 @@ from pyproj import CRS, Transformer
 
 
 @pytest.fixture
+def stations_dataframe():
+    def _data():
+        stations = pd.DataFrame(
+            [
+                ("KLO", 8.536, 47.48),
+                ("SCU", 10.283, 46.793),
+                ("LUZ", 8.301, 47.036),
+                ("DIS", 8.853, 46.707),
+                ("PMA", 9.529, 46.577),
+                ("CEV", 8.603, 46.32),
+                ("MLS", 7.018, 46.546),
+                ("PAY", 6.942, 46.811),
+                ("NAP", 7.94, 47.005),
+                ("Tromso", 18.96, 69.6),  # a station far away  ...
+            ],
+            columns=["name", "longitude", "latitude"],
+        )
+        return stations.set_index("name")
+
+    return _data
+
+
+@pytest.fixture
 def raw_dataset():
     """Create dataset as if loaded from zarr files, still unprocessed."""
 
