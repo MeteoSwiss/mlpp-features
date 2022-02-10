@@ -40,7 +40,7 @@ class TestFeatures:
             pipeline(empty_data, None, None, None)
 
     @pytest.mark.parametrize("pipeline,", pipelines)
-    def test_features_output(self, pipeline):
+    def test_features(self, pipeline):
         """"""
         data = {
             "nwp": self._nwp,
@@ -53,6 +53,8 @@ class TestFeatures:
         da = pipeline(data, stations, reftimes, leadtimes)
         assert isinstance(da, xr.DataArray)
         assert "variable" not in da.dims
+        if "t" in da.dims:
+            assert da.t.dtype == int
 
 
 def test_variable_euclidean_nearest_k(obs_dataset):

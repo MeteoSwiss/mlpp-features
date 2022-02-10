@@ -20,6 +20,7 @@ def test_align_time(preproc_dataset):
     assert isinstance(ds_aligned, xr.Dataset)
     assert ds_aligned.sizes["forecast_reference_time"] == len(reftimes)
     assert ds_aligned.sizes["t"] == len(leadtimes)
+    assert ds_aligned.t.dtype == int
     ds_aligned.sel(forecast_reference_time=reftimes)
     ds_aligned.sel(t=leadtimes)
 

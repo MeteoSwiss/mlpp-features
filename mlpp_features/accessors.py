@@ -114,9 +114,9 @@ class PreprocDatasetAccessor:
         if not "time" in self.ds.dims:
             return self.ds
         reftimes = np.array(reftimes)
-        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+        leadtimes_td = np.array(leadtimes, dtype="timedelta64[h]")
         times = xr.DataArray(
-            reftimes[:, None] + leadtimes,
+            reftimes[:, None] + leadtimes_td,
             coords=[reftimes, leadtimes],
             dims=["forecast_reference_time", "t"],
         )
@@ -132,10 +132,10 @@ class PreprocDatasetAccessor:
         if not "time" in self.ds.dims:
             return self.ds
         reftimes = np.array(reftimes)
-        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+        leadtimes_td = np.array(leadtimes, dtype="timedelta64[h]")
         reftimes = reftimes[np.isin(reftimes, self.ds.time.values)]
         times = xr.DataArray(
-            reftimes[:, None] + leadtimes,
+            reftimes[:, None] + leadtimes_td,
             coords=[reftimes, leadtimes],
             dims=["forecast_reference_time", "t"],
         )
