@@ -133,6 +133,7 @@ class PreprocDatasetAccessor:
             return self.ds
         reftimes = np.array(reftimes)
         leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+        reftimes = reftimes[np.isin(reftimes, self.ds.time.values)]
         times = xr.DataArray(
             reftimes[:, None] + leadtimes,
             coords=[reftimes, leadtimes],
@@ -193,6 +194,9 @@ class PreprocDatasetAccessor:
 
         # make sure no index is > k
         index = xr.where(index <= k, index, k - 1)
+
+        # indexing with chunked arrays fails
+        index.load()
 
         return self.ds.isel(neighbor_rank=index).transpose("time", "station")
 
