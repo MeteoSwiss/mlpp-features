@@ -5,26 +5,39 @@ import xarray as xr
 import mlpp_features.selectors as sel
 
 
-GRID_SELECTORS_METHODS = [
-    sel.EuclideanNearestRegular,
-    sel.EuclideanNearestIrregular,
-]
-
-SPARSE_SELECTORS_METHODS = [
-    sel.EuclideanNearestSparse,
-]
-
-
-@pytest.mark.parametrize("selector_method", GRID_SELECTORS_METHODS)
-def test_station_selection(stations_dataframe, raw_dataset, selector_method):
-    """Test selection of station for grids"""
+def test_station_selection_regular(stations_dataframe, terrain_dataset):
+    """Test selection of station for regular grids"""
 
     grid_res_meters = 1000
 
     stations = stations_dataframe()
-    model = raw_dataset(grid_res_meters=grid_res_meters)
+    terrain = terrain_dataset(grid_res_meters=grid_res_meters)
 
-    selector = selector_method(model, "epsg:2056")
+    selector = sel.EuclideanNearestRegular(terrain)
+    assert selector.grid_res == pytest.approx(grid_res_meters)
+
+    index = selector.query(stations)
+    assert index.dtype == "int"
+    assert isinstance(index, xr.DataArray)
+    assert index.ndim == 1
+    assert "station" in index.dims
+    assert index.size == len(stations)
+
+    index = index.where(index.valid, drop=True).astype(int)  # where() casts to float
+    assert index.size == len(stations) - 1  # Tromso must be excluded
+
+    terrain_on_sta = terrain.stack(point=("y", "x")).isel(point=index)
+
+
+def test_station_selection_irregular(stations_dataframe, nwp_dataset):
+    """Test selection of station for irregular grids"""
+
+    grid_res_meters = 1000
+
+    stations = stations_dataframe()
+    model = nwp_dataset(grid_res_meters=grid_res_meters)
+
+    selector = sel.EuclideanNearestIrregular(model)
     assert selector.grid_res == pytest.approx(grid_res_meters)
 
     index = selector.query(stations)
@@ -50,12 +63,11 @@ def test_station_selection(stations_dataframe, raw_dataset, selector_method):
         )
 
 
-@pytest.mark.parametrize("selector_method", SPARSE_SELECTORS_METHODS)
-def test_obs_station_selection(stations_dataframe, raw_obs_dataset, selector_method):
+def test_station_selection_sparse(stations_dataframe, obs_dataset):
     """Test selection of station for sparse dataset"""
     stations = stations_dataframe()
-    obs = raw_obs_dataset()
-    selector = selector_method(obs)
+    obs = obs_dataset()
+    selector = sel.EuclideanNearestSparse(obs)
     index = selector.query(stations, k=5)
     assert index.dtype == "int"
     assert isinstance(index, xr.DataArray)

@@ -35,12 +35,12 @@ def stations_dataframe():
 
 
 @pytest.fixture
-def raw_dataset():
+def nwp_dataset():
     """Create dataset as if loaded from zarr files, still unprocessed."""
 
-    def _data(grid_res_meters):
+    def _data(grid_res_meters, var_names=None, regular_grid=False):
 
-        n_members = 5
+        n_members = 2
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
         leadtimes = [1, 2, 3]
 
@@ -48,36 +48,36 @@ def raw_dataset():
         n_reftimes = len(reftimes)
         n_leadtimes = len(leadtimes)
 
-        x = np.arange(2500000, 2900000, grid_res_meters)
-        y = np.arange(1000000, 1400000, grid_res_meters)
+        x = np.arange(480000, 840000, grid_res_meters)
+        y = np.arange(75000, 300000, grid_res_meters)
         xx, yy = np.meshgrid(x, y)
-        src_proj = CRS("epsg:2056")
+        src_proj = CRS("epsg:21781")
         dst_proj = CRS("epsg:4326")
         transformer = Transformer.from_crs(src_proj, dst_proj, always_xy=True)
         longitude, latitude = transformer.transform(xx, yy)
 
         # define dummy variables
         var_shape = (n_reftimes, n_leadtimes, n_members, y.size, x.size)
-        northward_wind = np.random.randn(*var_shape)
-        eastward_wind = np.random.randn(*var_shape)
-        wind_speed_of_gust = np.random.randn(*var_shape)
+        if var_names is None:
+            var_names = [
+                "air_temperature",
+                "atmosphere_boundary_layer_thickness",
+                "dew_point_temperature",
+                "duration_of_sunshine",
+                "eastward_wind",
+                "northward_wind",
+                "specific_humidity",
+                "surface_air_pressure",
+                "surface_downwelling_longwave_flux_in_air",
+                "surface_diffuse_downwelling_shortwave_flux_in_air",
+                "surface_upwelling_shortwave_flux_in_air",
+                "surface_direct_downwelling_shortwave_flux_in_air",
+                "wind_speed_of_gust",
+            ]
 
         # Create dataset
         ds = xr.Dataset(
-            {
-                "eastward_wind": (
-                    ["forecast_reference_time", "t", "realization", "y", "x"],
-                    eastward_wind,
-                ),
-                "northward_wind": (
-                    ["forecast_reference_time", "t", "realization", "y", "x"],
-                    northward_wind,
-                ),
-                "wind_speed_of_gust": (
-                    ["forecast_reference_time", "t", "realization", "y", "x"],
-                    wind_speed_of_gust,
-                ),
-            },
+            {"HSURF": (["y", "x"], np.random.randn(y.size, x.size))},
             coords={
                 "latitude": (["y", "x"], latitude),
                 "longitude": (["y", "x"], longitude),
@@ -89,12 +89,19 @@ def raw_dataset():
             },
         )
 
+        # Add variables
+        for var in var_names:
+            ds[var] = (
+                ["forecast_reference_time", "t", "realization", "y", "x"],
+                np.random.randn(*var_shape),
+            )
+
         # Add validtime
         ds = ds.assign_coords(
             validtime=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
         )
 
-        ds.attrs.update({"crs": "epsg:2056"})
+        ds.attrs.update({"crs": "epsg:4326"})
 
         return ds
 
@@ -102,14 +109,53 @@ def raw_dataset():
 
 
 @pytest.fixture
-def raw_obs_dataset():
+def terrain_dataset():
+    """Create dataset as if loaded from zarr files, still unprocessed."""
+
+    def _data(grid_res_meters):
+
+        x = np.arange(480000, 840000, grid_res_meters)
+        y = np.arange(75000, 300000, grid_res_meters)
+
+        # define dummy variables
+        var_shape = (y.size, x.size)
+        ASPECT_500M_SIGRATIO1 = np.random.randn(*var_shape)
+        DEM = np.random.randn(*var_shape)
+
+        # Create dataset
+        ds = xr.Dataset(
+            {
+                "ASPECT_500M_SIGRATIO1": (
+                    ["y", "x"],
+                    ASPECT_500M_SIGRATIO1,
+                ),
+                "DEM": (
+                    ["y", "x"],
+                    DEM,
+                ),
+            },
+            coords={
+                "x": x,
+                "y": y,
+            },
+        )
+
+        ds.attrs.update({"crs": "epsg:21781"})
+
+        return ds
+
+    return _data
+
+
+@pytest.fixture
+def obs_dataset():
     """Create observational dataset as if loaded from zarr files, still unprocessed."""
 
     def _data():
 
         variables = ["wind_speed", "wind_from_direction", "wind_speed_of_gust"]
         stations = _stations_dataframe()
-        times = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=10)
+        times = pd.date_range("2000-01-01T00", "2000-01-02T00", freq="1H")
 
         n_times = len(times)
         n_stations = len(stations)

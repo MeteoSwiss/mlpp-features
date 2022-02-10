@@ -1,4 +1,9 @@
+from inspect import getmembers, isfunction
+
 import numpy as np
+import pandas as pd
+import pytest
+import xarray as xr
 
 import mlpp_features  # type: ignore
 
@@ -10,10 +15,50 @@ def stations_df_from_obs_ds(obs_dataset):
     return stations
 
 
-def test_variable_euclidean_nearest_k(raw_obs_dataset):
+class TestFeatures:
+
+    pipelines = [obj[1] for obj in getmembers(mlpp_features) if isfunction(obj[1])][1:]
+
+    @pytest.fixture(autouse=True)
+    def _make_datasets(
+        self, nwp_dataset, obs_dataset, terrain_dataset, stations_dataframe
+    ):
+        self._nwp = nwp_dataset(1e4)
+        self._obs = obs_dataset()
+        self._terrain = terrain_dataset(1e4)
+        self._stations = stations_dataframe()
+
+    @pytest.mark.parametrize("pipeline,", pipelines)
+    def test_raise_keyerror(self, pipeline):
+        """Test that all features raise a KeyError when called with empy inputs"""
+        empty_data = {
+            "nwp": xr.Dataset(),
+            "terrain": xr.Dataset(),
+            "obs": xr.Dataset(),
+        }
+        with pytest.raises(KeyError):
+            pipeline(empty_data, None, None, None)
+
+    @pytest.mark.parametrize("pipeline,", pipelines)
+    def test_features_output(self, pipeline):
+        """"""
+        data = {
+            "nwp": self._nwp,
+            "terrain": self._terrain,
+            "obs": self._obs,
+        }
+        stations = self._stations
+        reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=4)
+        leadtimes = list(range(3))
+        da = pipeline(data, stations, reftimes, leadtimes)
+        assert isinstance(da, xr.DataArray)
+        assert "variable" not in da.dims
+
+
+def test_variable_euclidean_nearest_k(obs_dataset):
 
     k = 5
-    obs_dataset = raw_obs_dataset()[["wind_speed"]]
+    obs_dataset = obs_dataset()[["wind_speed"]]
     stations = stations_df_from_obs_ds(obs_dataset)
     obs_nearest_k = obs_dataset.preproc.euclidean_nearest_k(stations, k)
     assert list(obs_nearest_k.dims) == ["time", "station", "neighbor_rank"]
@@ -31,12 +76,12 @@ def test_variable_euclidean_nearest_k(raw_obs_dataset):
     np.testing.assert_equal(obs_at_rank_one_for_klo_original, obs_at_rank_one_for_klo)
 
 
-def test_variable_select_rank(raw_obs_dataset):
+def test_variable_select_rank(obs_dataset):
 
     k = 5
     rank = 0
 
-    obs_dataset = raw_obs_dataset()[["wind_speed"]]
+    obs_dataset = obs_dataset()[["wind_speed"]]
     stations = stations_df_from_obs_ds(obs_dataset)
     obs_nearest_k = obs_dataset.preproc.euclidean_nearest_k(stations, k)
     obs_best_rank = obs_nearest_k.preproc.select_rank(rank)

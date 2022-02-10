@@ -28,11 +28,6 @@ class PreprocDatasetAccessor:
     ds: xr.Dataset
     selector: sel.StationSelector = field(init=False, repr=False)
 
-    def __post_init__(self):
-
-        if "station" in self.ds:
-            self.selector = sel.EuclideanNearestSparse(self.ds)
-
     def get(self, var: Union[str, List[str]]) -> xr.Dataset:
         """Get one or more variables from a Dataset."""
         if isinstance(var, str):
@@ -87,7 +82,7 @@ class PreprocDatasetAccessor:
                 t=leadtimes + lag, method="nearest", kwargs={"fill_value": np.nan}
             )
             ds_["t"] = leadtimes
-            ds_["leadtime"] = ("t", leadtimes + lag)
+            ds_ = ds_.assign_coords({"leadtime": ("t", leadtimes + lag)})
             new_ds.append(ds_)
 
         with warnings.catch_warnings():
@@ -160,7 +155,7 @@ class PreprocDatasetAccessor:
         ds_out = (
             self.ds.stack(point=("y", "x"))
             .isel(point=index)
-            .reset_index(("station", "valid"))
+            .drop_vars(("point", "valid", "distance"))
         )
         return ds_out
 

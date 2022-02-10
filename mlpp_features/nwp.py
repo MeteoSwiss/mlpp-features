@@ -329,8 +329,8 @@ def water_vapor_pressure_ensavg(
     except KeyError:
         raise KeyError(["dew_point_temperature", "air_temperature"])
 
-    dew_point_temperature = dew_point_ensavg(data, stations)
-    air_temperature = temperature_ensavg(data, stations)
+    dew_point_temperature = dew_point_ensavg(data, stations, reftimes, leadtimes)
+    air_temperature = temperature_ensavg(data, stations, reftimes, leadtimes)
 
     def e_from_t(t, a, b, c):
         return c * np.exp(a * t / (b + t))
@@ -388,7 +388,11 @@ def wind_speed_error(
     """Forecast error of the ensemble mean wind speed"""
     nwp = wind_speed_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     obs = data["obs"][["wind_speed"]]
-    obs = obs.preproc.unstack_time(reftimes, leadtimes).to_array(name="wind_speed")
+    obs = (
+        obs.preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="wind_speed")
+        .squeeze("variable", drop=True)
+    )
     return (nwp - obs).astype("float32")
 
 
