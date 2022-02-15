@@ -1,6 +1,8 @@
 from datetime import timedelta
 
+import numpy as np
 import pandas as pd
+import pytest
 import xarray as xr
 
 import mlpp_features  # type: ignore
@@ -34,7 +36,7 @@ def test_align_time(preproc_dataset):
 
 def test_interp(stations_dataframe, nwp_dataset):
 
-    stations = stations_dataframe().drop(index="Tromso")
+    stations = stations_dataframe()
     ds = nwp_dataset(grid_res_meters=1000)
     ds_interp = ds.preproc.interp(stations)
 
@@ -42,3 +44,69 @@ def test_interp(stations_dataframe, nwp_dataset):
     assert (ds_interp.station.values == stations.index).all()
     for coord, coords in stations.iteritems():
         assert (ds_interp[coord].values == coords).all()
+
+
+def test_euclidean_nearest_k(stations_dataframe, obs_dataset):
+    k = 5
+    stations = stations_dataframe()
+    obs = obs_dataset()
+    obs_nearest_k = obs.preproc.euclidean_nearest_k(stations, k)
+    assert isinstance(obs_nearest_k, xr.Dataset)
+    assert obs_nearest_k.dims["neighbor_rank"] == k
+    assert isinstance(obs_nearest_k, xr.Dataset)
+    assert (obs_nearest_k.station.values == stations.index).all()
+    for coord, coords in stations.iteritems():
+        assert (obs_nearest_k[coord].values == coords).all()
+    assert list(obs_nearest_k.dims) == ["time", "station", "neighbor_rank"]
+
+    obs_at_klo_original = obs.wind_speed.sel(station="KLO").values
+    obs_at_klo_rank_zero = obs_nearest_k.wind_speed.sel(
+        station="KLO", neighbor_rank=0
+    ).values
+    np.testing.assert_equal(obs_at_klo_original, obs_at_klo_rank_zero)
+
+    obs_at_rank_one_for_klo_original = obs.wind_speed.loc[
+        :, obs_nearest_k.neighbor.loc["KLO", 1]
+    ].values
+    obs_at_rank_one_for_klo = obs_nearest_k.wind_speed.loc[:, "KLO", 1].values
+    np.testing.assert_equal(obs_at_rank_one_for_klo_original, obs_at_rank_one_for_klo)
+
+
+def test_select_rank(stations_dataframe, obs_dataset):
+    rank = 0
+    k = 5
+    stations = stations_dataframe()
+    obs = obs_dataset()
+    obs_nearest_k = obs.preproc.euclidean_nearest_k(stations, k)
+    with pytest.raises(ValueError):
+        obs_nearest_k.preproc.select_rank(k)
+    with pytest.raises(ValueError):
+        obs_nearest_k.preproc.select_rank(rank)
+    obs_nearest = obs_nearest_k[["wind_speed"]].preproc.select_rank(rank)
+    assert isinstance(obs_nearest, xr.Dataset)
+    assert (obs_nearest.station.values == stations.index).all()
+    for coord, coords in stations.iteritems():
+        assert (obs_nearest[coord].values == coords).all()
+        assert f"neighbor_{rank}_{coord}" in obs_nearest.coords
+    assert list(obs_nearest.dims) == ["time", "station"]
+
+    # check that missing samples are subsituted by a following ranked neighbor
+    nan_idx = np.argwhere(np.isnan(obs.wind_speed.values))
+    non_zero_rank_idx = np.argwhere(obs_nearest[f"neighbor_{rank}_rank"].values != rank)
+    assert np.all(nan_idx == non_zero_rank_idx)
+
+    # check that the subsitute samples correspond to the original ones
+    nan_idx = list(
+        zip(
+            obs.time[nan_idx[:, 0]].values,
+            obs.station[nan_idx[:, 1]].values,
+        )
+    )
+    nan_subs = (
+        obs_nearest.stack(sample=["time", "station"]).sel(sample=nan_idx).wind_speed
+    )
+    nan_subs_idx = list(zip(nan_subs.time.values, nan_subs.neighbor.values))
+    nan_sub_original = (
+        obs.stack(sample=["time", "station"]).sel(sample=nan_subs_idx).wind_speed
+    )
+    np.testing.assert_equal(nan_subs.values, nan_sub_original.values)

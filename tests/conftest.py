@@ -7,7 +7,7 @@ import xarray as xr
 from pyproj import CRS, Transformer
 
 
-def _stations_dataframe():
+def _stations_dataframe(outlier=False):
     stations = pd.DataFrame(
         [
             ("KLO", 8.536, 47.48, 428),
@@ -19,17 +19,27 @@ def _stations_dataframe():
             ("MLS", 7.018, 46.546, 1976),
             ("PAY", 6.942, 46.811, 491),
             ("NAP", 7.94, 47.005, 1406),
-            ("Tromso", 18.96, 69.6, np.nan),  # a station far away  ...
         ],
         columns=["station", "longitude", "latitude", "elevation"],
     )
+    if outlier:
+        # a station far away  ...
+        stations = stations.append(
+            {
+                "station": "Tromso",
+                "longitude": 18.96,
+                "latitude": 69.6,
+                "elevation": np.nan,
+            },
+            ignore_index=True,
+        )
     return stations.set_index("station")
 
 
 @pytest.fixture
 def stations_dataframe():
-    def _data():
-        return _stations_dataframe()
+    def _data(outlier=False):
+        return _stations_dataframe(outlier)
 
     return _data
 

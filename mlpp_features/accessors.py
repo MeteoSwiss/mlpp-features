@@ -152,6 +152,7 @@ class PreprocDatasetAccessor:
         else:
             selector = sel.EuclideanNearestRegular(self.ds)
         index = selector.query(stations, **kwargs)
+        stations = stations[index.valid.to_series()]
         index = index.where(index.valid, drop=True).astype(int)
         ds_out = (
             self.ds.stack(point=("y", "x"))
@@ -167,39 +168,47 @@ class PreprocDatasetAccessor:
         """
         selector = sel.EuclideanNearestSparse(self.ds)
         index = selector.query(stations, k=k)
-        neighbors = self.ds.rename({"station": "neighbor"})
-        neighbors = neighbors.assign_coords(
+        ds = self.ds.rename({"station": "neighbor"})
+        ds = ds.isel(neighbor=index)
+        ds = ds.rename(
             {
-                "neighbor_longitude": neighbors.longitude,
-                "neighbor_latitude": neighbors.latitude,
-                "neighbor_elevation": neighbors.elevation,
+                "longitude": "neighbor_longitude",
+                "latitude": "neighbor_latitude",
+                "elevation": "neighbor_elevation",
+                "distance": "neighbor_distance",
             }
         )
-        return neighbors.isel(neighbor=index)
+        return ds.assign_coords(
+            {c: ("station", v.values) for c, v in stations.iteritems()}
+        )
 
     def select_rank(self, rank: int) -> xr.Dataset:
         """
         Select the ranked observations at each timestep.
         """
-
         k = len(self.ds.neighbor_rank.values)
-
-        # only consider neighbours >= rank
-        self.ds = self.ds.sel(neighbor_rank=slice(rank, None))
-
-        # find index of nearest non-missing measurement at each time
-        mask = ~np.isnan(self.ds.to_array().squeeze(drop=True))
-        index = xr.where(
-            mask.any(dim="neighbor_rank"), mask.argmax(dim="neighbor_rank"), -1
-        )
-
-        # make sure no index is > k
-        index = xr.where(index <= k, index, k - 1)
-
-        # indexing with chunked arrays fails
-        index.load()
-
-        return self.ds.isel(neighbor_rank=index).transpose("time", "station")
+        if k <= rank:
+            raise ValueError(f"not enough neighbors to extract rank {rank}")
+        if len(self.ds) > 1:
+            raise ValueError(f"can only select rank for datasets of 1 variable")
+        ds_out = xr.Dataset()
+        for var, da in self.ds.data_vars.items():
+            da = da.sel(neighbor_rank=slice(rank, None))
+            # find index of nearest non-missing measurement at each time
+            mask = np.isfinite(da)
+            index = xr.where(
+                mask.any(dim="neighbor_rank"), mask.argmax(dim="neighbor_rank"), -1
+            )
+            # make sure no index is > k
+            index = xr.where(index <= k, index, k - 1)
+            # indexing with chunked arrays fails
+            index.load()
+            ds_out[var] = da.isel(neighbor_rank=index)
+        for co in ds_out.coords:
+            if "neighbor_" not in co:
+                continue
+            ds_out = ds_out.rename({co: co.replace("neighbor_", f"neighbor_{rank}_")})
+        return ds_out.transpose("time", "station")
 
     def norm(self):
         """

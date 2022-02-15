@@ -10,7 +10,7 @@ def test_station_selection_regular(stations_dataframe, terrain_dataset):
 
     grid_res_meters = 1000
 
-    stations = stations_dataframe()
+    stations = stations_dataframe(outlier=True)
     terrain = terrain_dataset(grid_res_meters=grid_res_meters)
 
     selector = sel.EuclideanNearestRegular(terrain)
@@ -34,7 +34,7 @@ def test_station_selection_irregular(stations_dataframe, nwp_dataset):
 
     grid_res_meters = 1000
 
-    stations = stations_dataframe()
+    stations = stations_dataframe(outlier=True)
     model = nwp_dataset(grid_res_meters=grid_res_meters)
 
     selector = sel.EuclideanNearestIrregular(model)
@@ -65,7 +65,7 @@ def test_station_selection_irregular(stations_dataframe, nwp_dataset):
 
 def test_station_selection_sparse(stations_dataframe, obs_dataset):
     """Test selection of station for sparse dataset"""
-    stations = stations_dataframe()
+    stations = stations_dataframe(outlier=True)
     obs = obs_dataset()
     selector = sel.EuclideanNearestSparse(obs)
     index = selector.query(stations, k=5)
