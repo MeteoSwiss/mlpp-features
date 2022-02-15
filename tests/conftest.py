@@ -48,7 +48,7 @@ def stations_dataframe():
 def nwp_dataset():
     """Create dataset as if loaded from zarr files, still unprocessed."""
 
-    def _data(grid_res_meters, var_names=None, regular_grid=False):
+    def _data(grid_res_meters, var_names=None):
 
         n_members = 2
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
@@ -87,7 +87,7 @@ def nwp_dataset():
 
         # Create dataset
         ds = xr.Dataset(
-            {"HSURF": (["y", "x"], np.random.randn(y.size, x.size))},
+            None,
             coords={
                 "latitude": (["y", "x"], latitude),
                 "longitude": (["y", "x"], longitude),
@@ -96,6 +96,7 @@ def nwp_dataset():
                 "forecast_reference_time": reftimes,
                 "t": leadtimes,
                 "realization": np.arange(n_members),
+                "HSURF": (["y", "x"], np.random.randn(y.size, x.size)),
             },
         )
 
@@ -122,33 +123,35 @@ def nwp_dataset():
 def terrain_dataset():
     """Create dataset as if loaded from zarr files, still unprocessed."""
 
-    def _data(grid_res_meters):
+    def _data(grid_res_meters, var_names=None):
 
         x = np.arange(480000, 840000, grid_res_meters)
         y = np.arange(75000, 300000, grid_res_meters)
 
         # define dummy variables
         var_shape = (y.size, x.size)
-        ASPECT_500M_SIGRATIO1 = np.random.randn(*var_shape)
-        DEM = np.random.randn(*var_shape)
+        if var_names is None:
+            var_names = [
+                "ASPECT_500M_SIGRATIO1",
+                "DEM",
+                "TPI_500M",
+            ]
 
         # Create dataset
         ds = xr.Dataset(
-            {
-                "ASPECT_500M_SIGRATIO1": (
-                    ["y", "x"],
-                    ASPECT_500M_SIGRATIO1,
-                ),
-                "DEM": (
-                    ["y", "x"],
-                    DEM,
-                ),
-            },
+            None,
             coords={
                 "x": x,
                 "y": y,
             },
         )
+
+        # Add variables
+        for var in var_names:
+            ds[var] = (
+                ["y", "x"],
+                np.random.randn(*var_shape).astype(np.float32),
+            )
 
         ds.attrs.update({"crs": "epsg:21781"})
 
