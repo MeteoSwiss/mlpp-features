@@ -174,6 +174,23 @@ def heat_index_ensavg(
 
 
 @asarray
+def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs):
+    """
+    Extract leadtime in hours
+    """
+    if len(data["nwp"]) == 0:
+        raise KeyError([])
+    ds = data["nwp"]
+    return (
+        ds.drop_vars(ds.data_vars)
+        .drop_dims(("x", "y", "realization"), errors="ignore")
+        .preproc.align_time(reftimes, leadtimes)
+        .reset_coords("leadtime")
+        .astype("float32")
+    )
+
+
+@asarray
 def model_height_difference(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:

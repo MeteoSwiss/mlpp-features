@@ -27,8 +27,21 @@ def aspect_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Da
 
 
 @asarray
-def elevation(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+def elevation_50m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
-    Terrain elevation.
+    Terrain elevation at 50m resolution.
     """
     return data["terrain"].preproc.get("DEM").preproc.interp(stations).astype("float32")
+
+
+@asarray
+def tpi_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+    """
+    Terrain TPI at a 500m scale
+    """
+    return (
+        data["terrain"]
+        .preproc.get("TPI_500M")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
