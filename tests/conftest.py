@@ -93,7 +93,7 @@ def nwp_dataset():
         for var in var_names:
             ds[var] = (
                 ["forecast_reference_time", "t", "realization", "y", "x"],
-                np.random.randn(*var_shape),
+                np.random.randn(*var_shape).astype(np.float32),
             )
 
         # Add validtime

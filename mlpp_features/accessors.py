@@ -157,6 +157,7 @@ class PreprocDatasetAccessor:
             self.ds.stack(point=("y", "x"))
             .isel(point=index)
             .drop_vars(("point", "valid", "distance"))
+            .assign_coords({c: ("station", v.values) for c, v in stations.iteritems()})
         )
         return ds_out
 

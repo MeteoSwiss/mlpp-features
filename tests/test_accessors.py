@@ -30,3 +30,15 @@ def test_align_time(preproc_dataset):
             t=time_shift, forecast_reference_time=0, missing_dims="ignore"
         ).values
         assert (array_aligned == array_original).all()
+
+
+def test_interp(stations_dataframe, nwp_dataset):
+
+    stations = stations_dataframe().drop(index="Tromso")
+    ds = nwp_dataset(grid_res_meters=1000)
+    ds_interp = ds.preproc.interp(stations)
+
+    assert isinstance(ds_interp, xr.Dataset)
+    assert (ds_interp.station.values == stations.index).all()
+    for coord, coords in stations.iteritems():
+        assert (ds_interp[coord].values == coords).all()
