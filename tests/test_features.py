@@ -6,6 +6,7 @@ import pytest
 import xarray as xr
 
 import mlpp_features  # type: ignore
+from mlpp_features.decorators import KEEP_STA_COORDS
 
 
 class TestFeatures:
@@ -48,3 +49,5 @@ class TestFeatures:
         assert "variable" not in da.dims
         if "t" in da.dims:
             assert da.t.dtype == int
+        assert all([coord in KEEP_STA_COORDS + list(da.dims) for coord in da.coords])
+        assert all([dim in da.coords for dim in da.dims])
