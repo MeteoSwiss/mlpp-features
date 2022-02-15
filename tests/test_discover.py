@@ -12,7 +12,5 @@ def test_discover_inputs():
         "wind_speed_of_gust",
     ]  # sorted alphabetically
 
-    vars = di.discover_inputs(
-        ["wind_speed", "wind_from_direction_gust_euclidean_nearest_1"]
-    )
+    vars = di.discover_inputs(["wind_speed", "nearest_wind_speed_of_gust"])
     assert vars == ["wind_speed", "wind_speed_of_gust"]  # observations

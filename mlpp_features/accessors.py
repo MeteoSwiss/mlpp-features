@@ -178,9 +178,10 @@ class PreprocDatasetAccessor:
                 "distance": "neighbor_distance",
             }
         )
-        return ds.assign_coords(
+        ds = ds.assign_coords(
             {c: ("station", v.values) for c, v in stations.iteritems()}
         )
+        return ds
 
     def select_rank(self, rank: int) -> xr.Dataset:
         """
