@@ -107,9 +107,9 @@ def nwp_dataset():
                 np.random.randn(*var_shape).astype(np.float32),
             )
 
-        # Add validtime
+        # Add valid time coordinate
         ds = ds.assign_coords(
-            validtime=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
+            time=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
         )
 
         ds.attrs.update({"crs": "epsg:4326"})
