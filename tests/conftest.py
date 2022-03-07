@@ -166,7 +166,17 @@ def obs_dataset():
 
     def _data():
 
-        variables = ["wind_speed", "wind_from_direction", "wind_speed_of_gust"]
+        variables = [
+            "air_temperature",
+            "dew_point_temperature",
+            "relative_humidity",
+            "surface_air_pressure",
+            "water_vapor_mixing_ratio",
+            "wind_speed",
+            "wind_from_direction",
+            "wind_speed_of_gust",
+        ]
+
         stations = _stations_dataframe()
         times = pd.date_range("2000-01-01T00", "2000-01-02T00", freq="1H")
 

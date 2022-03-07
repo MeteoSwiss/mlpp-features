@@ -5,7 +5,8 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-import mlpp_features  # type: ignore
+import mlpp_features
+from mlpp_features import decorators  # type: ignore
 from mlpp_features.decorators import KEEP_STA_COORDS
 
 
@@ -13,6 +14,7 @@ class TestFeatures:
 
     pipelines = [obj[1] for obj in getmembers(mlpp_features) if isfunction(obj[1])][1:]
     pipelines = [pipe for pipe in pipelines if not pipe.__name__.startswith("_")]
+    pipelines = [pipe for pipe in pipelines if not hasattr(decorators, pipe.__name__)]
 
     @pytest.fixture(autouse=True)
     def _make_datasets(
