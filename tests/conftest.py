@@ -145,7 +145,6 @@ def terrain_dataset():
                 "VALLEY_DIR_2000M_SMTHFACT0.5",
                 "WE_DERIVATIVE_500M_SIGRATIO1",
                 "WE_DERIVATIVE_2000M_SIGRATIO1",
-
             ]
 
         # Create dataset
@@ -163,6 +162,13 @@ def terrain_dataset():
                 ["y", "x"],
                 np.random.randn(*var_shape).astype(np.float32),
             )
+
+        # add SX
+        ds["SX_50M_RADIUS500"] = (
+            ["y", "x", "wind_from_direction"],
+            np.random.randn(y.size, x.size, 10).astype(int),
+        )
+        ds["wind_from_direction"] = np.arange(10)
 
         ds.attrs.update({"crs": "epsg:21781"})
 

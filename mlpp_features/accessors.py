@@ -233,3 +233,23 @@ class PreprocDatasetAccessor:
         Apply a function to the input dataset.
         """
         return f(self.ds)
+
+    def circmean(self, dim):
+        """Compute the mean of an array of wind directions between 0 and 360 degrees"""
+        sin_mean = np.sin(self.ds * np.pi / 180).mean(dim)
+        cos_mean = np.cos(self.ds * np.pi / 180).mean(dim)
+        wdir = np.arctan2(sin_mean, cos_mean) * 180 / np.pi + 360
+        return wdir % 36
+
+    def wind_from_direction(self):
+        """
+        Compute the meteorological wind direction (i.e., the direction from which the
+        wind is blowing) of a wind vector defined by its zonal and meridional components,
+        that is, its eastward and northward velocities.
+        """
+        u = self.ds["eastward_wind"]
+        v = self.ds["northward_wind"]
+        da = np.arctan2(v, u)
+        da = (270 - 180 / np.pi * da) % 360
+        da.attrs["units"] = "degrees"
+        return da.to_dataset(name="wind_from_direction")

@@ -295,6 +295,35 @@ def sunshine_duration_ensavg(
 
 
 @asarray
+def sx_500m(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Extract Sx with a 500m radius, for azimuth sectors of 10 degrees
+    and every 5 degrees.
+    """
+    sx = data["terrain"].preproc.get("SX_50M_RADIUS500")
+    nsectors = sx.wind_from_direction.size
+    degsector = int(360 / nsectors)
+
+    # find correct index for every sample
+    wdir = (
+        wind_from_direction_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+        .astype("int16")
+        .load()
+    )
+    ind = (wdir + degsector / 2) // degsector
+    del wdir
+    ind = ind.where(ind != nsectors, 0).astype("int8")
+
+    # compute Sx
+    sx = sx.preproc.interp(stations)
+    sx = sx.isel(wind_from_direction=ind.sel(station=sx.station))
+
+    return sx.astype("float32").drop_vars("wind_from_direction")
+
+
+@asarray
 def temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -381,6 +410,24 @@ def water_vapor_saturation_pressure_ensavg(
 
 
 @asarray
+def wind_from_direction_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble mean of cosine wind direction
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .preproc.wind_from_direction()
+        .preproc.circmean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
 def wind_speed_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -402,7 +449,9 @@ def wind_speed_ensavg(
 def wind_speed_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
-    """Forecast error of the ensemble mean wind speed"""
+    """
+    Forecast error of the ensemble mean wind speed
+    """
     nwp = wind_speed_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     obs = data["obs"][["wind_speed"]]
     obs = (
@@ -423,6 +472,44 @@ def wind_speed_of_gust_ensavg(
     return (
         data["nwp"]
         .preproc.get("wind_speed_of_gust")
+        .mean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def wind_speed_of_gust_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble mean wind speed of gust
+    """
+    nwp = wind_speed_of_gust_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    obs = data["obs"][["wind_speed_of_gust"]]
+    obs = (
+        obs.preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="wind_speed_of_gust")
+        .squeeze("variable", drop=True)
+    )
+    return (nwp - obs).astype("float32")
+
+
+@asarray
+def wind_gust_factor_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble mean wind gust factor
+    """
+    mean_wind = (
+        data["nwp"].preproc.get(["eastward_wind", "northward_wind"]).preproc.norm()
+    ).norm
+    max_wind = (data["nwp"].preproc.get("wind_speed_of_gust")).wind_speed_of_gust
+    return (
+        (max_wind / mean_wind)
+        .to_dataset(name="wind_gust_factor")
         .mean("realization")
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)

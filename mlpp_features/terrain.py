@@ -166,7 +166,9 @@ def valley_norm_2000m(
 
 
 @asarray
-def we_derivative_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+def we_derivative_500m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
     """
     Extract W-E derivative at 500m resolution
     """
@@ -179,7 +181,9 @@ def we_derivative_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -
 
 
 @asarray
-def we_derivative_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+def we_derivative_2000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
     """
     Extract W-E derivative at 2000m resolution
     """
