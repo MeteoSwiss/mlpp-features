@@ -58,7 +58,7 @@ def dew_point_ensavg(
         .preproc.get("dew_point_temperature")
         .mean("realization")
         .preproc.interp(stations)
-        .preproc.apply_func(lambda x: x - 273.15)  # convert to celsius
+        .pipe(lambda x: x - 273.15)  # convert to celsius
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -335,7 +335,7 @@ def temperature_ensavg(
         .preproc.get("air_temperature")
         .mean("realization")
         .preproc.interp(stations)
-        .preproc.apply_func(lambda x: x - 273.15)  # convert to celsius
+        .pipe(lambda x: x - 273.15)  # convert to celsius
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )

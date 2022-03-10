@@ -228,12 +228,6 @@ class PreprocDatasetAccessor:
         """
         return (self.ds[var1] - self.ds[var2]).to_dataset(name="difference")
 
-    def apply_func(self, f):
-        """
-        Apply a function to the input dataset.
-        """
-        return f(self.ds)
-
     def circmean(self, dim):
         """Compute the mean of an array of wind directions between 0 and 360 degrees"""
         sin_mean = np.sin(self.ds * np.pi / 180).mean(dim)
