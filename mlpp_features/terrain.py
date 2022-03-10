@@ -41,7 +41,7 @@ def aspect_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.D
 
 
 @asarray
-def cos_valley_index_10000m(
+def cos_valley_index_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
     """
