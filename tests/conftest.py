@@ -133,8 +133,19 @@ def terrain_dataset():
         if var_names is None:
             var_names = [
                 "ASPECT_500M_SIGRATIO1",
+                "ASPECT_2000M_SIGRATIO1",
                 "DEM",
+                "SLOPE_500M_SIGRATIO1",
+                "SLOPE_2000M_SIGRATIO1",
+                "SN_DERIVATIVE_500M_SIGRATIO1",
+                "SN_DERIVATIVE_2000M_SIGRATIO1",
                 "TPI_500M",
+                "TPI_2000M",
+                "VALLEY_NORM_2000M_SMTHFACT0.5",
+                "VALLEY_DIR_2000M_SMTHFACT0.5",
+                "WE_DERIVATIVE_500M_SIGRATIO1",
+                "WE_DERIVATIVE_2000M_SIGRATIO1",
+
             ]
 
         # Create dataset
