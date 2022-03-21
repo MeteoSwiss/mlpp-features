@@ -47,6 +47,26 @@ def boundary_layer_height_ensavg(
 
 
 @asarray
+def cos_wind_from_direction_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble mean of cosine wind direction
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .preproc.wind_from_direction()
+        .pipe(lambda x: x * 2 * np.pi / 360)  # radians
+        .pipe(np.cos)
+        .mean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
 def dew_point_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -300,6 +320,26 @@ def relative_humidity_ensavg(
 
 
 @asarray
+def sin_wind_from_direction_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble mean of sine wind direction
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .preproc.wind_from_direction()
+        .pipe(lambda x: x * 2 * np.pi / 360)  # radians
+        .pipe(np.sin)
+        .mean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
 def specific_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -453,7 +493,7 @@ def wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Calculate ensemble mean of cosine wind direction
+    Calculate ensemble mean of wind direction
     """
     return (
         data["nwp"]
