@@ -24,6 +24,18 @@ def wind_speed(
 
 
 @asarray
+def wind_speed_of_gust(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    return (
+        data["obs"]
+        .preproc.get("wind_speed_of_gust")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
 def nearest_wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
