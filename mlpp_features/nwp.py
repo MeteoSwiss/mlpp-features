@@ -246,6 +246,45 @@ def pressure_ensavg(
 
 
 @asarray
+def pressure_difference_BAS_LUG_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of surface pressure
+    """
+    ds = data["nwp"].preproc.get("surface_air_pressure")
+    station_pair = stations.loc[["BAS", "LUG"]]
+    return (
+        ds.preproc.interp(station_pair)
+        .diff("station")
+        .squeeze("station", drop=True)
+        .mean("realization")
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def pressure_difference_GVE_GUT_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of surface pressure
+    """
+    ds_nwp = data["nwp"].preproc.get("surface_air_pressure")
+    station_pair = stations.loc[["GVE", "GUT"]]
+    return (
+        ds_nwp.preproc.get("surface_air_pressure")
+        .preproc.interp(station_pair)
+        .diff("station")
+        .squeeze("station", drop=True)
+        .mean("realization")
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
 def relative_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:

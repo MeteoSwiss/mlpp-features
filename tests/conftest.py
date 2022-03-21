@@ -10,6 +10,10 @@ from pyproj import CRS, Transformer
 def _stations_dataframe(outlier=False):
     stations = pd.DataFrame(
         [
+            ("BAS", 7.583, 47.541, 328),
+            ("LUG", 8.960, 46.004, 310),
+            ("GVE", 6.122, 46.248, 426),
+            ("GUT", 9.279, 47.602, 452),
             ("KLO", 8.536, 47.48, 428),
             ("SCU", 10.283, 46.793, 1306),
             ("LUZ", 8.301, 47.036, 456),
