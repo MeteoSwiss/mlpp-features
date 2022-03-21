@@ -396,7 +396,8 @@ def sx_500m(
     ind = ind.where(ind != nsectors, 0).astype("int8")
 
     # compute Sx
-    sx = sx.preproc.interp(stations)
+    station_sub = stations.loc[ind.station]
+    sx = sx.preproc.interp(station_sub)
     sx = sx.isel(wind_from_direction=ind.sel(station=sx.station))
 
     return sx.astype("float32").drop_vars("wind_from_direction")
