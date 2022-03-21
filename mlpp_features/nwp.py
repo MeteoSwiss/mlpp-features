@@ -525,6 +525,24 @@ def wind_speed_ensavg(
 
 
 @asarray
+def wind_speed_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble std of wind speed
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .preproc.norm()
+        .std("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
 def wind_speed_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -552,6 +570,23 @@ def wind_speed_of_gust_ensavg(
         data["nwp"]
         .preproc.get("wind_speed_of_gust")
         .mean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def wind_speed_of_gust_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble std of wind speed gust
+    """
+    return (
+        data["nwp"]
+        .preproc.get("wind_speed_of_gust")
+        .std("realization")
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
