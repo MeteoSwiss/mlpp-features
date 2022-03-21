@@ -582,12 +582,12 @@ def wind_gust_factor_ensavg(
     """
     Calculate ensemble mean wind gust factor
     """
-    mean_wind = (
-        data["nwp"].preproc.get(["eastward_wind", "northward_wind"]).preproc.norm()
-    ).norm
-    max_wind = (data["nwp"].preproc.get("wind_speed_of_gust")).wind_speed_of_gust
+    ds_wind = data["nwp"].preproc.get(
+        ["eastward_wind", "northward_wind", "wind_speed_of_gust"]
+    )
+    mean_wind = (ds_wind[["eastward_wind", "northward_wind"]].preproc.norm()).norm
     return (
-        (max_wind / mean_wind)
+        (ds_wind.wind_speed_of_gust / mean_wind)
         .to_dataset(name="wind_gust_factor")
         .mean("realization")
         .preproc.interp(stations)
