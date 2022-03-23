@@ -47,7 +47,7 @@ class PreprocDatasetAccessor:
         # Rearrange coordinates
         ds = ds.assign_coords(init_time=ds.forecast_reference_time)
         if "arrival_time" in ds:
-            ds["forecast_reference_time"] = ds.arrival_time.dt.floor("H")
+            ds["forecast_reference_time"] = ds.arrival_time
 
         # take closest model run from the past (method="ffill")
         try:
