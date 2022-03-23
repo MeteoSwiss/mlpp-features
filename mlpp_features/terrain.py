@@ -125,6 +125,32 @@ def sn_derivative_2000m(
 
 
 @asarray
+def std_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+    """
+    Terrain STD at a 500m scale
+    """
+    return (
+        data["terrain"]
+        .preproc.get("STD_500M")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@asarray
+def std_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+    """
+    Terrain STD at a 2000m scale
+    """
+    return (
+        data["terrain"]
+        .preproc.get("STD_2000M")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@asarray
 def tpi_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain TPI at a 500m scale
