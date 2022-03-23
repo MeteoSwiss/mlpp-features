@@ -56,7 +56,7 @@ class PreprocDatasetAccessor:
                 method="ffill",
             )
         except KeyError:
-            arrival_times = ds.forecast_arrival_time.values
+            arrival_times = ds.forecast_reference_time.values
             raise ValueError(
                 "model runs do not cover the requested time range"
                 f"\n\treftime: ({reftimes[0]}, {reftimes[-1]})"
