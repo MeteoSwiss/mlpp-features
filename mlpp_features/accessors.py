@@ -233,7 +233,7 @@ class PreprocDatasetAccessor:
         sin_mean = np.sin(self.ds * np.pi / 180).mean(dim)
         cos_mean = np.cos(self.ds * np.pi / 180).mean(dim)
         wdir = np.arctan2(sin_mean, cos_mean) * 180 / np.pi + 360
-        return wdir % 36
+        return wdir % 360
 
     def wind_from_direction(self):
         """
