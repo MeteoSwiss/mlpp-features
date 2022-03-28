@@ -400,7 +400,7 @@ def sx_500m(
     sx = sx.preproc.interp(station_sub)
     sx = sx.isel(wind_from_direction=ind.sel(station=sx.station))
 
-    return sx.astype("float32").drop_vars("wind_from_direction")
+    return sx.drop_vars("wind_from_direction")
 
 
 @asarray
