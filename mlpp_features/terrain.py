@@ -192,6 +192,21 @@ def valley_norm_2000m(
 
 
 @asarray
+def valley_norm_20000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Extract valley norm 20km resolution
+    """
+    return (
+        data["terrain"]
+        .preproc.get("VALLEY_NORM_20000M_SMTHFACT0.5")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@asarray
 def we_derivative_500m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:

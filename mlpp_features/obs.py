@@ -77,3 +77,19 @@ def nearest_wind_speed_of_gust(
         .preproc.persist_observations(reftimes, leadtimes)
         .astype("float32")
     )
+
+
+@asarray
+def distance_to_nearest_wind_speed_of_gust(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    return (
+        data["obs"]
+        .preproc.get("wind_speed_of_gust")
+        .preproc.euclidean_nearest_k(stations, k=5)
+        .preproc.select_rank(rank=1)
+        .drop_vars("wind_speed_of_gust")
+        .reset_coords("neighbor_1_distance")
+        .preproc.persist_observations(reftimes, leadtimes)
+        .astype("float32")
+    )
