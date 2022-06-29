@@ -24,3 +24,19 @@ def asarray(func):
         return out
 
     return inner
+
+
+def reuse(func):
+    """
+    If the feature already exists in the target dataset, reuse it instead of computing it again.
+    """
+
+    @wraps(func)
+    def inner(*args, **kwargs):
+        if func.__name__ in args[-1].data_vars:
+            out = args[-1][func.__name__]
+        else:
+            out = func(*args, **kwargs)
+        return out
+
+    return inner

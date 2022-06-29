@@ -3,7 +3,7 @@ from typing import Dict
 
 import xarray as xr
 
-from mlpp_features.decorators import asarray
+from mlpp_features.decorators import asarray, reuse
 
 LOGGER = logging.getLogger(__name__)
 
@@ -11,9 +11,10 @@ LOGGER = logging.getLogger(__name__)
 xr.set_options(keep_attrs=True)
 
 
+@reuse
 @asarray
 def wind_speed(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
 ) -> xr.DataArray:
     return (
         data["obs"]
@@ -23,9 +24,10 @@ def wind_speed(
     )
 
 
+@reuse
 @asarray
 def wind_speed_of_gust(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
 ) -> xr.DataArray:
     return (
         data["obs"]
@@ -35,9 +37,10 @@ def wind_speed_of_gust(
     )
 
 
+@reuse
 @asarray
 def nearest_wind_speed(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
 ) -> xr.DataArray:
     return (
         data["obs"]
@@ -49,9 +52,10 @@ def nearest_wind_speed(
     )
 
 
+@reuse
 @asarray
 def distance_to_nearest_wind_speed(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
 ) -> xr.DataArray:
     return (
         data["obs"]
@@ -65,9 +69,10 @@ def distance_to_nearest_wind_speed(
     )
 
 
+@reuse
 @asarray
 def nearest_wind_speed_of_gust(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
 ) -> xr.DataArray:
     return (
         data["obs"]
@@ -79,9 +84,10 @@ def nearest_wind_speed_of_gust(
     )
 
 
+@reuse
 @asarray
 def distance_to_nearest_wind_speed_of_gust(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
 ) -> xr.DataArray:
     return (
         data["obs"]
