@@ -14,12 +14,7 @@ xr.set_options(keep_attrs=True)
 
 @asarray
 def cos_dayofyear(
-    data: Dict[str, xr.Dataset],
-    stations,
-    reftimes,
-    leadtimes,
-    ds=xr.Dataset(),
-    **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
     """
     Compute the cosine of day-of-year
@@ -44,12 +39,7 @@ def cos_dayofyear(
 
 @asarray
 def cos_hourofday(
-    data: Dict[str, xr.Dataset],
-    stations,
-    reftimes,
-    leadtimes,
-    ds=xr.Dataset(),
-    **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
     """
     Compute the cosine of hour-of-day
@@ -72,12 +62,7 @@ def cos_hourofday(
 
 @asarray
 def sin_dayofyear(
-    data: Dict[str, xr.Dataset],
-    stations,
-    reftimes,
-    leadtimes,
-    ds=xr.Dataset(),
-    **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
     """
     Compute the sine of day-of-year
@@ -93,12 +78,7 @@ def sin_dayofyear(
 
 @asarray
 def sin_hourofday(
-    data: Dict[str, xr.Dataset],
-    stations,
-    reftimes,
-    leadtimes,
-    ds=xr.Dataset(),
-    **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
     """
     Compute the sine of hour-of-day

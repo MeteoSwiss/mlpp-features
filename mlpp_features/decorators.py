@@ -29,12 +29,15 @@ def asarray(func):
 def reuse(func):
     """
     If the feature already exists in the target dataset, reuse it instead of computing it again.
+    The target dataset is where the pipelines' results are accumulated, and can be passed
+    as a keyword argument named `ds`.
     """
 
     @wraps(func)
     def inner(*args, **kwargs):
-        if func.__name__ in kwargs["ds"].data_vars:
-            out = args[-1][func.__name__]
+        ds = kwargs.get("ds", xr.Dataset())
+        if func.__name__ in ds.data_vars:
+            out = ds[func.__name__]
         else:
             out = func(*args, **kwargs)
         return out
