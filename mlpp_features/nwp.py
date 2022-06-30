@@ -15,7 +15,12 @@ xr.set_options(keep_attrs=True)
 @reuse
 @asarray
 def average_downward_longwave_radiation_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of average downward longwave radiation
@@ -33,7 +38,12 @@ def average_downward_longwave_radiation_ensavg(
 @reuse
 @asarray
 def boundary_layer_height_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of boundary layer height
@@ -51,7 +61,12 @@ def boundary_layer_height_ensavg(
 @reuse
 @asarray
 def cos_wind_from_direction_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Calculate ensemble mean of cosine wind direction
@@ -72,7 +87,12 @@ def cos_wind_from_direction_ensavg(
 @reuse
 @asarray
 def dew_point_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of dew point temperature
@@ -91,7 +111,12 @@ def dew_point_ensavg(
 @reuse
 @asarray
 def diffuse_downward_shortwave_radiation_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of diffuse downward shortwave radiation
@@ -109,7 +134,12 @@ def diffuse_downward_shortwave_radiation_ensavg(
 @reuse
 @asarray
 def diffuse_upward_shortwave_radiation_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of diffuse upward shortwave radiation
@@ -127,7 +157,12 @@ def diffuse_upward_shortwave_radiation_ensavg(
 @reuse
 @asarray
 def direct_downward_shortwave_radiation_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of direct downward shortwave radiation
@@ -145,7 +180,12 @@ def direct_downward_shortwave_radiation_ensavg(
 @reuse
 @asarray
 def eastward_wind_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of average downward longwave radiation
@@ -163,7 +203,12 @@ def eastward_wind_ensavg(
 @reuse
 @asarray
 def heat_index_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
 
     # try/except block necessary to expose all the required input data
@@ -173,8 +218,12 @@ def heat_index_ensavg(
     except KeyError:
         raise KeyError(["air_temperature", "dew_point_temperature"])
 
-    t_celsius = temperature_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
-    u = relative_humidity_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
+    t_celsius = temperature_ensavg(
+        data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+    )
+    u = relative_humidity_ensavg(
+        data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+    )
 
     def _hi_normal_range(t_f, u):
         return (
@@ -204,7 +253,14 @@ def heat_index_ensavg(
 
 @reuse
 @asarray
-def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs):
+def leadtime(
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
+):
     """
     Extract leadtime in hours
     """
@@ -223,7 +279,12 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **k
 @reuse
 @asarray
 def model_height_difference(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Difference between model height and height from the more precise DEM
@@ -245,7 +306,12 @@ def model_height_difference(
 @reuse
 @asarray
 def northward_wind_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of average downward longwave radiation
@@ -263,7 +329,12 @@ def northward_wind_ensavg(
 @reuse
 @asarray
 def pressure_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of surface pressure
@@ -281,7 +352,12 @@ def pressure_ensavg(
 @reuse
 @asarray
 def pressure_difference_BAS_LUG_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of surface pressure
@@ -301,7 +377,12 @@ def pressure_difference_BAS_LUG_ensavg(
 @reuse
 @asarray
 def pressure_difference_GVE_GUT_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of surface pressure
@@ -322,14 +403,21 @@ def pressure_difference_GVE_GUT_ensavg(
 @reuse
 @asarray
 def relative_humidity_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of relative humidity
     """
-    e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
+    e = water_vapor_pressure_ensavg(
+        data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+    )
     e_s = water_vapor_saturation_pressure_ensavg(
-        data, stations, reftimes, leadtimes, ds, **kwargs
+        data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
     )
 
     return (e / e_s * 100).astype("float32")
@@ -338,7 +426,12 @@ def relative_humidity_ensavg(
 @reuse
 @asarray
 def sin_wind_from_direction_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Calculate ensemble mean of sine wind direction
@@ -359,7 +452,12 @@ def sin_wind_from_direction_ensavg(
 @reuse
 @asarray
 def specific_humidity_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of specific humidity
@@ -377,7 +475,12 @@ def specific_humidity_ensavg(
 @reuse
 @asarray
 def sunshine_duration_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of sunshine duration
@@ -395,7 +498,12 @@ def sunshine_duration_ensavg(
 @reuse
 @asarray
 def sx_500m(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Extract Sx with a 500m radius, for azimuth sectors of 10 degrees
@@ -407,7 +515,9 @@ def sx_500m(
 
     # find correct index for every sample
     wdir = (
-        wind_from_direction_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
+        wind_from_direction_ensavg(
+            data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+        )
         .astype("int16")
         .load()
     )
@@ -426,7 +536,12 @@ def sx_500m(
 @reuse
 @asarray
 def temperature_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of temperature
@@ -445,7 +560,12 @@ def temperature_ensavg(
 @reuse
 @asarray
 def water_vapor_mixing_ratio_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     # try/except block necessary to expose all the required input data
     try:
@@ -458,20 +578,29 @@ def water_vapor_mixing_ratio_ensavg(
         )
 
     try:
-        q = specific_humidity_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
+        q = specific_humidity_ensavg(
+            data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+        )
         return (q / (1 - q)).astype("float32")
     except KeyError:
         e = water_vapor_pressure_ensavg(
-            data, stations, reftimes, leadtimes, ds, **kwargs
+            data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
         )
-        p = pressure_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
+        p = pressure_ensavg(
+            data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+        )
         return ((622.0 * e) / (p / 100 - e)).astype("float32")
 
 
 @reuse
 @asarray
 def water_vapor_pressure_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     # try/except block necessary to expose all the required input data
     try:
@@ -480,8 +609,12 @@ def water_vapor_pressure_ensavg(
     except KeyError:
         raise KeyError(["dew_point_temperature", "air_temperature"])
 
-    dew_point_temperature = dew_point_ensavg(data, stations, reftimes, leadtimes, ds)
-    air_temperature = temperature_ensavg(data, stations, reftimes, leadtimes, ds)
+    dew_point_temperature = dew_point_ensavg(
+        data, stations, reftimes, leadtimes, ds=xr.Dataset()
+    )
+    air_temperature = temperature_ensavg(
+        data, stations, reftimes, leadtimes, ds=xr.Dataset()
+    )
 
     def e_from_t(t, a, b, c):
         return c * np.exp(a * t / (b + t))
@@ -498,11 +631,16 @@ def water_vapor_pressure_ensavg(
 @reuse
 @asarray
 def water_vapor_saturation_pressure_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
 
     air_temperature = temperature_ensavg(
-        data, stations, reftimes, leadtimes, ds, **kwargs
+        data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
     )
 
     def e_from_t(t, a, b, c):
@@ -520,7 +658,12 @@ def water_vapor_saturation_pressure_ensavg(
 @reuse
 @asarray
 def wind_from_direction_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Calculate ensemble mean of wind direction
@@ -539,7 +682,12 @@ def wind_from_direction_ensavg(
 @reuse
 @asarray
 def wind_speed_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of wind speed
@@ -558,7 +706,12 @@ def wind_speed_ensavg(
 @reuse
 @asarray
 def wind_speed_ensstd(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble std of wind speed
@@ -577,12 +730,19 @@ def wind_speed_ensstd(
 @reuse
 @asarray
 def wind_speed_error(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Forecast error of the ensemble mean wind speed
     """
-    nwp = wind_speed_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
+    nwp = wind_speed_ensavg(
+        data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+    )
     obs = data["obs"][["wind_speed"]]
     obs = (
         obs.preproc.unstack_time(reftimes, leadtimes)
@@ -595,7 +755,12 @@ def wind_speed_error(
 @reuse
 @asarray
 def wind_speed_of_gust_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of wind speed gust
@@ -613,7 +778,12 @@ def wind_speed_of_gust_ensavg(
 @reuse
 @asarray
 def wind_speed_of_gust_ensstd(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Ensemble std of wind speed gust
@@ -631,12 +801,19 @@ def wind_speed_of_gust_ensstd(
 @reuse
 @asarray
 def wind_speed_of_gust_error(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Forecast error of the ensemble mean wind speed of gust
     """
-    nwp = wind_speed_of_gust_ensavg(data, stations, reftimes, leadtimes, ds, **kwargs)
+    nwp = wind_speed_of_gust_ensavg(
+        data, stations, reftimes, leadtimes, ds=xr.Dataset(), **kwargs
+    )
     obs = data["obs"][["wind_speed_of_gust"]]
     obs = (
         obs.preproc.unstack_time(reftimes, leadtimes)
@@ -649,7 +826,12 @@ def wind_speed_of_gust_error(
 @reuse
 @asarray
 def wind_gust_factor_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, ds, **kwargs
+    data: Dict[str, xr.Dataset],
+    stations,
+    reftimes,
+    leadtimes,
+    ds=xr.Dataset(),
+    **kwargs
 ) -> xr.DataArray:
     """
     Calculate ensemble mean wind gust factor

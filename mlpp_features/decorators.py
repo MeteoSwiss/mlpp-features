@@ -33,7 +33,7 @@ def reuse(func):
 
     @wraps(func)
     def inner(*args, **kwargs):
-        if func.__name__ in args[-1].data_vars:
+        if func.__name__ in kwargs["ds"].data_vars:
             out = args[-1][func.__name__]
         else:
             out = func(*args, **kwargs)

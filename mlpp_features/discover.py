@@ -19,7 +19,7 @@ def discover_inputs(pipelines: Union[str, List[str]]) -> List:
     for pipeline in pipelines:
         try:
             getattr(globals()["mlpp_features"], pipeline)(
-                data, None, None, None, xr.Dataset()
+                data, None, None, None, ds=xr.Dataset()
             )
         except KeyError as err:
             var = err.args[0]

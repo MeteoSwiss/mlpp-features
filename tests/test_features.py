@@ -34,7 +34,7 @@ class TestFeatures:
             "obs": xr.Dataset(),
         }
         with pytest.raises(KeyError):
-            pipeline(empty_data, None, None, None, xr.Dataset())
+            pipeline(empty_data, None, None, None, ds=xr.Dataset())
 
     @pytest.mark.parametrize("pipeline,", pipelines)
     def test_features(self, pipeline):
@@ -47,7 +47,7 @@ class TestFeatures:
         stations = self._stations
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=4)
         leadtimes = list(range(3))
-        da = pipeline(data, stations, reftimes, leadtimes, xr.Dataset())
+        da = pipeline(data, stations, reftimes, leadtimes, ds=xr.Dataset())
         assert isinstance(da, xr.DataArray)
         assert "variable" not in da.dims
         if "t" in da.dims:
