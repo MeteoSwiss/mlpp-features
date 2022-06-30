@@ -34,6 +34,20 @@ def test_align_time(preproc_dataset):
         assert (array_aligned == array_original).all()
 
 
+def test_align_time_dims(preproc_dataset):
+    time_shift = 12
+    n_reftimes = 3
+
+    ds = preproc_dataset()
+
+    t0 = pd.Timestamp(ds.forecast_reference_time.values[0])
+    reftimes = [t0 + n * timedelta(hours=time_shift) for n in range(n_reftimes)]
+    reftimes = pd.DatetimeIndex(reftimes)
+    leadtimes = [0, 1]
+    ds_aligned = ds.preproc.align_time(reftimes, leadtimes)
+    assert "forecast_reference_time" in ds_aligned.leadtime.dims
+
+
 def test_interp(stations_dataframe, nwp_dataset):
 
     stations = stations_dataframe()
