@@ -4,7 +4,7 @@ from typing import Dict
 import xarray as xr
 import numpy as np
 
-from mlpp_features.decorators import asarray
+from mlpp_features.decorators import asarray, reuse
 
 LOGGER = logging.getLogger(__name__)
 
@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 xr.set_options(keep_attrs=True)
 
 
+@reuse
 @asarray
 def average_downward_longwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -29,6 +30,7 @@ def average_downward_longwave_radiation_ensavg(
     )
 
 
+@reuse
 @asarray
 def boundary_layer_height_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -46,6 +48,7 @@ def boundary_layer_height_ensavg(
     )
 
 
+@reuse
 @asarray
 def cos_wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -66,6 +69,7 @@ def cos_wind_from_direction_ensavg(
     )
 
 
+@reuse
 @asarray
 def dew_point_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -84,6 +88,7 @@ def dew_point_ensavg(
     )
 
 
+@reuse
 @asarray
 def diffuse_downward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -101,6 +106,7 @@ def diffuse_downward_shortwave_radiation_ensavg(
     )
 
 
+@reuse
 @asarray
 def diffuse_upward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -118,6 +124,7 @@ def diffuse_upward_shortwave_radiation_ensavg(
     )
 
 
+@reuse
 @asarray
 def direct_downward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -135,6 +142,7 @@ def direct_downward_shortwave_radiation_ensavg(
     )
 
 
+@reuse
 @asarray
 def eastward_wind_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -152,6 +160,7 @@ def eastward_wind_ensavg(
     )
 
 
+@reuse
 @asarray
 def heat_index_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -173,11 +182,11 @@ def heat_index_ensavg(
             + 2.04901523 * t_f
             + 10.14333127 * u
             - 0.22475541 * t_f * u
-            - 6.83783e-3 * t_f ** 2
-            - 5.481717e-2 * u ** 2
-            + 1.22874e-3 * (t_f ** 2) * u
-            + 8.5282e-4 * t_f * (u ** 2)
-            - 1.99e-6 * (t_f ** 2) * (u ** 2)
+            - 6.83783e-3 * t_f**2
+            - 5.481717e-2 * u**2
+            + 1.22874e-3 * (t_f**2) * u
+            + 8.5282e-4 * t_f * (u**2)
+            - 1.99e-6 * (t_f**2) * (u**2)
         )
 
     def _hi_cold_range(t_f, u):
@@ -193,6 +202,7 @@ def heat_index_ensavg(
     return hi.astype("float32")
 
 
+@reuse
 @asarray
 def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs):
     """
@@ -210,6 +220,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     )
 
 
+@reuse
 @asarray
 def model_height_difference(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -231,6 +242,7 @@ def model_height_difference(
     return ds.preproc.difference("HSURF", "DEM").astype("float32")
 
 
+@reuse
 @asarray
 def northward_wind_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -248,6 +260,7 @@ def northward_wind_ensavg(
     )
 
 
+@reuse
 @asarray
 def pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -265,6 +278,7 @@ def pressure_ensavg(
     )
 
 
+@reuse
 @asarray
 def pressure_difference_BAS_LUG_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -284,6 +298,7 @@ def pressure_difference_BAS_LUG_ensavg(
     )
 
 
+@reuse
 @asarray
 def pressure_difference_GVE_GUT_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -304,6 +319,7 @@ def pressure_difference_GVE_GUT_ensavg(
     )
 
 
+@reuse
 @asarray
 def relative_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -319,6 +335,7 @@ def relative_humidity_ensavg(
     return (e / e_s * 100).astype("float32")
 
 
+@reuse
 @asarray
 def sin_wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -339,6 +356,7 @@ def sin_wind_from_direction_ensavg(
     )
 
 
+@reuse
 @asarray
 def specific_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -356,6 +374,7 @@ def specific_humidity_ensavg(
     )
 
 
+@reuse
 @asarray
 def sunshine_duration_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -373,6 +392,7 @@ def sunshine_duration_ensavg(
     )
 
 
+@reuse
 @asarray
 def sx_500m(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -403,6 +423,7 @@ def sx_500m(
     return sx.drop_vars("wind_from_direction")
 
 
+@reuse
 @asarray
 def temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -421,6 +442,7 @@ def temperature_ensavg(
     )
 
 
+@reuse
 @asarray
 def water_vapor_mixing_ratio_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -440,10 +462,11 @@ def water_vapor_mixing_ratio_ensavg(
         return (q / (1 - q)).astype("float32")
     except KeyError:
         e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-        p = pressure_ensavg(data, stations)
+        p = pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
         return ((622.0 * e) / (p / 100 - e)).astype("float32")
 
 
+@reuse
 @asarray
 def water_vapor_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -455,8 +478,10 @@ def water_vapor_pressure_ensavg(
     except KeyError:
         raise KeyError(["dew_point_temperature", "air_temperature"])
 
-    dew_point_temperature = dew_point_ensavg(data, stations, reftimes, leadtimes)
-    air_temperature = temperature_ensavg(data, stations, reftimes, leadtimes)
+    dew_point_temperature = dew_point_ensavg(
+        data, stations, reftimes, leadtimes, **kwargs
+    )
+    air_temperature = temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
 
     def e_from_t(t, a, b, c):
         return c * np.exp(a * t / (b + t))
@@ -470,6 +495,7 @@ def water_vapor_pressure_ensavg(
     return e.astype("float32")
 
 
+@reuse
 @asarray
 def water_vapor_saturation_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -489,6 +515,7 @@ def water_vapor_saturation_pressure_ensavg(
     return e.astype("float32")
 
 
+@reuse
 @asarray
 def wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -507,6 +534,7 @@ def wind_from_direction_ensavg(
     )
 
 
+@reuse
 @asarray
 def wind_speed_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -525,6 +553,7 @@ def wind_speed_ensavg(
     )
 
 
+@reuse
 @asarray
 def wind_speed_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -543,6 +572,7 @@ def wind_speed_ensstd(
     )
 
 
+@reuse
 @asarray
 def wind_speed_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -560,6 +590,7 @@ def wind_speed_error(
     return (nwp - obs).astype("float32")
 
 
+@reuse
 @asarray
 def wind_speed_of_gust_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -577,6 +608,7 @@ def wind_speed_of_gust_ensavg(
     )
 
 
+@reuse
 @asarray
 def wind_speed_of_gust_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -594,6 +626,7 @@ def wind_speed_of_gust_ensstd(
     )
 
 
+@reuse
 @asarray
 def wind_speed_of_gust_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -611,6 +644,7 @@ def wind_speed_of_gust_error(
     return (nwp - obs).astype("float32")
 
 
+@reuse
 @asarray
 def wind_gust_factor_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
