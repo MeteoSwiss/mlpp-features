@@ -102,6 +102,13 @@ class PreprocDatasetAccessor:
         new_ds["t"] = leadtimes
         new_ds = new_ds.drop_vars(["arrival_time", "init_time"], errors="ignore")
 
+        if "forecast_reference_time" not in new_ds["leadtime"].dims:
+            new_ds = new_ds.assign_coords(
+                leadtime=new_ds["leadtime"].expand_dims(
+                    forecast_reference_time=reftimes
+                )
+            )
+
         return new_ds
 
     def unstack_time(
