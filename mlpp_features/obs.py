@@ -10,6 +10,66 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
+@reuse
+@asarray
+def air_temperature(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    return (
+        data["obs"]
+        .preproc.get("air_temperature")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def dew_point_temperature(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    return (
+        data["obs"]
+        .preproc.get("dew_point_temperature")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def surface_air_pressure(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    return (
+        data["obs"]
+        .preproc.get("surface_air_pressure")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def relative_humidity(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    return (
+        data["obs"]
+        .preproc.get("relative_humidity")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def water_vapor_mixing_ratio(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    return (
+        data["obs"]
+        .preproc.get("water_vapor_mixing_ratio")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
 
 @reuse
 @asarray
