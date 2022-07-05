@@ -18,7 +18,7 @@ def air_temperature_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of temperature
+    Control run temperature in °C
     """
     return (
         data["nwp"]
@@ -36,7 +36,7 @@ def air_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of temperature
+    Ensemble mean of temperature in °C
     """
     return (
         data["nwp"]
@@ -55,7 +55,7 @@ def average_downward_longwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of average downward longwave radiation
+    Ensemble mean of average downward longwave radiation in W/m^2
     """
     return (
         data["nwp"]
@@ -73,7 +73,7 @@ def boundary_layer_height_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of boundary layer height
+    Ensemble mean of boundary layer height in m
     """
     return (
         data["nwp"]
@@ -112,7 +112,7 @@ def dew_point_temperature_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of dew point temperature
+    Control run dew point temperature in °C
     """
     return (
         data["nwp"]
@@ -130,7 +130,7 @@ def dew_point_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of dew point temperature
+    Ensemble mean of dew point temperature in °C
     """
     return (
         data["nwp"]
@@ -149,7 +149,7 @@ def diffuse_downward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of diffuse downward shortwave radiation
+    Ensemble mean of diffuse downward shortwave radiation in W/m^2
     """
     return (
         data["nwp"]
@@ -167,7 +167,7 @@ def diffuse_upward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of diffuse upward shortwave radiation
+    Ensemble mean of diffuse upward shortwave radiation in W/m^2
     """
     return (
         data["nwp"]
@@ -185,7 +185,7 @@ def direct_downward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of direct downward shortwave radiation
+    Ensemble mean of direct downward shortwave radiation in W/m^2
     """
     return (
         data["nwp"]
@@ -203,7 +203,7 @@ def eastward_wind_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of average downward longwave radiation
+    Ensemble mean of eastward wind in m/s
     """
     return (
         data["nwp"]
@@ -220,6 +220,9 @@ def eastward_wind_ensavg(
 def heat_index_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Ensemble mean of the heat index
+    """
 
     # try/except block necessary to expose all the required input data
     try:
@@ -281,7 +284,7 @@ def model_height_difference(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Difference between model height and height from the more precise DEM
+    Difference between model height and height from the more precise DEM in m
     """
     # try/except block necessary to expose all the required input data
     try:
@@ -303,7 +306,7 @@ def northward_wind_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of average downward longwave radiation
+    Ensemble mean of northward wind in m/s
     """
     return (
         data["nwp"]
@@ -321,7 +324,7 @@ def pressure_difference_BAS_LUG_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of surface pressure
+    Ensemble mean of pressure difference between Basel and Lugano in hPa
     """
     ds = data["nwp"].preproc.get("surface_air_pressure")
     station_pair = stations.loc[["BAS", "LUG"]]
@@ -341,7 +344,7 @@ def pressure_difference_GVE_GUT_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of surface pressure
+    Ensemble mean of pressure difference between Geneva and Güttingen in hPa
     """
     ds_nwp = data["nwp"].preproc.get("surface_air_pressure")
     station_pair = stations.loc[["GVE", "GUT"]]
@@ -362,7 +365,7 @@ def relative_humidity_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of relative humidity
+    Control run relative humidity in %
     """
     e = water_vapor_pressure_ctrl(data, stations, reftimes, leadtimes, **kwargs)
     e_s = water_vapor_saturation_pressure_ctrl(
@@ -378,7 +381,7 @@ def relative_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of relative humidity
+    Ensemble mean of relative humidity in %
     """
     e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     e_s = water_vapor_saturation_pressure_ensavg(
@@ -415,7 +418,7 @@ def specific_humidity_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of specific humidity
+    Control run specific humidity in g/kg
     """
     return (
         data["nwp"]
@@ -433,7 +436,7 @@ def specific_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of specific humidity
+    Ensemble mean of specific humidity in g/kg
     """
     return (
         data["nwp"]
@@ -451,7 +454,7 @@ def sunshine_duration_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of sunshine duration
+    Ensemble mean of sunshine duration in seconds
     """
     return (
         data["nwp"]
@@ -469,7 +472,7 @@ def surface_air_pressure_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of surface pressure
+    Control run surface pressure in hPa
     """
     return (
         data["nwp"]
@@ -477,6 +480,7 @@ def surface_air_pressure_ctrl(
         .sel(realization=0)
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
+        .pipe(lambda x: x / 100)
         .astype("float32")
     )
 
@@ -486,7 +490,7 @@ def surface_air_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of surface pressure
+    Ensemble mean of surface pressure in hPa
     """
     return (
         data["nwp"]
@@ -534,6 +538,9 @@ def sx_500m(
 def water_vapor_mixing_ratio_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Control run water vapor mixing ratio in g/kg
+    """
     # try/except block necessary to expose all the required input data
     try:
         data["nwp"]["dew_point_temperature"]
@@ -558,6 +565,9 @@ def water_vapor_mixing_ratio_ctrl(
 def water_vapor_mixing_ratio_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Ensemble mean of water vapor mixing ratio in g/kg
+    """
     # try/except block necessary to expose all the required input data
     try:
         data["nwp"]["dew_point_temperature"]
@@ -582,7 +592,9 @@ def water_vapor_mixing_ratio_ensavg(
 def water_vapor_pressure_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
-
+    """
+    Control run water vapor partial pressure
+    """
     # try/except block necessary to expose all the required input data
     try:
         data["nwp"]["dew_point_temperature"]
@@ -610,6 +622,9 @@ def water_vapor_pressure_ctrl(
 def water_vapor_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Ensemble mean of water vapor partial pressure
+    """
     # try/except block necessary to expose all the required input data
     try:
         data["nwp"]["dew_point_temperature"]
@@ -637,7 +652,9 @@ def water_vapor_pressure_ensavg(
 def water_vapor_saturation_pressure_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
-
+    """
+    Control run water vapor partial pressure at saturation
+    """
     t = air_temperature_ctrl(data, stations, reftimes, leadtimes, **kwargs)
 
     def e_from_t(t, a, b, c):
@@ -657,18 +674,18 @@ def water_vapor_saturation_pressure_ctrl(
 def water_vapor_saturation_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
-
-    air_temperature = air_temperature_ensavg(
-        data, stations, reftimes, leadtimes, **kwargs
-    )
+    """
+    Ensemble mean of water vapor partial pressure at saturation
+    """
+    t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
 
     def e_from_t(t, a, b, c):
         return c * np.exp(a * t / (b + t))
 
     e = xr.where(
-        air_temperature > 0,
-        e_from_t(air_temperature, 17.368, 238.83, 6.107),
-        e_from_t(air_temperature, 17.856, 245.52, 6.108),
+        t > 0,
+        e_from_t(t, 17.368, 238.83, 6.107),
+        e_from_t(t, 17.856, 245.52, 6.108),
     )
 
     return e.astype("float32")

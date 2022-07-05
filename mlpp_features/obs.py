@@ -10,11 +10,15 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
+
 @reuse
 @asarray
 def air_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed air temperature in °C
+    """
     return (
         data["obs"]
         .preproc.get("air_temperature")
@@ -27,6 +31,9 @@ def air_temperature(
 def dew_point_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed dew point temperature in °C
+    """
     return (
         data["obs"]
         .preproc.get("dew_point_temperature")
@@ -39,6 +46,9 @@ def dew_point_temperature(
 def surface_air_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed surface pressure in hPa
+    """
     return (
         data["obs"]
         .preproc.get("surface_air_pressure")
@@ -51,6 +61,9 @@ def surface_air_pressure(
 def relative_humidity(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed relative humidity in %
+    """
     return (
         data["obs"]
         .preproc.get("relative_humidity")
@@ -63,6 +76,9 @@ def relative_humidity(
 def water_vapor_mixing_ratio(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed water vapor mixing ratio in g/kg
+    """
     return (
         data["obs"]
         .preproc.get("water_vapor_mixing_ratio")
@@ -76,6 +92,9 @@ def water_vapor_mixing_ratio(
 def wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed wind speed in m/s
+    """
     return (
         data["obs"]
         .preproc.get("wind_speed")
@@ -89,6 +108,9 @@ def wind_speed(
 def wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed wind gust in m/s
+    """
     return (
         data["obs"]
         .preproc.get("wind_speed_of_gust")
@@ -102,6 +124,9 @@ def wind_speed_of_gust(
 def nearest_wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed wind speed at the nearest (euclidean distance) station
+    """
     return (
         data["obs"]
         .preproc.get("wind_speed")
@@ -117,6 +142,9 @@ def nearest_wind_speed(
 def distance_to_nearest_wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Distance (euclidean, in meters) from the nearest wind speed measurement.
+    """
     return (
         data["obs"]
         .preproc.get("wind_speed")
@@ -134,6 +162,9 @@ def distance_to_nearest_wind_speed(
 def nearest_wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Observed wind gust at the nearest (euclidean distance) station
+    """
     return (
         data["obs"]
         .preproc.get("wind_speed_of_gust")
@@ -149,6 +180,9 @@ def nearest_wind_speed_of_gust(
 def distance_to_nearest_wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
+    """
+    Distance (euclidean, in meters) from the nearest wind gust measurement.
+    """
     return (
         data["obs"]
         .preproc.get("wind_speed_of_gust")
