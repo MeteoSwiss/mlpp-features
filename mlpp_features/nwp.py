@@ -14,6 +14,43 @@ xr.set_options(keep_attrs=True)
 
 @reuse
 @asarray
+def air_temperature_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of temperature
+    """
+    return (
+        data["nwp"]
+        .preproc.get("air_temperature")
+        .sel(realization=0)
+        .preproc.interp(stations)
+        .pipe(lambda x: x - 273.15)  # convert to celsius
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def air_temperature_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of temperature
+    """
+    return (
+        data["nwp"]
+        .preproc.get("air_temperature")
+        .mean("realization")
+        .preproc.interp(stations)
+        .pipe(lambda x: x - 273.15)  # convert to celsius
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def average_downward_longwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -71,7 +108,25 @@ def cos_wind_from_direction_ensavg(
 
 @reuse
 @asarray
-def dew_point_ensavg(
+def dew_point_temperature_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of dew point temperature
+    """
+    return (
+        data["nwp"]
+        .preproc.get("dew_point_temperature")
+        .sel(realization=0)
+        .preproc.interp(stations)
+        .pipe(lambda x: x - 273.15)  # convert to celsius
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def dew_point_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
@@ -173,7 +228,7 @@ def heat_index_ensavg(
     except KeyError:
         raise KeyError(["air_temperature", "dew_point_temperature"])
 
-    t_celsius = temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    t_celsius = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     u = relative_humidity_ensavg(data, stations, reftimes, leadtimes, **kwargs)
 
     def _hi_normal_range(t_f, u):
@@ -262,24 +317,6 @@ def northward_wind_ensavg(
 
 @reuse
 @asarray
-def pressure_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
-) -> xr.DataArray:
-    """
-    Ensemble mean of surface pressure
-    """
-    return (
-        data["nwp"]
-        .preproc.get("surface_air_pressure")
-        .mean("realization")
-        .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
-        .astype("float32")
-    )
-
-
-@reuse
-@asarray
 def pressure_difference_BAS_LUG_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -321,6 +358,22 @@ def pressure_difference_GVE_GUT_ensavg(
 
 @reuse
 @asarray
+def relative_humidity_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of relative humidity
+    """
+    e = water_vapor_pressure_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+    e_s = water_vapor_saturation_pressure_ctrl(
+        data, stations, reftimes, leadtimes, **kwargs
+    )
+
+    return (e / e_s * 100).astype("float32")
+
+
+@reuse
+@asarray
 def relative_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -350,6 +403,24 @@ def sin_wind_from_direction_ensavg(
         .pipe(lambda x: x * 2 * np.pi / 360)  # radians
         .pipe(np.sin)
         .mean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
+def specific_humidity_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of specific humidity
+    """
+    return (
+        data["nwp"]
+        .preproc.get("specific_humidity")
+        .sel(realization=0)
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
@@ -394,6 +465,41 @@ def sunshine_duration_ensavg(
 
 @reuse
 @asarray
+def surface_air_pressure_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of surface pressure
+    """
+    return (
+        data["nwp"]
+        .preproc.get("surface_air_pressure")
+        .sel(realization=0)
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@asarray
+def surface_air_pressure_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of surface pressure
+    """
+    return (
+        data["nwp"]
+        .preproc.get("surface_air_pressure")
+        .mean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def sx_500m(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -425,21 +531,26 @@ def sx_500m(
 
 @reuse
 @asarray
-def temperature_ensavg(
+def water_vapor_mixing_ratio_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
-    """
-    Ensemble mean of temperature
-    """
-    return (
-        data["nwp"]
-        .preproc.get("air_temperature")
-        .mean("realization")
-        .preproc.interp(stations)
-        .pipe(lambda x: x - 273.15)  # convert to celsius
-        .preproc.align_time(reftimes, leadtimes)
-        .astype("float32")
-    )
+    # try/except block necessary to expose all the required input data
+    try:
+        data["nwp"]["dew_point_temperature"]
+        data["nwp"]["air_temperature"]
+        data["nwp"]["surface_air_pressure"]
+    except KeyError:
+        raise KeyError(
+            ["dew_point_temperature", "air_temperature", "surface_air_pressure"]
+        )
+
+    try:
+        q = specific_humidity_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+        return (q / (1 - q)).astype("float32")
+    except KeyError:
+        e = water_vapor_pressure_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+        p = surface_air_pressure_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+        return ((622.0 * e) / (p / 100 - e)).astype("float32")
 
 
 @reuse
@@ -462,8 +573,36 @@ def water_vapor_mixing_ratio_ensavg(
         return (q / (1 - q)).astype("float32")
     except KeyError:
         e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-        p = pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+        p = surface_air_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
         return ((622.0 * e) / (p / 100 - e)).astype("float32")
+
+
+@reuse
+@asarray
+def water_vapor_pressure_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+
+    # try/except block necessary to expose all the required input data
+    try:
+        data["nwp"]["dew_point_temperature"]
+        data["nwp"]["air_temperature"]
+    except KeyError:
+        raise KeyError(["dew_point_temperature", "air_temperature"])
+
+    t_d = dew_point_temperature_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+    t = air_temperature_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+
+    def e_from_t(t, a, b, c):
+        return c * np.exp(a * t / (b + t))
+
+    e = xr.where(
+        t > 0,
+        e_from_t(t_d, 17.368, 238.83, 6.107),
+        e_from_t(t_d, 17.856, 245.52, 6.108),
+    )
+
+    return e.astype("float32")
 
 
 @reuse
@@ -478,18 +617,36 @@ def water_vapor_pressure_ensavg(
     except KeyError:
         raise KeyError(["dew_point_temperature", "air_temperature"])
 
-    dew_point_temperature = dew_point_ensavg(
-        data, stations, reftimes, leadtimes, **kwargs
-    )
-    air_temperature = temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    t_d = dew_point_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
 
     def e_from_t(t, a, b, c):
         return c * np.exp(a * t / (b + t))
 
     e = xr.where(
-        air_temperature > 0,
-        e_from_t(dew_point_temperature, 17.368, 238.83, 6.107),
-        e_from_t(dew_point_temperature, 17.856, 245.52, 6.108),
+        t > 0,
+        e_from_t(t_d, 17.368, 238.83, 6.107),
+        e_from_t(t_d, 17.856, 245.52, 6.108),
+    )
+
+    return e.astype("float32")
+
+
+@reuse
+@asarray
+def water_vapor_saturation_pressure_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+
+    t = air_temperature_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+
+    def e_from_t(t, a, b, c):
+        return c * np.exp(a * t / (b + t))
+
+    e = xr.where(
+        t > 0,
+        e_from_t(t, 17.368, 238.83, 6.107),
+        e_from_t(t, 17.856, 245.52, 6.108),
     )
 
     return e.astype("float32")
@@ -501,7 +658,9 @@ def water_vapor_saturation_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
 
-    air_temperature = temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    air_temperature = air_temperature_ensavg(
+        data, stations, reftimes, leadtimes, **kwargs
+    )
 
     def e_from_t(t, a, b, c):
         return c * np.exp(a * t / (b + t))
