@@ -11,7 +11,6 @@ LOGGER = logging.getLogger(__name__)
 xr.set_options(keep_attrs=True)
 
 
-@reuse
 @asarray
 def air_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -25,6 +24,18 @@ def air_temperature(
         .preproc.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
+
+
+@asarray
+def dew_point_depression(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Observed dew point depression (T - T_d)
+    """
+    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    t_d = dew_point_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    return (t - t_d).astype("float32")
 
 
 @asarray
