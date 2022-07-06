@@ -30,7 +30,7 @@ def air_temperature_ctrl(
         .astype("float32")
     )
 
-
+@reuse
 @asarray
 def air_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -108,6 +108,32 @@ def cos_wind_from_direction_ensavg(
 
 @reuse
 @asarray
+def dew_point_depression_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Control run dew point depression (T - T_d)
+    """
+    t = air_temperature_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+    t_d = dew_point_temperature_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+    return (t - t_d).astype("float32")
+
+
+@reuse
+@asarray
+def dew_point_depression_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of dew point depression (T - T_d)
+    """
+    t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    t_d = dew_point_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    return (t - t_d).astype("float32")
+
+
+@reuse
+@asarray
 def dew_point_temperature_ctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -125,6 +151,7 @@ def dew_point_temperature_ctrl(
     )
 
 
+@reuse
 @asarray
 def dew_point_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -485,6 +512,7 @@ def surface_air_pressure_ctrl(
     )
 
 
+@reuse
 @asarray
 def surface_air_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -675,7 +703,7 @@ def water_vapor_saturation_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of water vapor partial pressure at saturation
+    Ensemble mean of water vapor partial pressure at saturation in hPa
     """
     t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
 
