@@ -87,7 +87,7 @@ def sin_hourofday(
         raise KeyError([])
     ds = _make_time_dataset(reftimes, leadtimes)
     ds["sin_hourofday"] = ds["time.hour"] * 2 * np.pi / 24
-    return ds.pipe(np.cos).astype("float32")
+    return ds.pipe(np.sin).astype("float32")
 
 
 def _make_time_dataset(reftimes, leadtimes):
