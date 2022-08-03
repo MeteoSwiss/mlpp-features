@@ -194,6 +194,9 @@ class PreprocDatasetAccessor:
         """
         Compute daily summaries on xr.Dataset
         """
+        if ds.t.max() > np.timedelta64(30, "D"):
+            raise NotImplementedError("Cannot compute for t > 30 days!")
+
         ds = self.ds
         res = []
         for reftime in ds.forecast_reference_time:
