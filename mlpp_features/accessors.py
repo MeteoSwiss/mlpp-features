@@ -3,7 +3,7 @@ import logging
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Callable
 
 import numpy as np
 import pandas as pd
@@ -189,6 +189,19 @@ class PreprocDatasetAccessor:
             {c: ("station", v.values) for c, v in stations.iteritems()}
         )
         return ds
+
+    def daystat(self, func: Callable) -> xr.Dataset:
+        """
+        Compute daily summaries on xr.Dataset
+        """
+        ds = self.ds
+        res = []
+        for i, group in ds.groupby("time.day"):
+            dayfunc = func(group, dim="stacked_forecast_reference_time_t")
+            dayfunc = dayfunc.broadcast_like(group).unstack()
+            res.append(dayfunc)
+        res = xr.merge(res)
+        return res
 
     def select_rank(self, rank: int) -> xr.Dataset:
         """
