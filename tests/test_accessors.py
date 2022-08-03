@@ -63,7 +63,12 @@ def test_daystat(preproc_dataset):
         .bar
     )
 
-    day_one_max = ds.where(day_one, drop=True).max(reduction_dims).bar
+    day_one_max = (
+        ds.where(day_one, drop=True)
+        .isel(forecast_reference_time=0, drop=True)
+        .max("t")
+        .bar
+    )
 
     xr.testing.assert_equal(day_one_max, daymax_day_one)
 

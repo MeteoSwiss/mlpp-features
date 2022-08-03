@@ -196,11 +196,15 @@ class PreprocDatasetAccessor:
         """
         ds = self.ds
         res = []
-        for i, group in ds.groupby("time.day"):
-            dayfunc = func(group, dim="stacked_forecast_reference_time_t")
-            dayfunc = dayfunc.broadcast_like(group).unstack()
-            res.append(dayfunc)
-        res = xr.merge(res)
+        for reftime in ds.forecast_reference_time:
+            ds_tmp = ds.sel(forecast_reference_time=reftime)
+            res_reftime = []
+            for i, group in ds_tmp.groupby("time.day"):
+                dayfunc = func(group, dim="t")
+                dayfunc = dayfunc.broadcast_like(group).unstack()
+                res_reftime.append(dayfunc)
+            res.append(xr.merge(res_reftime))
+        res = xr.concat(res, "forecast_reference_time")
         return res
 
     def select_rank(self, rank: int) -> xr.Dataset:
