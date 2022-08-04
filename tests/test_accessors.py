@@ -54,12 +54,14 @@ def test_daystat(preproc_dataset):
     time = ds.forecast_reference_time + ds.t
     ds = ds.assign_coords(time=time)
 
-    day_one = ds.time < ds.time[0, 0] + np.timedelta64(1, "D")
+    day_one = (ds.time <= ds.time[0, 0] + np.timedelta64(1, "D")) & (
+        ds.time > ds.time[0, 0]
+    )
 
     daymax = ds.preproc.daystat(xr.Dataset.max)
     daymax_day_one = (
         daymax.where(day_one, drop=True)
-        .isel(forecast_reference_time=0, t=0, drop=True)
+        .isel(forecast_reference_time=0, t=1, drop=True)
         .bar
     )
 

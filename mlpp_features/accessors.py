@@ -198,6 +198,8 @@ class PreprocDatasetAccessor:
             raise NotImplementedError("Cannot compute for t > 30 days!")
 
         ds = self.ds
+        # follow "end-of-accumulation time" convention
+        ds["time"] = ds.time - np.timedelta64(1, "h")
         res = []
         for reftime in ds.forecast_reference_time:
             ds_tmp = ds.sel(forecast_reference_time=reftime)
@@ -208,6 +210,7 @@ class PreprocDatasetAccessor:
                 res_reftime.append(dayfunc)
             res.append(xr.merge(res_reftime))
         res = xr.concat(res, "forecast_reference_time")
+        res.coords["time"] = ds["time"] + np.timedelta64(1, "h")
         return res
 
     def select_rank(self, rank: int) -> xr.Dataset:
