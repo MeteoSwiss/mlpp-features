@@ -190,9 +190,9 @@ class PreprocDatasetAccessor:
         )
         return ds
 
-    def daystat(self, func: Callable) -> xr.Dataset:
+    def daystat(self, func: Callable, complete: bool = True) -> xr.Dataset:
         """
-        Compute daily summaries on xr.Dataset. 
+        Compute daily summaries on xr.Dataset.
         """
         ds = self.ds
 
@@ -203,7 +203,7 @@ class PreprocDatasetAccessor:
             ds_tmp = ds.sel(forecast_reference_time=reftime)
             res_reftime = []
             for i, group in ds_tmp.groupby("time.date"):
-                dayfunc = func(group, dim="t")
+                dayfunc = func(group, dim="t", skipna=~complete)
                 dayfunc = dayfunc.broadcast_like(group).unstack()
                 res_reftime.append(dayfunc)
             res.append(xr.merge(res_reftime))
