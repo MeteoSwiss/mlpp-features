@@ -71,7 +71,7 @@ def air_temperature_ensstd(
 
 @reuse
 @asarray
-def air_temperature_dailyrange_ens(
+def air_temperature_dailyrange_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
