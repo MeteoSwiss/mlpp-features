@@ -192,19 +192,17 @@ class PreprocDatasetAccessor:
 
     def daystat(self, func: Callable) -> xr.Dataset:
         """
-        Compute daily summaries on xr.Dataset
+        Compute daily summaries on xr.Dataset. 
         """
-        if self.ds.t.max() > np.timedelta64(30, "D"):
-            raise NotImplementedError("Cannot compute for t > 30 days!")
-
         ds = self.ds
+
         # follow "end-of-accumulation time" convention
         ds["time"] = ds.time - np.timedelta64(1, "h")
         res = []
         for reftime in ds.forecast_reference_time:
             ds_tmp = ds.sel(forecast_reference_time=reftime)
             res_reftime = []
-            for i, group in ds_tmp.groupby("time.day"):
+            for i, group in ds_tmp.groupby("time.date"):
                 dayfunc = func(group, dim="t")
                 dayfunc = dayfunc.broadcast_like(group).unstack()
                 res_reftime.append(dayfunc)
