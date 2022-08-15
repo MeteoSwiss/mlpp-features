@@ -30,6 +30,7 @@ def air_temperature_ctrl(
         .astype("float32")
     )
 
+
 @reuse
 @asarray
 def air_temperature_ensavg(
@@ -43,6 +44,45 @@ def air_temperature_ensavg(
         .preproc.get("air_temperature")
         .mean("realization")
         .preproc.interp(stations)
+        .pipe(lambda x: x - 273.15)  # convert to celsius
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
+def air_temperature_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble standard deviation of temperature in °C
+    """
+    return (
+        data["nwp"]
+        .preproc.get("air_temperature")
+        .std("realization")
+        .preproc.interp(stations)
+        .pipe(lambda x: x - 273.15)  # convert to celsius
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
+def air_temperature_dailyrange_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of daily temperature range in °C
+    """
+    dstemp = data["nwp"].preproc.get("air_temperature").preproc.interp(stations)
+    daymax = dstemp.preproc.daystat(xr.Dataset.max)
+    daymin = dstemp.preproc.daystat(xr.Dataset.min)
+    return (
+        (daymax - daymin)
+        .mean("realization")
         .pipe(lambda x: x - 273.15)  # convert to celsius
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
