@@ -3,7 +3,7 @@ import logging
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Callable
 
 import numpy as np
 import pandas as pd
@@ -189,6 +189,27 @@ class PreprocDatasetAccessor:
             {c: ("station", v.values) for c, v in stations.iteritems()}
         )
         return ds
+
+    def daystat(self, func: Callable, complete: bool = True) -> xr.Dataset:
+        """
+        Compute daily summaries on xr.Dataset.
+        """
+        ds = self.ds
+
+        # follow "end-of-accumulation time" convention
+        ds["time"] = ds.time - np.timedelta64(1, "h")
+        res = []
+        for reftime in ds.forecast_reference_time:
+            ds_tmp = ds.sel(forecast_reference_time=reftime)
+            res_reftime = []
+            for i, group in ds_tmp.groupby("time.date"):
+                dayfunc = func(group, dim="t", skipna=~complete)
+                dayfunc = dayfunc.broadcast_like(group).unstack()
+                res_reftime.append(dayfunc)
+            res.append(xr.merge(res_reftime))
+        res = xr.concat(res, "forecast_reference_time")
+        res.coords["time"] = ds["time"] + np.timedelta64(1, "h")
+        return res
 
     def select_rank(self, rank: int) -> xr.Dataset:
         """

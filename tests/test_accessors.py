@@ -48,6 +48,33 @@ def test_align_time_dims(preproc_dataset):
     assert "forecast_reference_time" in ds_aligned.leadtime.dims
 
 
+def test_daystat(preproc_dataset):
+    reduction_dims = ["forecast_reference_time", "t"]
+    ds = preproc_dataset()
+    time = ds.forecast_reference_time + ds.t
+    ds = ds.assign_coords(time=time)
+
+    day_one = (ds.time <= ds.time[0, 0] + np.timedelta64(1, "D")) & (
+        ds.time > ds.time[0, 0]
+    )
+
+    daymax = ds.preproc.daystat(xr.Dataset.max)
+    daymax_day_one = (
+        daymax.where(day_one, drop=True)
+        .isel(forecast_reference_time=0, t=1, drop=True)
+        .bar
+    )
+
+    day_one_max = (
+        ds.where(day_one, drop=True)
+        .isel(forecast_reference_time=0, drop=True)
+        .max("t")
+        .bar
+    )
+
+    xr.testing.assert_equal(day_one_max, daymax_day_one)
+
+
 def test_interp(stations_dataframe, nwp_dataset):
 
     stations = stations_dataframe()
