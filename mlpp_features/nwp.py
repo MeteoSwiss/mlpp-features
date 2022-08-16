@@ -77,12 +77,13 @@ def air_temperature_dailyrange_ensavg(
     """
     Ensemble mean of daily temperature range in °C
     """
-    dstemp = data["nwp"].preproc.get("air_temperature").preproc.interp(stations)
+    dstemp = data["nwp"].preproc.get("air_temperature")
     daymax = dstemp.preproc.daystat(xr.Dataset.max)
     daymin = dstemp.preproc.daystat(xr.Dataset.min)
     return (
         (daymax - daymin)
         .mean("realization")
+        .preproc.interp(stations)
         .pipe(lambda x: x - 273.15)  # convert to celsius
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
