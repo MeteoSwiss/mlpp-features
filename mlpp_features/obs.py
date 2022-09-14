@@ -1,6 +1,7 @@
 import logging
 from typing import Dict
 
+import numpy as np
 import xarray as xr
 
 from mlpp_features.decorators import asarray, reuse
@@ -93,6 +94,42 @@ def water_vapor_mixing_ratio(
     return (
         data["obs"]
         .preproc.get("water_vapor_mixing_ratio")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
+def cos_wind_from_direction(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Cosine of observed wind directions
+    """
+    return (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.cos)
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
+def sin_wind_from_direction(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Sine of observed wind directions
+    """
+    return (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.sin)
         .preproc.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
