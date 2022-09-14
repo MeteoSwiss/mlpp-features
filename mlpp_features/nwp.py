@@ -363,6 +363,11 @@ def model_height_difference(
 
     hsurf_on_poi = data["nwp"].preproc.get("HSURF").preproc.interp(stations)
     dem_on_poi = data["terrain"].preproc.get("DEM").preproc.interp(stations)
+
+    # drop grid coordinates to avoid conflicts when merging
+    hsurf_on_poi = hsurf_on_poi.drop_vars(("x","y"))
+    dem_on_poi = dem_on_poi.drop_vars(("x","y"))
+
     ds = xr.merge([hsurf_on_poi, dem_on_poi])
 
     return ds.preproc.difference("HSURF", "DEM").astype("float32")
