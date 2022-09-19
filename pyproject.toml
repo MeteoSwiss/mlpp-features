@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "mlpp-features"
 version = "0.1.0"
-description = "Serves as the single source of truth to define, track, share, and discover features for MLPP."
+description = "Define, track, share, and discover features for ML-based postprocessing of weather forecasts."
 authors = ["Daniele Nerini"]
 license = "BSD 3-Clause License"
 
