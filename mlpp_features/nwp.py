@@ -711,7 +711,7 @@ def surface_air_pressure_ensctrl(
 
 @reuse
 @asarray
-def sx_ensavg_500m(
+def sx_500m_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
@@ -742,7 +742,7 @@ def sx_ensavg_500m(
 
 @reuse
 @asarray
-def sx_ensctrl_500m(
+def sx_500m_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
