@@ -110,6 +110,24 @@ def average_downward_longwave_radiation_ensavg(
 
 @reuse
 @asarray
+def boundary_layer_height_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of boundary layer height in m
+    """
+    return (
+        data["nwp"]
+        .preproc.get("atmosphere_boundary_layer_thickness")
+        .isel(realization=0, drop=True)
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def boundary_layer_height_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -288,6 +306,24 @@ def direct_downward_shortwave_radiation_ensavg(
 
 @reuse
 @asarray
+def eastward_wind_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of eastward wind in m/s
+    """
+    return (
+        data["nwp"]
+        .preproc.get("eastward_wind")
+        .isel(realization=0, drop=True)
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def eastward_wind_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -386,12 +422,30 @@ def model_height_difference(
     dem_on_poi = data["terrain"].preproc.get("DEM").preproc.interp(stations)
 
     # drop grid coordinates to avoid conflicts when merging
-    hsurf_on_poi = hsurf_on_poi.drop_vars(("x","y"), errors="ignore")
-    dem_on_poi = dem_on_poi.drop_vars(("x","y"), errors="ignore")
+    hsurf_on_poi = hsurf_on_poi.drop_vars(("x", "y"), errors="ignore")
+    dem_on_poi = dem_on_poi.drop_vars(("x", "y"), errors="ignore")
 
     ds = xr.merge([hsurf_on_poi, dem_on_poi])
 
     return ds.preproc.difference("HSURF", "DEM").astype("float32")
+
+
+@reuse
+@asarray
+def northward_wind_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of northward wind in m/s
+    """
+    return (
+        data["nwp"]
+        .preproc.get("northward_wind")
+        .isel(realization=0, drop=True)
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
 
 
 @reuse
@@ -407,6 +461,26 @@ def northward_wind_ensavg(
         .preproc.get("northward_wind")
         .mean("realization")
         .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
+def pressure_difference_BAS_LUG_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of pressure difference between Basel and Lugano in hPa
+    """
+    ds = data["nwp"].preproc.get("surface_air_pressure")
+    station_pair = stations.loc[["BAS", "LUG"]]
+    return (
+        ds.isel(realization=0, drop=True)
+        .preproc.interp(station_pair)
+        .diff("station")
+        .squeeze("station", drop=True)
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -434,6 +508,26 @@ def pressure_difference_BAS_LUG_ensavg(
 
 @reuse
 @asarray
+def pressure_difference_GVE_GUT_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of pressure difference between Geneva and Güttingen in hPa
+    """
+    ds_nwp = data["nwp"].preproc.get("surface_air_pressure")
+    station_pair = stations.loc[["GVE", "GUT"]]
+    return (
+        ds_nwp.isel(realization=0, drop=True)
+        .preproc.interp(station_pair)
+        .diff("station")
+        .squeeze("station", drop=True)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def pressure_difference_GVE_GUT_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -443,8 +537,7 @@ def pressure_difference_GVE_GUT_ensavg(
     ds_nwp = data["nwp"].preproc.get("surface_air_pressure")
     station_pair = stations.loc[["GVE", "GUT"]]
     return (
-        ds_nwp.preproc.get("surface_air_pressure")
-        .preproc.interp(station_pair)
+        ds_nwp.preproc.interp(station_pair)
         .diff("station")
         .squeeze("station", drop=True)
         .mean("realization")
@@ -465,7 +558,6 @@ def relative_humidity_ctrl(
     e_s = water_vapor_saturation_pressure_ctrl(
         data, stations, reftimes, leadtimes, **kwargs
     )
-
     return (e / e_s * 100).astype("float32")
 
 
@@ -481,7 +573,6 @@ def relative_humidity_ensavg(
     e_s = water_vapor_saturation_pressure_ensavg(
         data, stations, reftimes, leadtimes, **kwargs
     )
-
     return (e / e_s * 100).astype("float32")
 
 
@@ -620,11 +711,42 @@ def surface_air_pressure_ensavg(
 
 @reuse
 @asarray
-def sx_500m(
+def sx_ctrl_500m(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Extract Sx with a 500m radius, for azimuth sectors of 10 degrees
+    Extract ensemble control Sx with a 500m radius, for azimuth sectors of 10 degrees
+    and every 5 degrees.
+    """
+    sx = data["terrain"].preproc.get("SX_50M_RADIUS500")
+    nsectors = sx.wind_from_direction.size
+    degsector = int(360 / nsectors)
+
+    # find correct index for every sample
+    wdir = (
+        wind_from_direction_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+        .astype("int16")
+        .load()
+    )
+    ind = (wdir + degsector / 2) // degsector
+    del wdir
+    ind = ind.where(ind != nsectors, 0).astype("int8")
+
+    # compute Sx
+    station_sub = stations.loc[ind.station]
+    sx = sx.preproc.interp(station_sub)
+    sx = sx.isel(wind_from_direction=ind.sel(station=sx.station))
+
+    return sx.drop_vars("wind_from_direction")
+
+
+@reuse
+@asarray
+def sx_ensavg_500m(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Extract ensemble average Sx with a 500m radius, for azimuth sectors of 10 degrees
     and every 5 degrees.
     """
     sx = data["terrain"].preproc.get("SX_50M_RADIUS500")
@@ -809,6 +931,25 @@ def water_vapor_saturation_pressure_ensavg(
 
 @reuse
 @asarray
+def wind_from_direction_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble control of wind direction
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .isel(realization=0, drop=True)
+        .preproc.wind_from_direction()
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -885,7 +1026,25 @@ def wind_speed_ensstd(
 
 @reuse
 @asarray
-def wind_speed_error(
+def wind_speed_ctrl_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble control wind speed
+    """
+    nwp = wind_speed_ctrl(data, stations, reftimes, leadtimes, **kwargs)
+    obs = data["obs"][["wind_speed"]]
+    obs = (
+        obs.preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="wind_speed")
+        .squeeze("variable", drop=True)
+    )
+    return (nwp - obs).astype("float32")
+
+
+@reuse
+@asarray
+def wind_speed_ensavg_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
@@ -917,6 +1076,7 @@ def wind_speed_of_gust_ctrl(
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
+
 
 @reuse
 @asarray
@@ -988,10 +1148,7 @@ def wind_gust_factor_ctrl(
         .isel(realization=0, drop=True)
         .preproc.norm()
     )
-    gust_wind = (
-        ds_wind[["wind_speed_of_gust"]]
-        .isel(realization=0, drop=True)
-    )
+    gust_wind = ds_wind[["wind_speed_of_gust"]].isel(realization=0, drop=True)
     return (
         (gust_wind.wind_speed_of_gust / mean_wind.norm)
         .to_dataset(name="wind_gust_factor")
