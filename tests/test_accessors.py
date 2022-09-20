@@ -83,7 +83,7 @@ def test_interp(stations_dataframe, nwp_dataset):
 
     assert isinstance(ds_interp, xr.Dataset)
     assert (ds_interp.station.values == stations.index).all()
-    for coord, coords in stations.iteritems():
+    for coord, coords in stations.items():
         assert (ds_interp[coord].values == coords).all()
 
 

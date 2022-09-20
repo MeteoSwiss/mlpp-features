@@ -28,15 +28,17 @@ def _stations_dataframe(outlier=False):
     )
     if outlier:
         # a station far away  ...
-        stations = stations.append(
-            {
-                "station": "Tromso",
-                "longitude": 18.96,
-                "latitude": 69.6,
-                "elevation": np.nan,
-            },
-            ignore_index=True,
+        outlier_station = pd.DataFrame(
+            [
+                {
+                    "station": "Tromso",
+                    "longitude": 18.96,
+                    "latitude": 69.6,
+                    "elevation": np.nan,
+                }
+            ]
         )
+        stations = pd.concat((stations, outlier_station), ignore_index=True)
     return stations.set_index("station")
 
 
