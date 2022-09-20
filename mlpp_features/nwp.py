@@ -23,7 +23,7 @@ def air_temperature_ctrl(
     return (
         data["nwp"]
         .preproc.get("air_temperature")
-        .sel(realization=0)
+        .isel(realization=0, drop=True)
         .preproc.interp(stations)
         .pipe(lambda x: x - 273.15)  # convert to celsius
         .preproc.align_time(reftimes, leadtimes)
@@ -128,6 +128,27 @@ def boundary_layer_height_ensavg(
 
 @reuse
 @asarray
+def cos_wind_from_direction_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble control of cosine wind direction
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .isel(realization=0, drop=True)
+        .preproc.wind_from_direction()
+        .pipe(lambda x: x * 2 * np.pi / 360)  # radians
+        .pipe(np.cos)
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def cos_wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -184,7 +205,7 @@ def dew_point_temperature_ctrl(
     return (
         data["nwp"]
         .preproc.get("dew_point_temperature")
-        .sel(realization=0)
+        .isel(realization=0, drop=True)
         .preproc.interp(stations)
         .pipe(lambda x: x - 273.15)  # convert to celsius
         .preproc.align_time(reftimes, leadtimes)
@@ -466,6 +487,27 @@ def relative_humidity_ensavg(
 
 @reuse
 @asarray
+def sin_wind_from_direction_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble control of sine wind direction
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .isel(realization=0, drop=True)
+        .preproc.wind_from_direction()
+        .pipe(lambda x: x * 2 * np.pi / 360)  # radians
+        .pipe(np.sin)
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def sin_wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -496,7 +538,7 @@ def specific_humidity_ctrl(
     return (
         data["nwp"]
         .preproc.get("specific_humidity")
-        .sel(realization=0)
+        .isel(realization=0, drop=True)
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
@@ -550,7 +592,7 @@ def surface_air_pressure_ctrl(
     return (
         data["nwp"]
         .preproc.get("surface_air_pressure")
-        .sel(realization=0)
+        .isel(realization=0, drop=True)
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
         .pipe(lambda x: x / 100)
@@ -786,6 +828,25 @@ def wind_from_direction_ensavg(
 
 @reuse
 @asarray
+def wind_speed_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of wind speed
+    """
+    return (
+        data["nwp"]
+        .preproc.get(["eastward_wind", "northward_wind"])
+        .isel(realization=0, drop=True)
+        .preproc.norm()
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@reuse
+@asarray
 def wind_speed_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -842,6 +903,23 @@ def wind_speed_error(
 
 @reuse
 @asarray
+def wind_speed_of_gust_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of wind speed of gust
+    """
+    return (
+        data["nwp"]
+        .preproc.get("wind_speed_of_gust")
+        .isel(realization=0, drop=True)
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+@reuse
+@asarray
 def wind_speed_of_gust_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -892,6 +970,35 @@ def wind_speed_of_gust_error(
         .squeeze("variable", drop=True)
     )
     return (nwp - obs).astype("float32")
+
+
+@reuse
+@asarray
+def wind_gust_factor_ctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble control of wind gust factor
+    """
+    ds_wind = data["nwp"].preproc.get(
+        ["eastward_wind", "northward_wind", "wind_speed_of_gust"]
+    )
+    mean_wind = (
+        ds_wind[["eastward_wind", "northward_wind"]]
+        .isel(realization=0, drop=True)
+        .preproc.norm()
+    )
+    gust_wind = (
+        ds_wind[["wind_speed_of_gust"]]
+        .isel(realization=0, drop=True)
+    )
+    return (
+        (gust_wind.wind_speed_of_gust / mean_wind.norm)
+        .to_dataset(name="wind_gust_factor")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
 
 
 @reuse
