@@ -5,6 +5,7 @@ import numpy as np
 import xarray as xr
 
 from mlpp_features.decorators import asarray, reuse
+from mlpp_features import calc
 
 LOGGER = logging.getLogger(__name__)
 
@@ -46,12 +47,10 @@ def dew_point_temperature(
     """
     Observed dew point temperature in °C
     """
-    return (
-        data["obs"]
-        .preproc.get("dew_point_temperature")
-        .preproc.unstack_time(reftimes, leadtimes)
-        .astype("float32")
-    )
+    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
+    t_d = calc.dew_point_from_t_and_rh(t, rh)
+    return t_d
 
 
 @asarray
@@ -91,12 +90,11 @@ def water_vapor_mixing_ratio(
     """
     Observed water vapor mixing ratio in g/kg
     """
-    return (
-        data["obs"]
-        .preproc.get("water_vapor_mixing_ratio")
-        .preproc.unstack_time(reftimes, leadtimes)
-        .astype("float32")
-    )
+    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
+    r = calc.mixing_ratio_from_t_rh_p(t, rh, p)
+    return r
 
 
 @reuse
@@ -133,6 +131,28 @@ def sin_wind_from_direction(
         .preproc.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
+
+
+@asarray
+def water_vapor_pressure(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+):
+    """
+    Water vapor pressure in hPa
+    """
+    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.water_vapor_pressure_from_t_and_rh(t, rh)
+
+@asarray
+def water_vapor_saturation_pressure(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+):
+    """
+    Water vapor pressure at saturation in hPa
+    """
+    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.water_vapor_saturation_pressure_from_t(t)
 
 
 @reuse
