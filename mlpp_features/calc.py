@@ -9,23 +9,9 @@ B_N = 245.52
 C_P = 6.107
 C_N = 6.108
 
-def water_vapor_saturation_pressure_from_t(t: xr.DataArray) -> xr.DataArray:
-    """
-    Compute water vapor pressure at saturation in hPa from temperature.
-    """
-    return xr.where(
-        t >= 0.,
-        C_P * np.exp((A_P * t) / (t + B_P)),
-        C_N * np.exp((A_N * t) / (t + B_N)),
-    )
-
-
-def water_vapor_pressure_from_t_and_rh(t: xr.DataArray, rh: xr.DataArray) -> xr.DataArray:
-    """
-    Compute water vapor pressure at saturation in hPa from temperature.
-    """
-    e_s = water_vapor_saturation_pressure_from_t(t)
-    return e_s * rh / 100
+R = 8.31432 # gas constant
+Cp = 1004 # specific heat of dry air at costant pressure 
+P0 = 1013.25 # standard reference pressure in hPa
 
 
 def dew_point_from_t_and_rh(t: xr.DataArray, rh: xr.DataArray) -> xr.DataArray:
@@ -47,4 +33,49 @@ def mixing_ratio_from_t_rh_p(t: xr.DataArray, rh: xr.DataArray, p: xr.DataArray)
     relative humidity (%) and pressure (hPa).
     """
     e = water_vapor_pressure_from_t_and_rh(t, rh)
+    return mixing_ratio_from_p_and_e(p, e)
+
+
+def mixing_ratio_from_p_and_e(p: xr.DataArray, e: xr.DataArray) -> xr.DataArray:
+    """
+    Compute water vapor mixing ratio in g kg-1 from temperature (°C)
+    and water vapor pressure (hPa).
+    """
     return 1000 * (EPSILON * e) / (p - e)
+
+
+def potential_temperature_from_t_and_p(t: xr.DataArray, p: xr.DataArray) -> xr.DataArray:
+    """
+    Compute potential temperature in °C from temperature (°C) and pressure (hPa).
+    """
+    return t * (P0 / p) ** (R / Cp)
+
+
+def water_vapor_saturation_pressure_from_t(t: xr.DataArray) -> xr.DataArray:
+    """
+    Compute water vapor pressure at saturation in hPa from temperature (°C).
+    """
+    return xr.where(
+        t >= 0.,
+        C_P * np.exp((A_P * t) / (t + B_P)),
+        C_N * np.exp((A_N * t) / (t + B_N)),
+    )
+
+
+def water_vapor_pressure_from_t_and_td(t: xr.DataArray, t_d: xr.DataArray) -> xr.DataArray:
+    """
+    Compute water vapor pressure at saturation in hPa from temperature (°C) and dew point temperature (°C).
+    """
+    return xr.where(
+        t >= 0.,
+        C_P * np.exp((A_P * t_d) / (t_d + B_P)),
+        C_N * np.exp((A_N * t_d) / (t_d + B_N)),
+    )
+
+
+def water_vapor_pressure_from_t_and_rh(t: xr.DataArray, rh: xr.DataArray) -> xr.DataArray:
+    """
+    Compute water vapor pressure at saturation in hPa from temperature (°C).
+    """
+    e_s = water_vapor_saturation_pressure_from_t(t)
+    return e_s * rh / 100

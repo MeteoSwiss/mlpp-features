@@ -5,6 +5,7 @@ import xarray as xr
 import numpy as np
 
 from mlpp_features.decorators import asarray, reuse
+from mlpp_features import calc
 
 LOGGER = logging.getLogger(__name__)
 
@@ -795,7 +796,7 @@ def water_vapor_mixing_ratio_ensavg(
     except KeyError:
         e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
         p = surface_air_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-        return ((622.0 * e) / (p / 100 - e)).astype("float32")
+        return calc.mixing_ratio_from_p_and_e(p, e)
 
 
 @reuse
@@ -820,9 +821,9 @@ def water_vapor_mixing_ratio_ensctrl(
         q = specific_humidity_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
         return (q / (1 - q)).astype("float32")
     except KeyError:
-        e = water_vapor_pressure_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+        e = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
         p = surface_air_pressure_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
-        return ((622.0 * e) / (p / 100 - e)).astype("float32")
+        return calc.mixing_ratio_from_p_and_e(p, e)
 
 
 @reuse
@@ -842,17 +843,7 @@ def water_vapor_pressure_ensavg(
 
     t_d = dew_point_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-
-    def e_from_t(t, a, b, c):
-        return c * np.exp(a * t / (b + t))
-
-    e = xr.where(
-        t > 0,
-        e_from_t(t_d, 17.368, 238.83, 6.107),
-        e_from_t(t_d, 17.856, 245.52, 6.108),
-    )
-
-    return e.astype("float32")
+    return calc.water_vapor_pressure_from_t_and_td(t, t_d)
 
 
 @reuse
@@ -872,17 +863,7 @@ def water_vapor_pressure_ensctrl(
 
     t_d = dew_point_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
     t = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
-
-    def e_from_t(t, a, b, c):
-        return c * np.exp(a * t / (b + t))
-
-    e = xr.where(
-        t > 0,
-        e_from_t(t_d, 17.368, 238.83, 6.107),
-        e_from_t(t_d, 17.856, 245.52, 6.108),
-    )
-
-    return e.astype("float32")
+    return calc.water_vapor_pressure_from_t_and_td(t, t_d)
 
 
 @reuse
@@ -894,17 +875,7 @@ def water_vapor_saturation_pressure_ensavg(
     Ensemble mean of water vapor partial pressure at saturation in hPa
     """
     t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-
-    def e_from_t(t, a, b, c):
-        return c * np.exp(a * t / (b + t))
-
-    e = xr.where(
-        t > 0,
-        e_from_t(t, 17.368, 238.83, 6.107),
-        e_from_t(t, 17.856, 245.52, 6.108),
-    )
-
-    return e.astype("float32")
+    return calc.water_vapor_saturation_pressure_from_t(t)
 
 
 @reuse
@@ -916,17 +887,7 @@ def water_vapor_saturation_pressure_ensctrl(
     Control run water vapor partial pressure at saturation
     """
     t = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
-
-    def e_from_t(t, a, b, c):
-        return c * np.exp(a * t / (b + t))
-
-    e = xr.where(
-        t > 0,
-        e_from_t(t, 17.368, 238.83, 6.107),
-        e_from_t(t, 17.856, 245.52, 6.108),
-    )
-
-    return e.astype("float32")
+    return calc.water_vapor_saturation_pressure_from_t(t)
 
 
 @reuse
