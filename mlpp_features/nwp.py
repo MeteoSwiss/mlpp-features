@@ -1163,7 +1163,7 @@ def wind_gust_factor_ensavg(
     )
     mean_wind = (ds_wind[["eastward_wind", "northward_wind"]].preproc.norm()).norm
     return (
-        (ds_wind.wind_speed_of_gust / mean_wind)
+        ((ds_wind.wind_speed_of_gust + 1.0) / (mean_wind + 1.0))
         .to_dataset(name="wind_gust_factor")
         .mean("realization")
         .preproc.interp(stations)
@@ -1190,7 +1190,7 @@ def wind_gust_factor_ensctrl(
     )
     gust_wind = ds_wind[["wind_speed_of_gust"]].isel(realization=0, drop=True)
     return (
-        (gust_wind.wind_speed_of_gust / mean_wind.norm)
+        ((gust_wind.wind_speed_of_gust + 1.0) / (mean_wind.norm + 1.0))
         .to_dataset(name="wind_gust_factor")
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
