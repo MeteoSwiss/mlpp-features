@@ -9,9 +9,9 @@ B_N = 245.52
 C_P = 6.107
 C_N = 6.108
 
-R = 8.31432 # gas constant
-Cp = 1004 # specific heat of dry air at costant pressure 
-P0 = 1013.25 # standard reference pressure in hPa
+R = 287.053 # gas constant for dry air
+Cp = 1004. # specific heat of dry air at costant pressure 
+P0 = 1000. # standard reference pressure in hPa
 
 
 def dew_point_from_t_and_rh(t: xr.DataArray, rh: xr.DataArray) -> xr.DataArray:
@@ -25,6 +25,13 @@ def dew_point_from_t_and_rh(t: xr.DataArray, rh: xr.DataArray) -> xr.DataArray:
         (B_P * np.log(e / C_P)) / (A_P - np.log(e / C_P)),
         (B_N * np.log(e / C_N)) / (A_N - np.log(e / C_N))
     )
+
+
+def equivalent_potential_temperature_from_t_rh_p(t: xr.DataArray, rh:xr.DataArray, p:xr.DataArray) -> xr.DataArray:
+    l_v = -3.07 * t + 2477. # latent heat of vaporization, linear approximation of Lv(T)
+    r = mixing_ratio_from_t_rh_p(t, rh, p)
+    t_e = t + l_v / Cp * r
+    return potential_temperature_from_t_and_p(t_e, p)
 
 
 def mixing_ratio_from_t_rh_p(t: xr.DataArray, rh: xr.DataArray, p: xr.DataArray) -> xr.DataArray:
@@ -48,7 +55,8 @@ def potential_temperature_from_t_and_p(t: xr.DataArray, p: xr.DataArray) -> xr.D
     """
     Compute potential temperature in °C from temperature (°C) and pressure (hPa).
     """
-    return t * (P0 / p) ** (R / Cp)
+    t_kelvin = t + 273.15
+    return t_kelvin * (P0 / p) ** (R / Cp) - 273.15
 
 
 def water_vapor_saturation_pressure_from_t(t: xr.DataArray) -> xr.DataArray:

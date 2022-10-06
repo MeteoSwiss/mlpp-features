@@ -250,6 +250,47 @@ def dew_point_temperature_ensctrl(
         .astype("float32")
     )
 
+@reuse
+@asarray
+def equivalent_potential_temperature_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Control run equivalent potential temperature in °C
+    """
+    try:
+        data["nwp"]["air_temperature"]
+        data["nwp"]["dew_point_temperature"]
+        data["nwp"]["surface_air_pressure"]
+    except KeyError:
+        raise KeyError(["air_temperature", "dew_point_temperature", "surface_air_pressure"])
+
+    t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    rh = relative_humidity_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.equivalent_potential_temperature_from_t_rh_p(t, rh, p)
+
+
+@reuse
+@asarray
+def equivalent_potential_temperature_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Control run equivalent potential temperature in °C
+    """
+    try:
+        data["nwp"]["air_temperature"]
+        data["nwp"]["dew_point_temperature"]
+        data["nwp"]["surface_air_pressure"]
+    except KeyError:
+        raise KeyError(["air_temperature", "dew_point_temperature", "surface_air_pressure"])
+
+    t = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    rh = relative_humidity_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.equivalent_potential_temperature_from_t_rh_p(t, rh, p)
+
 
 @reuse
 @asarray
@@ -467,6 +508,42 @@ def northward_wind_ensctrl(
     )
 
 
+@asarray
+def potential_temperature_ensavg(
+        data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of potential temperature in °C
+    """
+    try:
+        data["nwp"]["air_temperature"]
+        data["nwp"]["surface_air_pressure"]
+    except KeyError:
+        raise KeyError(["air_temperature", "surface_air_pressure"])
+
+    t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.potential_temperature_from_t_and_p(t, p)
+
+
+@asarray
+def potential_temperature_ensctrl(
+        data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of potential temperature in °C
+    """
+    try:
+        data["nwp"]["air_temperature"]
+        data["nwp"]["surface_air_pressure"]
+    except KeyError:
+        raise KeyError(["air_temperature", "surface_air_pressure"])
+
+    t = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.potential_temperature_from_t_and_p(t, p)
+
+
 @reuse
 @asarray
 def pressure_difference_BAS_LUG_ensavg(
@@ -555,6 +632,12 @@ def relative_humidity_ensavg(
     """
     Ensemble mean of relative humidity in %
     """
+    try:
+        data["nwp"]["air_temperature"]
+        data["nwp"]["dew_point_temperature"]
+    except KeyError:
+        raise KeyError(["air_temperature", "dew_point_temperature"])
+
     e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     e_s = water_vapor_saturation_pressure_ensavg(
         data, stations, reftimes, leadtimes, **kwargs
@@ -570,6 +653,12 @@ def relative_humidity_ensctrl(
     """
     Control run relative humidity in %
     """
+    try:
+        data["nwp"]["air_temperature"]
+        data["nwp"]["dew_point_temperature"]
+    except KeyError:
+        raise KeyError(["air_temperature", "dew_point_temperature"])
+
     e = water_vapor_pressure_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
     e_s = water_vapor_saturation_pressure_ensctrl(
         data, stations, reftimes, leadtimes, **kwargs
@@ -687,6 +776,7 @@ def surface_air_pressure_ensavg(
         .mean("realization")
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
+        .pipe(lambda x: x / 100) # Pa to hPa
         .astype("float32")
     )
 
@@ -705,7 +795,7 @@ def surface_air_pressure_ensctrl(
         .isel(realization=0, drop=True)
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
-        .pipe(lambda x: x / 100)
+        .pipe(lambda x: x / 100) # Pa to hPa
         .astype("float32")
     )
 
@@ -790,13 +880,9 @@ def water_vapor_mixing_ratio_ensavg(
             ["dew_point_temperature", "air_temperature", "surface_air_pressure"]
         )
 
-    try:
-        q = specific_humidity_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-        return (q / (1 - q)).astype("float32")
-    except KeyError:
-        e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-        p = surface_air_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
-        return calc.mixing_ratio_from_p_and_e(p, e)
+    e = water_vapor_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.mixing_ratio_from_p_and_e(p, e)
 
 
 @reuse
@@ -817,13 +903,9 @@ def water_vapor_mixing_ratio_ensctrl(
             ["dew_point_temperature", "air_temperature", "surface_air_pressure"]
         )
 
-    try:
-        q = specific_humidity_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
-        return (q / (1 - q)).astype("float32")
-    except KeyError:
-        e = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
-        p = surface_air_pressure_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
-        return calc.mixing_ratio_from_p_and_e(p, e)
+    e = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.mixing_ratio_from_p_and_e(p, e)
 
 
 @reuse

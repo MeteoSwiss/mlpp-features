@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
-
+@reuse
 @asarray
 def air_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -52,7 +52,7 @@ def dew_point_temperature(
     t_d = calc.dew_point_from_t_and_rh(t, rh)
     return t_d
 
-
+@reuse
 @asarray
 def surface_air_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -67,7 +67,7 @@ def surface_air_pressure(
         .astype("float32")
     )
 
-
+@reuse
 @asarray
 def relative_humidity(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -186,6 +186,16 @@ def wind_speed_of_gust(
         .astype("float32")
     )
 
+@asarray
+def potential_temperature(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Observed potential temperature in °C
+    """
+    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    p = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
+    return calc.potential_temperature_from_t_and_p(t, p)
 
 @reuse
 @asarray
