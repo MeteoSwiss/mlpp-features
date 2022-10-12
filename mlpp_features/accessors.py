@@ -163,8 +163,10 @@ class PreprocDatasetAccessor:
         index = index.where(index.valid, drop=True).astype(int)
         ds_out = (
             self.ds.stack(point=("y", "x"))
-            .isel(point=index)
+            .isel(point=index.sortby(index))
             .drop_vars(("point", "valid", "distance"))
+            .compute()
+            .reindex(station=list(stations.index))
             .assign_coords({c: ("station", v.values) for c, v in stations.items()})
         )
         return ds_out
