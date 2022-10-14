@@ -4,7 +4,7 @@ from typing import Dict
 import xarray as xr
 import numpy as np
 
-from mlpp_features.decorators import asarray, reuse
+from mlpp_features.decorators import asarray, reuse, io
 from mlpp_features import calc
 
 LOGGER = logging.getLogger(__name__)
@@ -13,8 +13,7 @@ LOGGER = logging.getLogger(__name__)
 xr.set_options(keep_attrs=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="degC", cache=True)
 def air_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -31,8 +30,7 @@ def air_temperature(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="degC")
 def air_temperature_ensavg(
     data, stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -43,8 +41,7 @@ def air_temperature_ensavg(
     return t.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="degC")
 def air_temperature_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -55,8 +52,7 @@ def air_temperature_ensctrl(
     return t.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="degC")
 def air_temperature_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -67,22 +63,21 @@ def air_temperature_ensstd(
     return t.std("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="degC")
 def air_temperature_dailyrange(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of daily temperature range in °C
     """
-    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
+    t = air_temperature(data, stations, reftimes, leadtimes, **kwargs).to_dataset()
+    t = t.assign_coords(time=t.forecast_reference_time + t.t.astype("timedelta64[h]"))
     daymax = t.preproc.daystat(xr.Dataset.max)
     daymin = t.preproc.daystat(xr.Dataset.min)
     return daymax - daymin
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="degC")
 def air_temperature_dailyrange_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -93,8 +88,7 @@ def air_temperature_dailyrange_ensavg(
     return t.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_downwelling_longwave_flux_in_air"]}, units="W m-2")
 def average_downward_longwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -111,8 +105,7 @@ def average_downward_longwave_radiation_ensavg(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["atmosphere_boundary_layer_thickness"]}, units="m", cache=True)
 def boundary_layer_height(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -128,8 +121,7 @@ def boundary_layer_height(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["atmosphere_boundary_layer_thickness"]}, units="m")
 def boundary_layer_height_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -140,8 +132,7 @@ def boundary_layer_height_ensavg(
     return blh.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["atmosphere_boundary_layer_thickness"]}, units="m")
 def boundary_layer_height_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -152,8 +143,7 @@ def boundary_layer_height_ensctrl(
     return blh.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]})
 def cos_wind_from_direction(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -164,8 +154,7 @@ def cos_wind_from_direction(
     return np.cos(wdir * 2 * np.pi / 360)
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]})
 def cos_wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -176,8 +165,7 @@ def cos_wind_from_direction_ensavg(
     return wdir.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]})
 def cos_wind_from_direction_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -188,8 +176,7 @@ def cos_wind_from_direction_ensctrl(
     return wdir.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="degC")
 def dew_point_depression(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -201,8 +188,7 @@ def dew_point_depression(
     return (t - t_d).astype("float32")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="degC")
 def dew_point_depression_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -213,8 +199,7 @@ def dew_point_depression_ensavg(
     return tdep.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="degC")
 def dew_point_depression_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -225,8 +210,7 @@ def dew_point_depression_ensctrl(
     return tdep.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["dew_point_temperature"]}, units="degC", cache=True)
 def dew_point_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -243,8 +227,7 @@ def dew_point_temperature(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["dew_point_temperature"]}, units="degC")
 def dew_point_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -255,8 +238,7 @@ def dew_point_temperature_ensavg(
     return td.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["dew_point_temperature"]}, units="degC")
 def dew_point_temperature_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -267,31 +249,26 @@ def dew_point_temperature_ensctrl(
     return td.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io(
+    {"nwp": ["air_temperature", "dew_point_temperature", "surface_air_pressure"]},
+    units="degC",
+)
 def equivalent_potential_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Control run equivalent potential temperature in °C
     """
-    try:
-        data["nwp"]["air_temperature"]
-        data["nwp"]["dew_point_temperature"]
-        data["nwp"]["surface_air_pressure"]
-    except KeyError:
-        raise KeyError(
-            ["air_temperature", "dew_point_temperature", "surface_air_pressure"]
-        )
-
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
     rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
     p = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
     return calc.equivalent_potential_temperature_from_t_rh_p(t, rh, p)
 
 
-@reuse
-@asarray
+@io(
+    {"nwp": ["air_temperature", "dew_point_temperature", "surface_air_pressure"]},
+    units="degC",
+)
 def equivalent_potential_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -304,8 +281,10 @@ def equivalent_potential_temperature_ensavg(
     return theta_e.mean("realization")
 
 
-@reuse
-@asarray
+@io(
+    {"nwp": ["air_temperature", "dew_point_temperature", "surface_air_pressure"]},
+    units="degC",
+)
 def equivalent_potential_temperature_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -318,8 +297,7 @@ def equivalent_potential_temperature_ensctrl(
     return theta_e.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_diffuse_downwelling_shortwave_flux_in_air"]}, units="W m-2")
 def diffuse_downward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -336,8 +314,7 @@ def diffuse_downward_shortwave_radiation_ensavg(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_upwelling_shortwave_flux_in_air"]}, units="W m-2")
 def diffuse_upward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -354,8 +331,7 @@ def diffuse_upward_shortwave_radiation_ensavg(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_direct_downwelling_shortwave_flux_in_air"]}, units="W m-2")
 def direct_downward_shortwave_radiation_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -372,6 +348,7 @@ def direct_downward_shortwave_radiation_ensavg(
     )
 
 
+@io({"nwp": ["eastward_wind"]}, units="m s-1", cache=True)
 def eastward_wind(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs):
     return (
         data["nwp"]
@@ -382,8 +359,7 @@ def eastward_wind(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind"]}, units="m s-1")
 def eastward_wind_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -394,8 +370,7 @@ def eastward_wind_ensavg(
     return u.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind"]}, units="m s-1")
 def eastward_wind_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -406,8 +381,7 @@ def eastward_wind_ensctrl(
     return u.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": []}, units="m s-1")
 def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs):
     """
     Extract leadtime in hours
@@ -424,8 +398,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["HSURF"], "terrain": ["DEM"]}, units="m")
 def model_height_difference(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -451,6 +424,7 @@ def model_height_difference(
     return ds.preproc.difference("HSURF", "DEM").astype("float32")
 
 
+@io({"nwp": ["northward_wind"]}, units="m s-1", cache=True)
 def northward_wind(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ):
@@ -463,8 +437,7 @@ def northward_wind(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["northward_wind"]}, units="m s-1")
 def northward_wind_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -475,8 +448,7 @@ def northward_wind_ensavg(
     return v.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["northward_wind"]}, units="m s-1")
 def northward_wind_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -487,25 +459,19 @@ def northward_wind_ensctrl(
     return v.isel(realization=0, drop=True)
 
 
-@asarray
+@io({"nwp": ["air_temperature", "surface_air_pressure"]}, units="degC")
 def potential_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of potential temperature in °C
     """
-    try:
-        data["nwp"]["air_temperature"]
-        data["nwp"]["surface_air_pressure"]
-    except KeyError:
-        raise KeyError(["air_temperature", "surface_air_pressure"])
-
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
     p = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
     return calc.potential_temperature_from_t_and_p(t, p)
 
 
-@asarray
+@io({"nwp": ["air_temperature", "surface_air_pressure"]}, units="degC")
 def potential_temperature_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -516,7 +482,7 @@ def potential_temperature_ensavg(
     return v.mean("realization")
 
 
-@asarray
+@io({"nwp": ["air_temperature", "surface_air_pressure"]}, units="degC")
 def potential_temperature_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -527,8 +493,7 @@ def potential_temperature_ensctrl(
     return v.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa")
 def pressure_difference_BAS_LUG(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -539,8 +504,7 @@ def pressure_difference_BAS_LUG(
     return p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa")
 def pressure_difference_BAS_LUG_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -551,8 +515,7 @@ def pressure_difference_BAS_LUG_ensavg(
     return pdiff.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa")
 def pressure_difference_BAS_LUG_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -563,8 +526,7 @@ def pressure_difference_BAS_LUG_ensctrl(
     return pdiff.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa")
 def pressure_difference_GVE_GUT(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -575,8 +537,7 @@ def pressure_difference_GVE_GUT(
     return p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa")
 def pressure_difference_GVE_GUT_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -587,27 +548,19 @@ def pressure_difference_GVE_GUT_ensavg(
     return pdiff.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="%")
 def relative_humidity(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of relative humidity in %
     """
-    try:
-        data["nwp"]["air_temperature"]
-        data["nwp"]["dew_point_temperature"]
-    except KeyError:
-        raise KeyError(["air_temperature", "dew_point_temperature"])
-
     e = water_vapor_pressure(data, stations, reftimes, leadtimes, **kwargs)
     e_s = water_vapor_saturation_pressure(data, stations, reftimes, leadtimes, **kwargs)
     return (e / e_s * 100).astype("float32")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="%")
 def relative_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -618,8 +571,7 @@ def relative_humidity_ensavg(
     return rh.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="%")
 def relative_humidity_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -630,8 +582,7 @@ def relative_humidity_ensctrl(
     return rh.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]})
 def sin_wind_from_direction(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -642,8 +593,7 @@ def sin_wind_from_direction(
     return np.sin(wdir * 2 * np.pi / 360)
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]})
 def sin_wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -654,8 +604,7 @@ def sin_wind_from_direction_ensavg(
     return wdir.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]})
 def sin_wind_from_direction_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -666,8 +615,7 @@ def sin_wind_from_direction_ensctrl(
     return wdir.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["specific_humidity"]}, units="g kg-1")
 def specific_humidity(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -683,8 +631,7 @@ def specific_humidity(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["specific_humidity"]}, units="g kg-1")
 def specific_humidity_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -695,8 +642,7 @@ def specific_humidity_ensavg(
     return q.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["specific_humidity"]}, units="g kg-1")
 def specific_humidity_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -707,8 +653,7 @@ def specific_humidity_ensctrl(
     return q.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["duration_of_sunshine"]}, units="s")
 def sunshine_duration_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -725,8 +670,7 @@ def sunshine_duration_ensavg(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa", cache=True)
 def surface_air_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -743,8 +687,7 @@ def surface_air_pressure(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa")
 def surface_air_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -755,8 +698,7 @@ def surface_air_pressure_ensavg(
     return q.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["surface_air_pressure"]}, units="hPa")
 def surface_air_pressure_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -767,8 +709,7 @@ def surface_air_pressure_ensctrl(
     return q.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind","northward_wind"], "terrain": ["SX_50M_RADIUS500"]}, cache=True)
 def sx_500m(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -796,8 +737,7 @@ def sx_500m(
     return sx.drop_vars("wind_from_direction")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind","northward_wind"], "terrain": ["SX_50M_RADIUS500"]})
 def sx_500m_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -809,8 +749,7 @@ def sx_500m_ensavg(
     return sx.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind","northward_wind"], "terrain": ["SX_50M_RADIUS500"]})
 def sx_500m_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -822,31 +761,19 @@ def sx_500m_ensctrl(
     return sx.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature", "surface_air_pressure"]}, units="g kg-1")
 def water_vapor_mixing_ratio(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of water vapor mixing ratio in g/kg
     """
-    # try/except block necessary to expose all the required input data
-    try:
-        data["nwp"]["dew_point_temperature"]
-        data["nwp"]["air_temperature"]
-        data["nwp"]["surface_air_pressure"]
-    except KeyError:
-        raise KeyError(
-            ["dew_point_temperature", "air_temperature", "surface_air_pressure"]
-        )
-
     e = water_vapor_pressure(data, stations, reftimes, leadtimes, **kwargs)
     p = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
     return calc.mixing_ratio_from_p_and_e(p, e)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature", "surface_air_pressure"]}, units="g kg-1")
 def water_vapor_mixing_ratio_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -857,8 +784,7 @@ def water_vapor_mixing_ratio_ensavg(
     return r.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature", "surface_air_pressure"]}, units="g kg-1")
 def water_vapor_mixing_ratio_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -869,28 +795,19 @@ def water_vapor_mixing_ratio_ensctrl(
     return r.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="hPa")
 def water_vapor_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of water vapor partial pressure
+    Ensemble of water vapor partial pressure in hPa
     """
-    # try/except block necessary to expose all the required input data
-    try:
-        data["nwp"]["dew_point_temperature"]
-        data["nwp"]["air_temperature"]
-    except KeyError:
-        raise KeyError(["dew_point_temperature", "air_temperature"])
-
     t_d = dew_point_temperature(data, stations, reftimes, leadtimes, **kwargs)
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
     return calc.water_vapor_pressure_from_t_and_td(t, t_d)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="hPa")
 def water_vapor_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -901,8 +818,7 @@ def water_vapor_pressure_ensavg(
     return e.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature", "dew_point_temperature"]}, units="hPa")
 def water_vapor_pressure_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -913,8 +829,7 @@ def water_vapor_pressure_ensctrl(
     return e.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="hPa")
 def water_vapor_saturation_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -925,8 +840,7 @@ def water_vapor_saturation_pressure(
     return calc.water_vapor_saturation_pressure_from_t(t)
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="hPa")
 def water_vapor_saturation_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -937,8 +851,7 @@ def water_vapor_saturation_pressure_ensavg(
     return e_s.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["air_temperature"]}, units="hPa")
 def water_vapor_saturation_pressure_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -949,12 +862,14 @@ def water_vapor_saturation_pressure_ensctrl(
     return e_s.isel(realization=0, drop=True)
 
 
+@io({"nwp": ["eastward_wind", "northward_wind"]}, units="m s-1")
 def wind_speed(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs):
     u = eastward_wind(data, stations, reftimes, leadtimes, **kwargs)
     v = northward_wind(data, stations, reftimes, leadtimes, **kwargs)
     return np.sqrt(u**2 + v**2)
 
 
+@io({"nwp": ["eastward_wind", "northward_wind"]}, units="degrees")
 def wind_from_direction(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -964,12 +879,10 @@ def wind_from_direction(
     u = eastward_wind(data, stations, reftimes, leadtimes, **kwargs)
     v = northward_wind(data, stations, reftimes, leadtimes, **kwargs)
     out = (270 - 180 / np.pi * np.arctan2(v, u)) % 360
-    out.attrs["units"] = "degrees"
     return out
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]}, units="degrees")
 def wind_from_direction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -980,8 +893,7 @@ def wind_from_direction_ensavg(
     return d.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]}, units="degrees")
 def wind_from_direction_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -992,8 +904,7 @@ def wind_from_direction_ensctrl(
     return d.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]}, units="m s-1")
 def wind_speed_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1004,8 +915,7 @@ def wind_speed_ensavg(
     return uv.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]}, units="m s-1")
 def wind_speed_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1016,8 +926,7 @@ def wind_speed_ensctrl(
     return uv.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"]}, units="m s-1")
 def wind_speed_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1028,8 +937,7 @@ def wind_speed_ensstd(
     return uv.std("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"], "obs": ["wind_speed"]}, units="m s-1")
 def wind_speed_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1046,8 +954,7 @@ def wind_speed_error(
     return (nwp - obs).astype("float32")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"], "obs": ["wind_speed"]}, units="m s-1")
 def wind_speed_error_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1058,8 +965,7 @@ def wind_speed_error_ensavg(
     return uv.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind"], "obs": ["wind_speed"]}, units="m s-1")
 def wind_speed_error_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1070,8 +976,7 @@ def wind_speed_error_ensctrl(
     return uv.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["wind_speed_of_gust"]}, units="m s-1", cache=True)
 def wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1087,8 +992,7 @@ def wind_speed_of_gust(
     )
 
 
-@reuse
-@asarray
+@io({"nwp": ["wind_speed_of_gust"]}, units="m s-1")
 def wind_speed_of_gust_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1099,8 +1003,7 @@ def wind_speed_of_gust_ensavg(
     return ug.mean("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["wind_speed_of_gust"]}, units="m s-1")
 def wind_speed_of_gust_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1111,8 +1014,7 @@ def wind_speed_of_gust_ensctrl(
     return ug.isel(realization=0, drop=True)
 
 
-@reuse
-@asarray
+@io({"nwp": ["wind_speed_of_gust"]}, units="m s-1")
 def wind_speed_of_gust_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1123,8 +1025,7 @@ def wind_speed_of_gust_ensstd(
     return ug.std("realization")
 
 
-@reuse
-@asarray
+@io({"nwp": ["wind_speed_of_gust"], "obs": ["wind_speed_of_gust"]}, units="m s-1")
 def wind_speed_of_gust_error_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1141,8 +1042,7 @@ def wind_speed_of_gust_error_ensavg(
     return (nwp - obs).astype("float32")
 
 
-@reuse
-@asarray
+@io({"nwp": ["wind_speed_of_gust"], "obs": ["wind_speed_of_gust"]}, units="m s-1")
 def wind_speed_of_gust_error_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1159,49 +1059,33 @@ def wind_speed_of_gust_error_ensctrl(
     return (nwp - obs).astype("float32")
 
 
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind", "wind_speed_of_gust"]})
+def wind_gust_factor(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble of wind gust factor
+    """
+    speed = wind_speed(data, stations, reftimes, leadtimes, **kwargs)
+    gust = wind_speed_of_gust(data, stations, reftimes, leadtimes, **kwargs)
+    return (gust + 1.0) / (speed + 1.0)
+
+@io({"nwp": ["eastward_wind", "northward_wind", "wind_speed_of_gust"]})
 def wind_gust_factor_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Calculate ensemble mean wind gust factor
+    Calculate ensemble mean of wind gust factor
     """
-    ds_wind = data["nwp"].preproc.get(
-        ["eastward_wind", "northward_wind", "wind_speed_of_gust"]
-    )
-    mean_wind = (ds_wind[["eastward_wind", "northward_wind"]].preproc.norm()).norm
-    return (
-        ((ds_wind.wind_speed_of_gust + 1.0) / (mean_wind + 1.0))
-        .to_dataset(name="wind_gust_factor")
-        .mean("realization")
-        .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
-        .astype("float32")
-    )
+    gust_factor = wind_gust_factor(data, stations, reftimes, leadtimes, **kwargs)
+    return gust_factor.mean("realization")
 
-
-@reuse
-@asarray
+@io({"nwp": ["eastward_wind", "northward_wind", "wind_speed_of_gust"]})
 def wind_gust_factor_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Calculate ensemble control of wind gust factor
     """
-    ds_wind = data["nwp"].preproc.get(
-        ["eastward_wind", "northward_wind", "wind_speed_of_gust"]
-    )
-    mean_wind = (
-        ds_wind[["eastward_wind", "northward_wind"]]
-        .isel(realization=0, drop=True)
-        .preproc.norm()
-    )
-    gust_wind = ds_wind[["wind_speed_of_gust"]].isel(realization=0, drop=True)
-    return (
-        ((gust_wind.wind_speed_of_gust + 1.0) / (mean_wind.norm + 1.0))
-        .to_dataset(name="wind_gust_factor")
-        .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
-        .astype("float32")
-    )
+    gust_factor = wind_gust_factor(data, stations, reftimes, leadtimes, **kwargs)
+    return gust_factor.isel(realization=0, drop=True)
