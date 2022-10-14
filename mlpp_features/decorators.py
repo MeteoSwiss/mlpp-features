@@ -14,6 +14,8 @@ def io(
     cache: bool = False,
 ):
     def decorator(fn):
+
+        @wraps(fn)
         def wrapped(*args, **kwargs):
 
             # check dependencies
