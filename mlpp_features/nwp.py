@@ -250,6 +250,7 @@ def dew_point_temperature_ensctrl(
         .astype("float32")
     )
 
+
 @reuse
 @asarray
 def equivalent_potential_temperature_ensavg(
@@ -263,7 +264,9 @@ def equivalent_potential_temperature_ensavg(
         data["nwp"]["dew_point_temperature"]
         data["nwp"]["surface_air_pressure"]
     except KeyError:
-        raise KeyError(["air_temperature", "dew_point_temperature", "surface_air_pressure"])
+        raise KeyError(
+            ["air_temperature", "dew_point_temperature", "surface_air_pressure"]
+        )
 
     t = air_temperature_ensavg(data, stations, reftimes, leadtimes, **kwargs)
     rh = relative_humidity_ensavg(data, stations, reftimes, leadtimes, **kwargs)
@@ -284,7 +287,9 @@ def equivalent_potential_temperature_ensctrl(
         data["nwp"]["dew_point_temperature"]
         data["nwp"]["surface_air_pressure"]
     except KeyError:
-        raise KeyError(["air_temperature", "dew_point_temperature", "surface_air_pressure"])
+        raise KeyError(
+            ["air_temperature", "dew_point_temperature", "surface_air_pressure"]
+        )
 
     t = air_temperature_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
     rh = relative_humidity_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
@@ -510,7 +515,7 @@ def northward_wind_ensctrl(
 
 @asarray
 def potential_temperature_ensavg(
-        data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of potential temperature in °C
@@ -528,7 +533,7 @@ def potential_temperature_ensavg(
 
 @asarray
 def potential_temperature_ensctrl(
-        data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of potential temperature in °C
@@ -776,7 +781,7 @@ def surface_air_pressure_ensavg(
         .mean("realization")
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
-        .pipe(lambda x: x / 100) # Pa to hPa
+        .pipe(lambda x: x / 100)  # Pa to hPa
         .astype("float32")
     )
 
@@ -795,7 +800,7 @@ def surface_air_pressure_ensctrl(
         .isel(realization=0, drop=True)
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
-        .pipe(lambda x: x / 100) # Pa to hPa
+        .pipe(lambda x: x / 100)  # Pa to hPa
         .astype("float32")
     )
 
