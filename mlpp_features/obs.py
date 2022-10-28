@@ -4,7 +4,7 @@ from typing import Dict
 import numpy as np
 import xarray as xr
 
-from mlpp_features.decorators import asarray, reuse
+from mlpp_features.decorators import out_format
 from mlpp_features import calc
 
 LOGGER = logging.getLogger(__name__)
@@ -12,8 +12,7 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
-@reuse
-@asarray
+@out_format(units="degC")
 def air_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -28,7 +27,7 @@ def air_temperature(
     )
 
 
-@asarray
+@out_format(units="degC")
 def dew_point_depression(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -40,7 +39,7 @@ def dew_point_depression(
     return (t - t_d).astype("float32")
 
 
-@asarray
+@out_format(units="degC")
 def dew_point_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -52,8 +51,7 @@ def dew_point_temperature(
     t_d = calc.dew_point_from_t_and_rh(t, rh)
     return t_d
 
-@reuse
-@asarray
+@out_format(units="hPa")
 def surface_air_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -67,8 +65,7 @@ def surface_air_pressure(
         .astype("float32")
     )
 
-@reuse
-@asarray
+@out_format(units="%")
 def relative_humidity(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -83,7 +80,7 @@ def relative_humidity(
     )
 
 
-@asarray
+@out_format(units="g kg-1")
 def water_vapor_mixing_ratio(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -97,8 +94,7 @@ def water_vapor_mixing_ratio(
     return r
 
 
-@reuse
-@asarray
+@out_format()
 def cos_wind_from_direction(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -115,8 +111,7 @@ def cos_wind_from_direction(
     )
 
 
-@reuse
-@asarray
+@out_format()
 def sin_wind_from_direction(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -133,7 +128,7 @@ def sin_wind_from_direction(
     )
 
 
-@asarray
+@out_format(units="hPa")
 def water_vapor_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ):
@@ -144,7 +139,7 @@ def water_vapor_pressure(
     rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
     return calc.water_vapor_pressure_from_t_and_rh(t, rh)
 
-@asarray
+@out_format(units="hPa")
 def water_vapor_saturation_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ):
@@ -155,8 +150,7 @@ def water_vapor_saturation_pressure(
     return calc.water_vapor_saturation_pressure_from_t(t)
 
 
-@reuse
-@asarray
+@out_format(units="m s-1")
 def wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -171,8 +165,7 @@ def wind_speed(
     )
 
 
-@reuse
-@asarray
+@out_format(units="m s-1")
 def wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -186,7 +179,7 @@ def wind_speed_of_gust(
         .astype("float32")
     )
 
-@asarray
+@out_format(units="degC")
 def potential_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -197,8 +190,7 @@ def potential_temperature(
     p = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
     return calc.potential_temperature_from_t_and_p(t, p)
 
-@reuse
-@asarray
+@out_format(units="m s-1")
 def nearest_wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -215,8 +207,7 @@ def nearest_wind_speed(
     )
 
 
-@reuse
-@asarray
+@out_format(units="m")
 def distance_to_nearest_wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -235,8 +226,7 @@ def distance_to_nearest_wind_speed(
     )
 
 
-@reuse
-@asarray
+@out_format(units="m s-1")
 def nearest_wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -253,8 +243,7 @@ def nearest_wind_speed_of_gust(
     )
 
 
-@reuse
-@asarray
+@out_format(units="m")
 def distance_to_nearest_wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
