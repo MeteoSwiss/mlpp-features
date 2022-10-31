@@ -23,13 +23,13 @@ def out_format(
         - transforms it to a `xr.DataArray` object named like the function itself
         - adds the `units` attribute
     """
-    def decorator(fn):
 
+    def decorator(fn):
         @wraps(fn)
         def wrapped(*args, **kwargs):
-            
+
             out = fn(*args, **kwargs)
-            
+
             # return as array with fn name
             if isinstance(out, xr.Dataset):
                 out = out.to_array(name=fn.__name__).squeeze("variable", drop=True)
@@ -44,7 +44,7 @@ def out_format(
             if units is not None:
                 out.attrs["units"] = units
 
-            return out.chunk("auto").persist()
+            return out
 
         return wrapped
 
@@ -65,13 +65,12 @@ def cache(fn):
 
         cachedfile = Path(CACHEDIR.name) / f"{fn.__name__}.pkl"
         if not cachedfile.is_file():
-            out = fn(*args, **kwargs).load()
+            out = fn(*args, **kwargs).compute()
             with open(cachedfile, "wb") as f:
                 pickle.dump(out, f, protocol=-1)
         else:
             with open(cachedfile, "rb") as f:
                 out = pickle.load(f)
-        
         return out.chunk("auto").persist()
 
     return inner

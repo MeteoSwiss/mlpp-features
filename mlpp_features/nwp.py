@@ -25,7 +25,6 @@ def air_temperature(
         .preproc.get("air_temperature")
         .preproc.interp(stations)
         .pipe(lambda x: x - 273.15)
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -38,7 +37,7 @@ def air_temperature_ensavg(
     Ensemble mean of temperature in °C
     """
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return t.mean("realization")
+    return t.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -49,7 +48,7 @@ def air_temperature_ensctrl(
     Control run temperature in °C
     """
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return t.isel(realization=0, drop=True)
+    return t.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -60,7 +59,7 @@ def air_temperature_ensstd(
     Ensemble standard deviation of temperature in °C
     """
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return t.std("realization")
+    return t.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -85,7 +84,7 @@ def air_temperature_dailyrange_ensavg(
     Ensemble mean of daily temperature range in °C
     """
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return t.mean("realization")
+    return t.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 @out_format(units="W m-2")
 def average_downward_longwave_radiation_ensavg(
@@ -115,7 +114,6 @@ def boundary_layer_height(
         data["nwp"]
         .preproc.get("atmosphere_boundary_layer_thickness")
         .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -128,7 +126,7 @@ def boundary_layer_height_ensavg(
     Ensemble mean of boundary layer height in m
     """
     blh = boundary_layer_height(data, stations, reftimes, leadtimes, **kwargs)
-    return blh.mean("realization")
+    return blh.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m")
@@ -139,7 +137,7 @@ def boundary_layer_height_ensctrl(
     Ensemble control of boundary layer height in m
     """
     blh = boundary_layer_height(data, stations, reftimes, leadtimes, **kwargs)
-    return blh.isel(realization=0, drop=True)
+    return blh.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format()
@@ -161,7 +159,7 @@ def cos_wind_from_direction_ensavg(
     Calculate ensemble mean of cosine wind direction
     """
     wdir = cos_wind_from_direction(data, stations, reftimes, leadtimes, **kwargs)
-    return wdir.mean("realization")
+    return wdir.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format()
@@ -172,7 +170,7 @@ def cos_wind_from_direction_ensctrl(
     Calculate ensemble control of cosine wind direction
     """
     wdir = cos_wind_from_direction(data, stations, reftimes, leadtimes, **kwargs)
-    return wdir.isel(realization=0, drop=True)
+    return wdir.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -195,7 +193,7 @@ def dew_point_depression_ensavg(
     Ensemble mean of dew point depression (T - T_d)
     """
     tdep = dew_point_depression(data, stations, reftimes, leadtimes, **kwargs)
-    return tdep.mean("realization")
+    return tdep.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -206,7 +204,7 @@ def dew_point_depression_ensctrl(
     Control run dew point depression (T - T_d)
     """
     tdep = dew_point_depression(data, stations, reftimes, leadtimes, **kwargs)
-    return tdep.isel(realization=0, drop=True)
+    return tdep.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @cache
@@ -222,7 +220,6 @@ def dew_point_temperature(
         .preproc.get("dew_point_temperature")
         .preproc.interp(stations)
         .pipe(lambda x: x - 273.15)  # convert to celsius
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -235,7 +232,7 @@ def dew_point_temperature_ensavg(
     Ensemble mean of dew point temperature in °C
     """
     td = dew_point_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return td.mean("realization")
+    return td.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -246,7 +243,7 @@ def dew_point_temperature_ensctrl(
     Control run dew point temperature in °C
     """
     td = dew_point_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return td.isel(realization=0, drop=True)
+    return td.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -272,7 +269,7 @@ def equivalent_potential_temperature_ensavg(
     theta_e = equivalent_potential_temperature(
         data, stations, reftimes, leadtimes, **kwargs
     )
-    return theta_e.mean("realization")
+    return theta_e.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -285,7 +282,7 @@ def equivalent_potential_temperature_ensctrl(
     theta_e = equivalent_potential_temperature(
         data, stations, reftimes, leadtimes, **kwargs
     )
-    return theta_e.isel(realization=0, drop=True)
+    return theta_e.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="W m-2")
@@ -300,7 +297,6 @@ def diffuse_downward_shortwave_radiation_ensavg(
         .preproc.get("surface_diffuse_downwelling_shortwave_flux_in_air")
         .mean("realization")
         .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -345,7 +341,6 @@ def eastward_wind(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **
         data["nwp"]
         .preproc.get("eastward_wind")
         .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -358,7 +353,7 @@ def eastward_wind_ensavg(
     Ensemble mean of eastward wind in m/s
     """
     u = eastward_wind(data, stations, reftimes, leadtimes, **kwargs)
-    return u.mean("realization")
+    return u.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -369,7 +364,7 @@ def eastward_wind_ensctrl(
     Ensemble control of eastward wind in m/s
     """
     u = eastward_wind(data, stations, reftimes, leadtimes, **kwargs)
-    return u.isel(realization=0, drop=True)
+    return u.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hours")
@@ -423,7 +418,6 @@ def northward_wind(
         data["nwp"]
         .preproc.get("northward_wind")
         .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -436,7 +430,7 @@ def northward_wind_ensavg(
     Ensemble mean of northward wind in m/s
     """
     v = northward_wind(data, stations, reftimes, leadtimes, **kwargs)
-    return v.mean("realization")
+    return v.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -447,7 +441,7 @@ def northward_wind_ensctrl(
     Ensemble control of northward wind in m/s
     """
     v = northward_wind(data, stations, reftimes, leadtimes, **kwargs)
-    return v.isel(realization=0, drop=True)
+    return v.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -470,7 +464,7 @@ def potential_temperature_ensavg(
     Ensemble mean of potential temperature in °C
     """
     v = potential_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return v.mean("realization")
+    return v.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degC")
@@ -481,7 +475,7 @@ def potential_temperature_ensctrl(
     Ensemble mean of potential temperature in °C
     """
     v = potential_temperature(data, stations, reftimes, leadtimes, **kwargs)
-    return v.isel(realization=0, drop=True)
+    return v.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hPa")
@@ -503,7 +497,7 @@ def pressure_difference_BAS_LUG_ensavg(
     Ensemble mean of pressure difference between Geneva and Güttingen in hPa
     """
     pdiff = pressure_difference_BAS_LUG(data, stations, reftimes, leadtimes, **kwargs)
-    return pdiff.mean("realization")
+    return pdiff.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hPa")
@@ -514,7 +508,7 @@ def pressure_difference_BAS_LUG_ensctrl(
     Ensemble control of pressure difference between Basel and Lugano in hPa
     """
     pdiff = pressure_difference_BAS_LUG(data, stations, reftimes, leadtimes, **kwargs)
-    return pdiff.isel(realization=0, drop=True)
+    return pdiff.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hPa")
@@ -536,7 +530,7 @@ def pressure_difference_GVE_GUT_ensavg(
     Ensemble mean of pressure difference between Geneva and Güttingen in hPa
     """
     pdiff = pressure_difference_GVE_GUT(data, stations, reftimes, leadtimes, **kwargs)
-    return pdiff.mean("realization")
+    return pdiff.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="%")
@@ -559,7 +553,7 @@ def relative_humidity_ensavg(
     Ensemble mean of relative humidity in %
     """
     rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
-    return rh.mean("realization")
+    return rh.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 @out_format(units="%")
 def relative_humidity_ensctrl(
@@ -569,7 +563,7 @@ def relative_humidity_ensctrl(
     Control run relative humidity in %
     """
     rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
-    return rh.mean("realization")
+    return rh.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format()
@@ -591,7 +585,7 @@ def sin_wind_from_direction_ensavg(
     Calculate ensemble mean of sine wind direction
     """
     wdir = sin_wind_from_direction(data, stations, reftimes, leadtimes, **kwargs)
-    return wdir.mean("realization")
+    return wdir.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format()
@@ -602,7 +596,7 @@ def sin_wind_from_direction_ensctrl(
     Calculate ensemble control of sine wind direction
     """
     wdir = sin_wind_from_direction(data, stations, reftimes, leadtimes, **kwargs)
-    return wdir.isel(realization=0, drop=True)
+    return wdir.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @cache
@@ -617,7 +611,6 @@ def specific_humidity(
         data["nwp"]
         .preproc.get("specific_humidity")
         .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -630,7 +623,7 @@ def specific_humidity_ensavg(
     Ensemble mean of specific humidity in g/kg
     """
     q = specific_humidity(data, stations, reftimes, leadtimes, **kwargs)
-    return q.mean("realization")
+    return q.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="g kg-1")
@@ -641,7 +634,7 @@ def specific_humidity_ensctrl(
     Control run specific humidity in g/kg
     """
     q = specific_humidity(data, stations, reftimes, leadtimes, **kwargs)
-    return q.isel(realization=0, drop=True)
+    return q.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="s")
@@ -672,7 +665,6 @@ def surface_air_pressure(
         data["nwp"]
         .preproc.get("surface_air_pressure")
         .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
         .pipe(lambda x: x / 100)  # Pa to hPa
         .astype("float32")
     )
@@ -686,7 +678,7 @@ def surface_air_pressure_ensavg(
     Ensemble mean of surface pressure in hPa
     """
     q = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
-    return q.mean("realization")
+    return q.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hPa")
@@ -697,7 +689,7 @@ def surface_air_pressure_ensctrl(
     Control run surface pressure in hPa
     """
     q = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
-    return q.isel(realization=0, drop=True)
+    return q.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 @cache
 @out_format()
@@ -736,7 +728,7 @@ def sx_500m_ensavg(
     and every 5 degrees.
     """
     sx = sx_500m(data, stations, reftimes, leadtimes, **kwargs)
-    return sx.mean("realization")
+    return sx.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format()
@@ -748,7 +740,7 @@ def sx_500m_ensctrl(
     and every 5 degrees.
     """
     sx = sx_500m(data, stations, reftimes, leadtimes, **kwargs)
-    return sx.isel(realization=0, drop=True)
+    return sx.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="g kg-1")
@@ -771,7 +763,7 @@ def water_vapor_mixing_ratio_ensavg(
     Ensemble mean of water vapor mixing ratio in g/kg
     """
     r = water_vapor_mixing_ratio(data, stations, reftimes, leadtimes, **kwargs)
-    return r.mean("realization")
+    return r.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="g kg-1")
@@ -782,7 +774,7 @@ def water_vapor_mixing_ratio_ensctrl(
     Control run water vapor mixing ratio in g/kg
     """
     r = water_vapor_mixing_ratio(data, stations, reftimes, leadtimes, **kwargs)
-    return r.isel(realization=0, drop=True)
+    return r.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 @cache
 @out_format(units="hPa")
@@ -805,7 +797,7 @@ def water_vapor_pressure_ensavg(
     Ensemble mean of water vapor partial pressure
     """
     e = water_vapor_pressure(data, stations, reftimes, leadtimes, **kwargs)
-    return e.mean("realization")
+    return e.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hPa")
@@ -816,7 +808,7 @@ def water_vapor_pressure_ensctrl(
     Control run water vapor partial pressure
     """
     e = water_vapor_pressure(data, stations, reftimes, leadtimes, **kwargs)
-    return e.isel(realization=0, drop=True)
+    return e.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hPa")
@@ -838,7 +830,7 @@ def water_vapor_saturation_pressure_ensavg(
     Ensemble mean of water vapor partial pressure at saturation in hPa
     """
     e_s = water_vapor_saturation_pressure(data, stations, reftimes, leadtimes, **kwargs)
-    return e_s.mean("realization")
+    return e_s.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="hPa")
@@ -849,7 +841,7 @@ def water_vapor_saturation_pressure_ensctrl(
     Control run water vapor partial pressure at saturation
     """
     e_s = water_vapor_saturation_pressure(data, stations, reftimes, leadtimes, **kwargs)
-    return e_s.isel(realization=0, drop=True)
+    return e_s.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -880,7 +872,7 @@ def wind_from_direction_ensavg(
     Calculate ensemble mean of wind direction
     """
     d = wind_from_direction(data, stations, reftimes, leadtimes, **kwargs)
-    return d.mean("realization")
+    return d.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="degrees")
@@ -891,7 +883,7 @@ def wind_from_direction_ensctrl(
     Calculate ensemble control of wind direction
     """
     d = wind_from_direction(data, stations, reftimes, leadtimes, **kwargs)
-    return d.isel(realization=0, drop=True)
+    return d.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -902,7 +894,7 @@ def wind_speed_ensavg(
     Ensemble mean of wind speed
     """
     uv = wind_speed(data, stations, reftimes, leadtimes, **kwargs)
-    return uv.mean("realization")
+    return uv.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -913,7 +905,7 @@ def wind_speed_ensctrl(
     Ensemble control of wind speed
     """
     uv = wind_speed(data, stations, reftimes, leadtimes, **kwargs)
-    return uv.isel(realization=0, drop=True)
+    return uv.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -924,7 +916,7 @@ def wind_speed_ensstd(
     Ensemble std of wind speed
     """
     uv = wind_speed(data, stations, reftimes, leadtimes, **kwargs)
-    return uv.std("realization")
+    return uv.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -952,7 +944,7 @@ def wind_speed_error_ensavg(
     Forecast error of the ensemble mean wind speed
     """
     uv = wind_speed_error(data, stations, reftimes, leadtimes, **kwargs)
-    return uv.mean("realization")
+    return uv.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -963,7 +955,7 @@ def wind_speed_error_ensctrl(
     Forecast error of the ensemble control wind speed
     """
     uv = wind_speed_error(data, stations, reftimes, leadtimes, **kwargs)
-    return uv.isel(realization=0, drop=True)
+    return uv.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @cache
@@ -978,7 +970,6 @@ def wind_speed_of_gust(
         data["nwp"]
         .preproc.get("wind_speed_of_gust")
         .preproc.interp(stations)
-        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -991,7 +982,7 @@ def wind_speed_of_gust_ensavg(
     Ensemble mean of wind speed gust
     """
     ug = wind_speed_of_gust(data, stations, reftimes, leadtimes, **kwargs)
-    return ug.mean("realization")
+    return ug.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 @out_format(units="m s-1")
 def wind_speed_of_gust_ensctrl(
@@ -1001,7 +992,7 @@ def wind_speed_of_gust_ensctrl(
     Ensemble control of wind speed of gust
     """
     ug = wind_speed_of_gust(data, stations, reftimes, leadtimes, **kwargs)
-    return ug.isel(realization=0, drop=True)
+    return ug.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -1012,7 +1003,7 @@ def wind_speed_of_gust_ensstd(
     Ensemble std of wind speed gust
     """
     ug = wind_speed_of_gust(data, stations, reftimes, leadtimes, **kwargs)
-    return ug.std("realization")
+    return ug.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format(units="m s-1")
@@ -1029,7 +1020,7 @@ def wind_speed_of_gust_error_ensavg(
         .to_array(name="wind_speed_of_gust")
         .squeeze("variable", drop=True)
     )
-    return (nwp - obs).astype("float32")
+    return (nwp - obs)
 
 
 @out_format(units="m s-1")
@@ -1046,7 +1037,7 @@ def wind_speed_of_gust_error_ensctrl(
         .to_array(name="wind_speed_of_gust")
         .squeeze("variable", drop=True)
     )
-    return (nwp - obs).astype("float32")
+    return (nwp - obs)
 
 
 @out_format()
@@ -1069,7 +1060,7 @@ def wind_gust_factor_ensavg(
     Calculate ensemble mean of wind gust factor
     """
     gust_factor = wind_gust_factor(data, stations, reftimes, leadtimes, **kwargs)
-    return gust_factor.mean("realization")
+    return gust_factor.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @out_format()
@@ -1080,4 +1071,4 @@ def wind_gust_factor_ensctrl(
     Calculate ensemble control of wind gust factor
     """
     gust_factor = wind_gust_factor(data, stations, reftimes, leadtimes, **kwargs)
-    return gust_factor.isel(realization=0, drop=True)
+    return gust_factor.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
