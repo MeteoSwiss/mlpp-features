@@ -4,7 +4,7 @@ from typing import Dict
 import numpy as np
 import xarray as xr
 
-from mlpp_features.decorators import asarray
+from mlpp_features.decorators import out_format
 
 
 LOGGER = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 xr.set_options(keep_attrs=True)
 
 
-@asarray
+@out_format()
 def aspect_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain aspect at a 500m scale
@@ -27,7 +27,7 @@ def aspect_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Da
     )
 
 
-@asarray
+@out_format()
 def aspect_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain aspect at a 2000m scale
@@ -40,7 +40,7 @@ def aspect_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.D
     )
 
 
-@asarray
+@out_format()
 def cos_valley_index_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
@@ -60,7 +60,7 @@ def cos_valley_index_2000m(
     return cos_valley.preproc.interp(stations).astype("float32")
 
 
-@asarray
+@out_format()
 def elevation_50m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain elevation at 50m resolution.
@@ -68,7 +68,7 @@ def elevation_50m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.
     return data["terrain"].preproc.get("DEM").preproc.interp(stations).astype("float32")
 
 
-@asarray
+@out_format()
 def slope_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Extract slope at 500m resolution
@@ -81,7 +81,7 @@ def slope_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dat
     )
 
 
-@asarray
+@out_format()
 def slope_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Extract slope at 2000m resolution
@@ -94,7 +94,7 @@ def slope_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Da
     )
 
 
-@asarray
+@out_format()
 def sn_derivative_500m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
@@ -109,7 +109,7 @@ def sn_derivative_500m(
     )
 
 
-@asarray
+@out_format()
 def sn_derivative_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
@@ -124,7 +124,7 @@ def sn_derivative_2000m(
     )
 
 
-@asarray
+@out_format()
 def std_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain STD at a 500m scale
@@ -137,7 +137,7 @@ def std_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Datas
     )
 
 
-@asarray
+@out_format()
 def std_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain STD at a 2000m scale
@@ -150,7 +150,7 @@ def std_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
     )
 
 
-@asarray
+@out_format()
 def tpi_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain TPI at a 500m scale
@@ -163,7 +163,7 @@ def tpi_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Datas
     )
 
 
-@asarray
+@out_format()
 def tpi_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain TPI at a 2000m scale
@@ -176,7 +176,7 @@ def tpi_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
     )
 
 
-@asarray
+@out_format()
 def valley_norm_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
@@ -191,7 +191,7 @@ def valley_norm_2000m(
     )
 
 
-@asarray
+@out_format()
 def valley_norm_20000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
@@ -206,7 +206,7 @@ def valley_norm_20000m(
     )
 
 
-@asarray
+@out_format()
 def we_derivative_500m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
@@ -221,7 +221,7 @@ def we_derivative_500m(
     )
 
 
-@asarray
+@out_format()
 def we_derivative_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:

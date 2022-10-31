@@ -5,7 +5,7 @@ from typing import Dict
 import xarray as xr
 import numpy as np
 
-from mlpp_features.decorators import asarray
+from mlpp_features.decorators import out_format
 
 LOGGER = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 xr.set_options(keep_attrs=True)
 
 
-@asarray
+@out_format()
 def cos_dayofyear(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
@@ -38,7 +38,7 @@ def cos_dayofyear(
     return ds.pipe(np.cos).astype("float32")
 
 
-@asarray
+@out_format()
 def cos_hourofday(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
@@ -61,7 +61,7 @@ def cos_hourofday(
     return ds.pipe(np.cos).astype("float32")
 
 
-@asarray
+@out_format()
 def inverse_sample_age(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
@@ -77,8 +77,7 @@ def inverse_sample_age(
     )
     return ds.astype("float32")
 
-
-@asarray
+@out_format()
 def sin_dayofyear(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
@@ -94,7 +93,7 @@ def sin_dayofyear(
     return ds.pipe(np.sin).astype("float32")
 
 
-@asarray
+@out_format()
 def sin_hourofday(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.Dataset:
