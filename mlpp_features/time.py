@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Dict
 
 import xarray as xr
@@ -59,6 +60,22 @@ def cos_hourofday(
     ds["cos_hourofday"] = ds["time.hour"] * 2 * np.pi / 24
     return ds.pipe(np.cos).astype("float32")
 
+
+@out_format()
+def inverse_sample_age(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.Dataset:
+    """
+    Compute the inverse of the sample age in years
+    """
+    if data["nwp"] is not None and len(data["nwp"]) == 0:
+        raise KeyError([])
+    ds = _make_time_dataset(reftimes, leadtimes)
+    this_year = datetime.today().year + datetime.today().timetuple().tm_yday / 365
+    ds["inverse_sample_age"] = 1 / (
+        this_year - ds["time.year"] - ds["time.dayofyear"] / 365
+    )
+    return ds.astype("float32")
 
 @out_format()
 def sin_dayofyear(

@@ -246,6 +246,7 @@ def dew_point_temperature_ensctrl(
     return td.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
+
 @out_format(units="degC")
 def equivalent_potential_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -442,7 +443,6 @@ def northward_wind_ensctrl(
     """
     v = northward_wind(data, stations, reftimes, leadtimes, **kwargs)
     return v.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
-
 
 @out_format(units="degC")
 def potential_temperature(
@@ -690,7 +690,8 @@ def surface_air_pressure_ensctrl(
     """
     q = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
     return q.isel(realization=0, drop=True).to_dataset().preproc.align_time(reftimes, leadtimes)
-
+    
+    
 @cache
 @out_format()
 def sx_500m(

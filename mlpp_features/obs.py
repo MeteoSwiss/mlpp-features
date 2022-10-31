@@ -51,6 +51,7 @@ def dew_point_temperature(
     t_d = calc.dew_point_from_t_and_rh(t, rh)
     return t_d
 
+
 @out_format(units="hPa")
 def surface_air_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -64,6 +65,7 @@ def surface_air_pressure(
         .preproc.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
+
 
 @out_format(units="%")
 def relative_humidity(
