@@ -49,7 +49,7 @@ class TestFeatures:
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=4)
         leadtimes = list(range(3))
         with tempfile.TemporaryDirectory() as tmp_dir:
-            da = pipeline(data, stations, reftimes, leadtimes, tmp_dir = tmp_dir)
+            da = pipeline(data, stations, reftimes, leadtimes, tmp_dir=tmp_dir)
         assert isinstance(da, xr.DataArray)
         assert "variable" not in da.dims
         if "t" in da.dims:

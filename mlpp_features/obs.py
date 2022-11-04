@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
+
 @out_format(units="degC")
 def air_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -141,6 +142,7 @@ def water_vapor_pressure(
     rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
     return calc.water_vapor_pressure_from_t_and_rh(t, rh)
 
+
 @out_format(units="hPa")
 def water_vapor_saturation_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -181,6 +183,7 @@ def wind_speed_of_gust(
         .astype("float32")
     )
 
+
 @out_format(units="degC")
 def potential_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -191,6 +194,7 @@ def potential_temperature(
     t = air_temperature(data, stations, reftimes, leadtimes, **kwargs)
     p = surface_air_pressure(data, stations, reftimes, leadtimes, **kwargs)
     return calc.potential_temperature_from_t_and_p(t, p)
+
 
 @out_format(units="m s-1")
 def nearest_wind_speed(

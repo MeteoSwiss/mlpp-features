@@ -77,6 +77,7 @@ def inverse_sample_age(
     )
     return ds.astype("float32")
 
+
 @out_format()
 def sin_dayofyear(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
