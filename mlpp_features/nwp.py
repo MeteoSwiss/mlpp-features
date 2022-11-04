@@ -109,22 +109,6 @@ def average_downward_longwave_radiation_ensavg(
     )
 
 
-@cache
-@out_format(units="m")
-def boundary_layer_height(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
-) -> xr.DataArray:
-    """
-    Ensemble of boundary layer height in m
-    """
-    return (
-        data["nwp"]
-        .preproc.get("atmosphere_boundary_layer_thickness")
-        .preproc.interp(stations)
-        .astype("float32")
-    )
-
-
 @out_format(units="m")
 def boundary_layer_height_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -132,8 +116,14 @@ def boundary_layer_height_ensavg(
     """
     Ensemble mean of boundary layer height in m
     """
-    blh = boundary_layer_height(data, stations, reftimes, leadtimes, **kwargs)
-    return blh.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+    return (
+        data["nwp"]
+        .preproc.get("atmosphere_boundary_layer_thickness")
+        .mean("realization")
+        .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
 
 
 @out_format(units="m")
@@ -143,11 +133,13 @@ def boundary_layer_height_ensctrl(
     """
     Ensemble control of boundary layer height in m
     """
-    blh = boundary_layer_height(data, stations, reftimes, leadtimes, **kwargs)
     return (
-        blh.isel(realization=0, drop=True)
-        .to_dataset()
+        data["nwp"]
+        .preproc.get("atmosphere_boundary_layer_thickness")
+        .isel(realization=0, drop=True)
+        .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
@@ -770,21 +762,24 @@ def surface_air_pressure_ensctrl(
     )
 
 
-@cache
 @out_format()
-def sx_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.DataArray:
+def sx_500m_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
     """
-    Extract ensemble average Sx with a 500m radius, for azimuth sectors of 10 degrees
-    and every 5 degrees.
+    Extract Sx with a 500m radius for the ensemble mean of wind direction.
+
+    This uses azimuth sectors of 10 degrees, every 5 degrees.
     """
     sx = data["terrain"].preproc.get("SX_50M_RADIUS500")
     nsectors = sx.wind_from_direction.size
     degsector = int(360 / nsectors)
 
     # find correct index for every sample
-    wdir = wind_from_direction(data, stations, **kwargs)
-    wdir = wdir.astype("int16").load()
-
+    wdir = wind_from_direction_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    wdir = wdir.load()
+    is_valid = np.isfinite(wdir)
+    wdir = wdir.astype("int16")
     ind = (wdir + int(degsector / 2)) // degsector
     ind = ind.astype("int8")
     ind = ind.where(ind != nsectors, 0)
@@ -794,20 +789,10 @@ def sx_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.DataAr
     station_sub = stations.loc[ind.station]
     sx = sx.preproc.interp(station_sub)
     sx = sx.isel(wind_from_direction=ind.sel(station=sx.station))
+    sx = sx.drop_vars("wind_from_direction")
+    sx = sx.where(is_valid.sel(station=sx.station))
 
-    return sx.drop_vars("wind_from_direction")
-
-
-@out_format()
-def sx_500m_ensavg(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
-) -> xr.DataArray:
-    """
-    Extract ensemble average Sx with a 500m radius, for azimuth sectors of 10 degrees
-    and every 5 degrees.
-    """
-    sx = sx_500m(data, stations, **kwargs)
-    return sx.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+    return sx
 
 
 @out_format()
@@ -815,15 +800,32 @@ def sx_500m_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Extract ensemble control Sx with a 500m radius, for azimuth sectors of 10 degrees
-    and every 5 degrees.
+    Extract Sx with a 500m radius for the ensemble control of wind direction.
+
+    This uses azimuth sectors of 10 degrees, every 5 degrees.
     """
-    sx = sx_500m(data, stations, **kwargs)
-    return (
-        sx.isel(realization=0, drop=True)
-        .to_dataset()
-        .preproc.align_time(reftimes, leadtimes)
-    )
+    sx = data["terrain"].preproc.get("SX_50M_RADIUS500")
+    nsectors = sx.wind_from_direction.size
+    degsector = int(360 / nsectors)
+
+    # find correct index for every sample
+    wdir = wind_from_direction_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    wdir = wdir.load()
+    is_valid = np.isfinite(wdir)
+    wdir = wdir.astype("int16")
+    ind = (wdir + int(degsector / 2)) // degsector
+    ind = ind.astype("int8")
+    ind = ind.where(ind != nsectors, 0)
+    del wdir
+
+    # compute Sx
+    station_sub = stations.loc[ind.station]
+    sx = sx.preproc.interp(station_sub)
+    sx = sx.isel(wind_from_direction=ind.sel(station=sx.station))
+    sx = sx.drop_vars("wind_from_direction")
+    sx = sx.where(is_valid.sel(station=sx.station))
+
+    return sx
 
 
 @out_format(units="g kg-1")
