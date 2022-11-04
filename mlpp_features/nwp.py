@@ -584,6 +584,21 @@ def pressure_difference_GVE_GUT_ensavg(
     )
 
 
+@out_format(units="hPa")
+def pressure_difference_GVE_GUT_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of pressure difference between Geneva and Güttingen in hPa
+    """
+    pdiff = pressure_difference_GVE_GUT(data, stations, reftimes, leadtimes, **kwargs)
+    return (
+        pdiff.isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
 @out_format(units="%")
 def relative_humidity(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -615,7 +630,11 @@ def relative_humidity_ensctrl(
     Control run relative humidity in %
     """
     rh = relative_humidity(data, stations, reftimes, leadtimes, **kwargs)
-    return rh.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+    return (
+        rh.isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
 
 
 @out_format()
