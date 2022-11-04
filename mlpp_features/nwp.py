@@ -709,9 +709,10 @@ def sx_500m(
     wdir = wind_from_direction(data, stations, reftimes, leadtimes, **kwargs)
     wdir = wdir.astype("int16").load()
 
-    ind = (wdir + degsector / 2) // degsector
+    ind = (wdir + int(degsector / 2)) // degsector
+    ind = ind.astype("int8")
+    ind = ind.where(ind != nsectors, 0)
     del wdir
-    ind = ind.where(ind != nsectors, 0).astype("int8")
 
     # compute Sx
     station_sub = stations.loc[ind.station]
