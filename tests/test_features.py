@@ -51,6 +51,7 @@ class TestFeatures:
         with tempfile.TemporaryDirectory() as tmp_dir:
             da = pipeline(data, stations, reftimes, leadtimes, tmp_dir=tmp_dir)
         assert isinstance(da, xr.DataArray)
+        assert da.dtype == "float32"
         assert "variable" not in da.dims
         if "t" in da.dims:
             assert da.t.dtype == int

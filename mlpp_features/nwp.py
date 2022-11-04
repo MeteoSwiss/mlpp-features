@@ -792,7 +792,7 @@ def sx_500m_ensavg(
     sx = sx.drop_vars("wind_from_direction")
     sx = sx.where(is_valid.sel(station=sx.station))
 
-    return sx
+    return sx.astype("float32")
 
 
 @out_format()
@@ -825,7 +825,7 @@ def sx_500m_ensctrl(
     sx = sx.drop_vars("wind_from_direction")
     sx = sx.where(is_valid.sel(station=sx.station))
 
-    return sx
+    return sx.astype("float32")
 
 
 @out_format(units="g kg-1")
@@ -942,13 +942,6 @@ def water_vapor_saturation_pressure_ensctrl(
     )
 
 
-@out_format(units="m s-1")
-def wind_speed(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
-    u = eastward_wind(data, stations, *args, **kwargs)
-    v = northward_wind(data, stations, *args, **kwargs)
-    return np.sqrt(u**2 + v**2)
-
-
 @out_format(units="degrees")
 def wind_from_direction(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -959,7 +952,7 @@ def wind_from_direction(
     u = eastward_wind(data, stations, *args, **kwargs)
     v = northward_wind(data, stations, *args, **kwargs)
     out = (270 - 180 / np.pi * np.arctan2(v, u)) % 360
-    return out
+    return out.astype("float32")
 
 
 @out_format(units="degrees")
@@ -989,6 +982,13 @@ def wind_from_direction_ensctrl(
 
 
 @out_format(units="m s-1")
+def wind_speed(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
+    u = eastward_wind(data, stations, *args, **kwargs)
+    v = northward_wind(data, stations, *args, **kwargs)
+    return np.sqrt(u**2 + v**2).astype("float32")
+
+
+@out_format(units="m s-1")
 def wind_speed_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -1012,6 +1012,7 @@ def wind_speed_ensavg_error(
         obs.preproc.unstack_time(reftimes, leadtimes)
         .to_array(name="wind_speed")
         .squeeze("variable", drop=True)
+        .astype("float32")
     )
     return nwp - obs
 
@@ -1044,6 +1045,7 @@ def wind_speed_ensctrl_error(
         obs.preproc.unstack_time(reftimes, leadtimes)
         .to_array(name="wind_speed")
         .squeeze("variable", drop=True)
+        .astype("float32")
     )
     return nwp - obs
 
@@ -1099,6 +1101,7 @@ def wind_speed_of_gust_ensavg_error(
         obs.preproc.unstack_time(reftimes, leadtimes)
         .to_array(name="wind_speed_of_gust")
         .squeeze("variable", drop=True)
+        .astype("float32")
     )
     return nwp - obs
 
@@ -1131,6 +1134,7 @@ def wind_speed_of_gust_ensctrl_error(
         obs.preproc.unstack_time(reftimes, leadtimes)
         .to_array(name="wind_speed_of_gust")
         .squeeze("variable", drop=True)
+        .astype("float32")
     )
     return nwp - obs
 
