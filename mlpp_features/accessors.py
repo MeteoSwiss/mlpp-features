@@ -2,7 +2,7 @@
 import logging
 import warnings
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Union, Callable
 
 import numpy as np
@@ -37,12 +37,17 @@ class PreprocDatasetAccessor:
         except KeyError:
             raise KeyError(var)
 
-    def align_time(self, reftimes: List[datetime], leadtimes: List[int]) -> xr.Dataset:
+    def align_time(
+        self, reftimes: List[datetime], leadtimes: List[timedelta]
+    ) -> xr.Dataset:
         """Select most recently available run, consider availability time"""
 
         ds = self.ds
         if not "forecast_reference_time" in ds.dims:
             return ds
+
+        reftimes = np.array(reftimes, dtype="datetime64[h]")
+        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
 
         # Rearrange coordinates
         ds = ds.assign_coords(init_time=ds.forecast_reference_time)
@@ -63,27 +68,20 @@ class PreprocDatasetAccessor:
                 f"\n\tmodel runs: ({arrival_times.min()}, {arrival_times.max()})"
             )
 
-        #  Cast leadtimes to int
-        new_leadtimes = ds["t"].astype("timedelta64[h]")
-        new_leadtimes = new_leadtimes // np.timedelta64(1, "h")
-        ds["t"] = new_leadtimes
-
         # Compute the time lag between model and reftimes
-        reftimes = np.array(list(map(np.datetime64, reftimes)))
-        lags_timedelta = (reftimes - ds.init_time).astype("timedelta64[h]")
-        lags_int = lags_timedelta // np.timedelta64(1, "h")
-        lags_unique = sorted(list(set(lags_int.values)))
+        lags_timedelta = np.array(reftimes - ds.init_time, dtype="timedelta64[h]")
+        lags_unique = np.unique(lags_timedelta)
 
         new_ds = []
         for lag in lags_unique:
-            iref = list(np.where(lags_int == lag)[0])
-            ds_ = ds.isel(forecast_reference_time=iref)
-            ds_ = ds_.interp(
+            iref = list(np.where(lags_timedelta == lag)[0])
+            ds_sub = ds.isel(forecast_reference_time=iref)
+            ds_sub = ds_sub.interp(
                 t=leadtimes + lag, method="nearest", kwargs={"fill_value": np.nan}
             )
-            ds_["t"] = leadtimes
-            ds_ = ds_.assign_coords({"leadtime": ("t", leadtimes + lag)})
-            new_ds.append(ds_)
+            ds_sub["t"] = leadtimes
+            ds_sub = ds_sub.assign_coords({"leadtime": ("t", leadtimes + lag)})
+            new_ds.append(ds_sub)
 
         with warnings.catch_warnings():
             # Suppress PerformanceWarning
@@ -103,16 +101,14 @@ class PreprocDatasetAccessor:
         new_ds = new_ds.drop_vars(["arrival_time", "init_time"], errors="ignore")
 
         if "forecast_reference_time" not in new_ds["leadtime"].dims:
-            new_ds = new_ds.assign_coords(
-                leadtime=new_ds["leadtime"].expand_dims(
-                    forecast_reference_time=reftimes
-                )
+            new_ds["leadtime"] = new_ds["leadtime"].expand_dims(
+                forecast_reference_time=reftimes
             )
 
         return new_ds
 
     def unstack_time(
-        self, reftimes: List[datetime], leadtimes: List[int]
+        self, reftimes: List[datetime], leadtimes: List[timedelta]
     ) -> xr.Dataset:
         """
         Reshape a dataset from a linear time axis to a double time axis of
@@ -120,10 +116,12 @@ class PreprocDatasetAccessor:
         """
         if not "time" in self.ds.dims:
             return self.ds
-        reftimes = np.array(reftimes)
-        leadtimes_td = np.array(leadtimes, dtype="timedelta64[h]")
+
+        reftimes = np.array(reftimes, dtype="datetime64[h]")
+        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+
         times = xr.DataArray(
-            reftimes[:, None] + leadtimes_td,
+            reftimes[:, None] + leadtimes,
             coords=[reftimes, leadtimes],
             dims=["forecast_reference_time", "t"],
         )
@@ -133,16 +131,18 @@ class PreprocDatasetAccessor:
         return new_ds.drop_vars("time", errors="ignore")
 
     def persist_observations(
-        self, reftimes: List[datetime], leadtimes: List[int]
+        self, reftimes: List[datetime], leadtimes: List[timedelta]
     ) -> xr.Dataset:
         """Persist the latest observation to all leadtimes."""
         if not "time" in self.ds.dims:
             return self.ds
-        reftimes = np.array(reftimes)
-        leadtimes_td = np.array(leadtimes, dtype="timedelta64[h]")
+
+        reftimes = np.array(reftimes, dtype="datetime64[h]")
+        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+
         reftimes = reftimes[np.isin(reftimes, self.ds.time.values)]
         times = xr.DataArray(
-            reftimes[:, None] + leadtimes_td,
+            reftimes[:, None] + leadtimes,
             coords=[reftimes, leadtimes],
             dims=["forecast_reference_time", "t"],
         )
