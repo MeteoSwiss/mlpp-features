@@ -10,28 +10,29 @@ import mlpp_features  # type: ignore
 
 def test_align_time(preproc_dataset):
     time_shift = 1
-    n_reftimes = 3
+    n_reftimes = 4
 
     ds = preproc_dataset()
 
     t0 = pd.Timestamp(ds.forecast_reference_time.values[0])
     reftimes = [t0 + (1 + n) * timedelta(hours=time_shift) for n in range(n_reftimes)]
     reftimes = pd.DatetimeIndex(reftimes)
-    leadtimes = [0, 1]
+    leadtimes = np.array([0, 1], dtype="timedelta64[h]")
     ds_aligned = ds.preproc.align_time(reftimes, leadtimes)
     assert isinstance(ds_aligned, xr.Dataset)
     assert ds_aligned.sizes["forecast_reference_time"] == len(reftimes)
     assert ds_aligned.sizes["t"] == len(leadtimes)
-    assert ds_aligned.t.dtype == int
+    assert ds_aligned.forecast_reference_time.dtype == np.dtype("datetime64[ns]")
+    assert ds_aligned.t.dtype == np.dtype("timedelta64[ns]")
     ds_aligned.sel(forecast_reference_time=reftimes)
     ds_aligned.sel(t=leadtimes)
 
     for var, da in ds.items():
-        array_aligned = ds_aligned.isel(forecast_reference_time=0).sel(t=0)[var].values
+        array_aligned = ds_aligned.isel(t=0, forecast_reference_time=0)[var].values
         array_original = da.isel(
             t=time_shift, forecast_reference_time=0, missing_dims="ignore"
         ).values
-        assert (array_aligned == array_original).all()
+        np.testing.assert_array_equal(array_aligned, array_original)
 
 
 def test_align_time_dims(preproc_dataset):
@@ -46,6 +47,52 @@ def test_align_time_dims(preproc_dataset):
     leadtimes = [0, 1]
     ds_aligned = ds.preproc.align_time(reftimes, leadtimes)
     assert "forecast_reference_time" in ds_aligned.leadtime.dims
+
+
+def test_unstack_time(obs_dataset):
+
+    ds = obs_dataset()
+    t0 = pd.Timestamp(ds.time.values[0])
+    reftimes = pd.date_range(t0, t0 + timedelta(hours=12), freq="3H")
+    leadtimes = np.array([0, 1, 2], dtype="timedelta64[h]")
+    ds_unstacked = ds.preproc.unstack_time(reftimes, leadtimes)
+    assert isinstance(ds_unstacked, xr.Dataset)
+    assert ds_unstacked.sizes["forecast_reference_time"] == len(reftimes)
+    assert ds_unstacked.sizes["t"] == len(leadtimes)
+    assert ds_unstacked.forecast_reference_time.dtype == np.dtype("datetime64[ns]")
+    assert ds_unstacked.t.dtype == np.dtype("timedelta64[ns]")
+    ds_unstacked.sel(forecast_reference_time=reftimes)
+    ds_unstacked.sel(t=leadtimes)
+
+    for var, da in ds.items():
+        array_unstacked = ds_unstacked.isel(forecast_reference_time=0)[var].values
+        array_original = da.isel(time=slice(None, 3)).values
+        np.testing.assert_array_equal(array_unstacked, array_original)
+
+
+def test_persist_observations(obs_dataset):
+
+    ds = obs_dataset()
+    t0 = pd.Timestamp(ds.time.values[0])
+    reftimes = pd.date_range(t0, t0 + timedelta(hours=3), freq="1H")
+    leadtimes = np.array([0, 1, 2], dtype="timedelta64[h]")
+    ds_persisted = ds.preproc.persist_observations(reftimes, leadtimes)
+    assert isinstance(ds_persisted, xr.Dataset)
+    assert ds_persisted.sizes["forecast_reference_time"] == len(reftimes)
+    assert ds_persisted.sizes["t"] == len(leadtimes)
+    assert ds_persisted.forecast_reference_time.dtype == np.dtype("datetime64[ns]")
+    assert ds_persisted.t.dtype == np.dtype("timedelta64[ns]")
+    ds_persisted.sel(forecast_reference_time=reftimes)
+    ds_persisted.sel(t=leadtimes)
+
+    for var, da in ds.items():
+        array_persisted = ds_persisted[var].values
+        axis_t = list(ds_persisted[var].dims).index("t")
+        np.testing.assert_array_equal(
+            array_persisted.min(axis=axis_t), array_persisted.max(axis=axis_t)
+        )
+        array_original = da.isel(time=slice(None, len(reftimes))).values
+        np.testing.assert_array_equal(array_persisted.min(axis=axis_t), array_original)
 
 
 def test_daystat(preproc_dataset):

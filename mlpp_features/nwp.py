@@ -397,13 +397,12 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     if len(data["nwp"]) == 0:
         raise KeyError([])
     ds = data["nwp"]
-    return (
-        ds.drop_vars(ds.data_vars)
-        .drop_dims(("x", "y", "realization"), errors="ignore")
-        .preproc.align_time(reftimes, leadtimes)
-        .reset_coords("leadtime")
-        .astype("float32")
-    )
+    ds = ds.drop_vars(ds.data_vars)
+    ds = ds.drop_dims(("x", "y", "realization"), errors="ignore")
+    ds = ds.preproc.align_time(reftimes, leadtimes)
+    ds = ds.reset_coords("leadtime")
+    ds["leadtime"] = ds.leadtime.astype("timedelta64[h]") // np.timedelta64(1, "h")
+    return ds.astype("float32")
 
 
 @out_format(units="m")
