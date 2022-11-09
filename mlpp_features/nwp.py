@@ -389,7 +389,7 @@ def eastward_wind_ensctrl(
     )
 
 
-@out_format(units="hours")
+@out_format()  # don't use 'units=hours' to avoid encoding it as timedelta
 def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs):
     """
     Extract leadtime in hours
