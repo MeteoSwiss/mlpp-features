@@ -22,6 +22,7 @@ def test_align_time(preproc_dataset):
     assert isinstance(ds_aligned, xr.Dataset)
     assert ds_aligned.sizes["forecast_reference_time"] == len(reftimes)
     assert ds_aligned.sizes["t"] == len(leadtimes)
+    assert "source_leadtime" not in ds_aligned
     assert ds_aligned.forecast_reference_time.dtype == np.dtype("datetime64[ns]")
     assert ds_aligned.t.dtype == np.dtype("timedelta64[ns]")
     ds_aligned.sel(forecast_reference_time=reftimes)
@@ -45,8 +46,10 @@ def test_align_time_dims(preproc_dataset):
     reftimes = [t0 + n * timedelta(hours=time_shift) for n in range(n_reftimes)]
     reftimes = pd.DatetimeIndex(reftimes)
     leadtimes = [0, 1]
-    ds_aligned = ds.preproc.align_time(reftimes, leadtimes)
-    assert "forecast_reference_time" in ds_aligned.leadtime.dims
+    ds_aligned = ds.preproc.align_time(
+        reftimes, leadtimes, return_source_leadtimes=True
+    )
+    assert "forecast_reference_time" in ds_aligned.source_leadtime.dims
 
 
 def test_unstack_time(obs_dataset):

@@ -38,7 +38,10 @@ class PreprocDatasetAccessor:
             raise KeyError(var)
 
     def align_time(
-        self, reftimes: List[datetime], leadtimes: List[timedelta]
+        self,
+        reftimes: List[datetime],
+        leadtimes: List[timedelta],
+        return_source_leadtimes: bool = False,
     ) -> xr.Dataset:
         """Select most recently available run, consider availability time"""
 
@@ -80,7 +83,10 @@ class PreprocDatasetAccessor:
                 t=leadtimes + lag, method="nearest", kwargs={"fill_value": np.nan}
             )
             ds_sub["t"] = leadtimes
-            ds_sub = ds_sub.assign_coords({"leadtime": ("t", leadtimes + lag)})
+            if return_source_leadtimes:
+                ds_sub = ds_sub.assign_coords(
+                    {"source_leadtime": ("t", leadtimes + lag)}
+                )
             new_ds.append(ds_sub)
 
         with warnings.catch_warnings():
@@ -100,8 +106,11 @@ class PreprocDatasetAccessor:
         new_ds["t"] = leadtimes
         new_ds = new_ds.drop_vars(["arrival_time", "init_time"], errors="ignore")
 
-        if "forecast_reference_time" not in new_ds["leadtime"].dims:
-            new_ds["leadtime"] = new_ds["leadtime"].expand_dims(
+        if (
+            return_source_leadtimes
+            and "forecast_reference_time" not in new_ds["source_leadtime"].dims
+        ):
+            new_ds["source_leadtime"] = new_ds["source_leadtime"].expand_dims(
                 forecast_reference_time=reftimes
             )
 

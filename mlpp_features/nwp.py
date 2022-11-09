@@ -399,8 +399,8 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     ds = data["nwp"]
     ds = ds.drop_vars(ds.data_vars)
     ds = ds.drop_dims(("x", "y", "realization"), errors="ignore")
-    ds = ds.preproc.align_time(reftimes, leadtimes)
-    ds = ds.reset_coords("leadtime")
+    ds = ds.preproc.align_time(reftimes, leadtimes, return_source_leadtimes=True)
+    ds = ds.reset_coords("source_leadtime").rename({"source_leadtime": "leadtime"})
     ds["leadtime"] = ds.leadtime.astype("timedelta64[h]") // np.timedelta64(1, "h")
     return ds.astype("float32")
 
