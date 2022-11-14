@@ -82,6 +82,7 @@ def nwp_dataset():
                 "duration_of_sunshine",
                 "eastward_wind",
                 "northward_wind",
+                "precipitation_amount",
                 "specific_humidity",
                 "surface_air_pressure",
                 "surface_downwelling_longwave_flux_in_air",
@@ -195,6 +196,7 @@ def obs_dataset():
         variables = [
             "air_temperature",
             "dew_point_temperature",
+            "precipitation",
             "relative_humidity",
             "surface_air_pressure",
             "water_vapor_mixing_ratio",
