@@ -150,6 +150,8 @@ def terrain_dataset():
                 "STD_2000M",
                 "TPI_500M",
                 "TPI_2000M",
+                "TPI_20000M_SMTHFACT1",
+                "TPI_100000M_SMTHFACT1",
                 "VALLEY_NORM_2000M_SMTHFACT0.5",
                 "VALLEY_NORM_20000M_SMTHFACT0.5",
                 "VALLEY_DIR_2000M_SMTHFACT0.5",
