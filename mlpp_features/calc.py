@@ -51,7 +51,7 @@ def mixing_ratio_from_t_rh_p(
 
 def mixing_ratio_from_p_and_e(p: xr.DataArray, e: xr.DataArray) -> xr.DataArray:
     """
-    Compute water vapor mixing ratio in g kg-1 from temperature (°C)
+    Compute water vapor mixing ratio in g kg-1 from pressure (hPa)
     and water vapor pressure (hPa).
     """
     return 1000 * (EPSILON * e) / (p - e)

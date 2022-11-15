@@ -270,7 +270,7 @@ def equivalent_potential_temperature_ens(
     """
     t = air_temperature_ens(data, stations, *args, **kwargs)
     rh = relative_humidity_ens(data, stations, *args, **kwargs)
-    p = surface_air_pressure_ens(data, stations, *args, **kwargs)
+    p = surface_air_pressure_ens(data, stations, *args, **kwargs) / 100  # Pa to hPa
     return calc.equivalent_potential_temperature_from_t_rh_p(t, rh, p)
 
 
@@ -476,7 +476,7 @@ def potential_temperature_ens(
     Ensemble mean of potential temperature in °C
     """
     t = air_temperature_ens(data, stations, *args, **kwargs)
-    p = surface_air_pressure_ens(data, stations, *args, **kwargs)
+    p = surface_air_pressure_ens(data, stations, *args, **kwargs) / 100  # Pa to hPa
     return calc.potential_temperature_from_t_and_p(t, p)
 
 
@@ -709,81 +709,67 @@ def precipitation_sqrt_nmax30_ensmax(
     )
 
 
-@out_format(units="hPa")
-def pressure_difference_BAS_LUG_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
-) -> xr.DataArray:
-    """
-    Ensemble mean of pressure difference between Basel and Lugano in hPa
-    """
-    p = surface_air_pressure_ens(data, stations, **kwargs)
-    return p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
-
-
-@out_format(units="hPa")
+@out_format(units="Pa")
 def pressure_difference_BAS_LUG_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of pressure difference between Geneva and Güttingen in hPa
+    Ensemble mean of pressure difference between Basel and Lugano in Pascal
     """
-    pdiff = pressure_difference_BAS_LUG_ens(data, stations, **kwargs)
+    p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
+    pdiff = p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
     return (
-        pdiff.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+        pdiff.mean("realization")
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
-@out_format(units="hPa")
+@out_format(units="Pa")
 def pressure_difference_BAS_LUG_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble control of pressure difference between Basel and Lugano in hPa
+    Ensemble control of pressure difference between Basel and Lugano in Pascal
     """
-    pdiff = pressure_difference_BAS_LUG_ens(data, stations, **kwargs)
+    p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
+    pdiff = p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
     return (
         pdiff.isel(realization=0, drop=True)
-        .to_dataset()
         .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
-@out_format(units="hPa")
-def pressure_difference_GVE_GUT_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
-) -> xr.DataArray:
-    """
-    Ensemble control of pressure difference between Geneva and Güttingen in hPa
-    """
-    p = surface_air_pressure_ens(data, stations, *args, **kwargs)
-    return p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
-
-
-@out_format(units="hPa")
+@out_format(units="Pa")
 def pressure_difference_GVE_GUT_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of pressure difference between Geneva and Güttingen in hPa
+    Ensemble mean of pressure difference between Geneva and Güttingen in Pascal
     """
-    pdiff = pressure_difference_GVE_GUT_ens(data, stations, **kwargs)
+    p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
+    pdiff = p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
     return (
-        pdiff.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+        pdiff.mean("realization")
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
-@out_format(units="hPa")
+@out_format(units="Pa")
 def pressure_difference_GVE_GUT_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble control of pressure difference between Geneva and Güttingen in hPa
+    Ensemble control of pressure difference between Geneva and Güttingen in Pascal
     """
-    pdiff = pressure_difference_GVE_GUT_ens(data, stations, **kwargs)
+    p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
+    pdiff = p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
     return (
         pdiff.isel(realization=0, drop=True)
-        .to_dataset()
         .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
@@ -922,39 +908,38 @@ def sunshine_duration_ensavg(
 
 
 @cache
-@out_format(units="hPa")
+@out_format(units="Pa")
 def surface_air_pressure_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of surface pressure in hPa
+    Ensemble of surface pressure in Pascal
     """
     return (
         data["nwp"]
         .preproc.get("surface_air_pressure")
         .preproc.interp(stations)
-        .pipe(lambda x: x / 100)  # Pa to hPa
         .astype("float32")
     )
 
 
-@out_format(units="hPa")
+@out_format(units="Pa")
 def surface_air_pressure_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of surface pressure in hPa
+    Ensemble mean of surface pressure in Pascal
     """
     q = surface_air_pressure_ens(data, stations, **kwargs)
     return q.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
-@out_format(units="hPa")
+@out_format(units="Pa")
 def surface_air_pressure_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Control run surface pressure in hPa
+    Control run surface pressure in Pascal
     """
     q = surface_air_pressure_ens(data, stations, **kwargs)
     return (
@@ -1038,7 +1023,7 @@ def water_vapor_mixing_ratio_ens(
     Ensemble mean of water vapor mixing ratio in g/kg
     """
     e = water_vapor_pressure_ens(data, stations, *args, **kwargs)
-    p = surface_air_pressure_ens(data, stations, *args, **kwargs)
+    p = surface_air_pressure_ens(data, stations, *args, **kwargs) / 100  # Pa to hPa
     return calc.mixing_ratio_from_p_and_e(p, e)
 
 
