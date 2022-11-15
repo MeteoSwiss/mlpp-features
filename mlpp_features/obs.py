@@ -266,3 +266,19 @@ def distance_to_nearest_wind_speed_of_gust(
         .preproc.persist_observations(reftimes, leadtimes)
         .astype("float32")
     )
+
+
+@out_format()
+def precipitation_sqrt(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Square-root of observed precipitation amounts in mm.
+    """
+    return (
+        data["obs"]
+        .preproc.get("precipitation")
+        .pipe(lambda x: np.sqrt(x))
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
