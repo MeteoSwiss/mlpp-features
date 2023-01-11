@@ -8,6 +8,7 @@ from typing import List, Union, Callable
 import numpy as np
 import pandas as pd
 import xarray as xr
+from pyproj import CRS, Transformer
 
 import mlpp_features.selectors as sel
 
@@ -286,3 +287,54 @@ class PreprocDatasetAccessor:
         da = (270 - 180 / np.pi * da) % 360
         da.attrs["units"] = "degrees"
         return da.to_dataset(name="wind_from_direction")
+
+    def spatial_statistic(self, km: float, method: str = "mean") -> xr.Dataset:
+        """
+        Compute a given neighborhood statistic in space, that is, across the x and y
+        dimensions. The spatial neighborhood is defined as a centred window of size `km`.
+
+        Parameters
+        ----------
+        km: float
+            Size-length of the rolling window used to compute the neighborhood statistic.
+        method: str
+            Name of the statistical method to be applied on the neighborhood.
+        """
+        ds = self.ds
+        npixels = km_to_pixels(km, ds)
+        if npixels > 1:
+            ds = ds.rolling(x=npixels, center=True, min_periods=1)
+            ds = getattr(ds, method)()
+            ds = ds.rolling(y=npixels, center=True, min_periods=1)
+            ds = getattr(ds, method)()
+        return ds
+
+
+def km_to_pixels(km: float, grid: Union[xr.Dataset, xr.DataArray]) -> int:
+    """
+    Convert distance in km to the closest odd number of pixels based on the grid resolution.
+
+    Parameters
+    ----------
+    km : float
+        Length in kilometres.
+    grid : xr.DataArray
+        DataArray containing the grid coordinates. Coordinates must be in WGS84 and
+        named 'longitude', 'latitude'.
+
+    Returns
+    -------
+    npixels : int
+        The corresponding length as a odd number of pixels.
+    """
+    longitude, latitude = grid["longitude"].values, grid["latitude"].values
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:21781", always_xy=True)
+    x, y = transformer.transform(longitude, latitude)
+    x, y = x.astype(np.float32), y.astype(np.float32)
+    x_res = np.gradient(x, axis=1)
+    y_res = np.gradient(y, axis=0)
+    mean_res = np.mean(np.abs([x_res.mean(), y_res.mean()])) / 1000  # [km]
+    LOGGER.debug(f"grid res = {mean_res:.2f} km")
+    npixels = int(np.ceil(km / mean_res) // 2 * 2 + 1)
+    LOGGER.debug(f"{km} km = {npixels} pixels")
+    return npixels

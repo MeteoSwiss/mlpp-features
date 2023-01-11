@@ -95,6 +95,36 @@ def slope_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Da
 
 
 @out_format()
+def smooth_tpi_20km(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Terrain smooth TPI at a 20km scale
+    """
+    return (
+        data["terrain"]
+        .preproc.get("TPI_20000M_SMTHFACT1")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@out_format()
+def smooth_tpi_100km(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Terrain smooth TPI at a 100km scale
+    """
+    return (
+        data["terrain"]
+        .preproc.get("TPI_100000M_SMTHFACT1")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@out_format()
 def sn_derivative_500m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:

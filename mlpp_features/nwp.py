@@ -506,6 +506,209 @@ def potential_temperature_ensctrl(
     )
 
 
+@cache
+@out_format()
+def precipitation_ens(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of precipitation
+    """
+    return (
+        data["nwp"]
+        .preproc.get("precipitation_amount")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_fracdry(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Fraction of dry ensemble members
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: x < 0.01)
+        .mean("realization")
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .mean("realization")
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensmax(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble max of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .max("realization")
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensq10(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble 10th percentile of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .quantile(0.1, "realization", skipna=False)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensq25(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble 25th percentile of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .quantile(0.25, "realization", skipna=False)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensq75(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble 75th percentile of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .quantile(0.75, "realization", skipna=False)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensq90(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble 90th percentile of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .quantile(0.90, "realization", skipna=False)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble std of sqrt precipitation
+    """
+    r = precipitation_ens(data, stations, **kwargs)
+    return (
+        r.pipe(lambda x: np.sqrt(x))
+        .std("realization")
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@cache
+@out_format()
+def precipitation_sqrt_nmax30_ens(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of precipitation
+    """
+    return (
+        data["nwp"]
+        .preproc.get("precipitation_amount")
+        .pipe(lambda x: np.sqrt(x))
+        .preproc.spatial_statistic(30, "max")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@out_format()
+def precipitation_sqrt_nmax30_ensmax(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble max in 30km neighborhood of sqrt precipitation
+    """
+    r = precipitation_sqrt_nmax30_ens(data, stations, **kwargs)
+    return (
+        r.max("realization")
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
 @out_format(units="Pa")
 def pressure_difference_BAS_LUG_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
