@@ -4,6 +4,7 @@ from typing import Dict
 
 import xarray as xr
 import numpy as np
+import pandas as pd
 
 from mlpp_features.decorators import out_format
 
@@ -72,8 +73,24 @@ def inverse_sample_age(
         raise KeyError([])
     ds = _make_time_dataset(reftimes, leadtimes)
     this_year = datetime.today().year + datetime.today().timetuple().tm_yday / 365
-    ds["inverse_sample_age"] = 1 / (
-        this_year - ds["time.year"] - ds["time.dayofyear"] / 365
+    ds["inverse_sample_age"] = (
+        1.5 / (1 + this_year - ds["time.year"] - ds["time.dayofyear"] / 365) ** 0.5
+    )
+    return ds.astype("float32")
+
+
+@out_format()
+def leadtime_weight(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.Dataset:
+    """
+    Weight the lead time.
+    """
+    if data["nwp"] is not None and len(data["nwp"]) == 0:
+        raise KeyError([])
+    leadtime_weight = 1.5 / (1 + leadtimes / pd.Timedelta(hours=24))
+    ds = xr.Dataset(
+        {"leadtime_weight": ("t", leadtime_weight)}, coords={"t": leadtimes}
     )
     return ds.astype("float32")
 
