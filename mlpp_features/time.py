@@ -72,9 +72,9 @@ def inverse_sample_age(
     if data["nwp"] is not None and len(data["nwp"]) == 0:
         raise KeyError([])
     ds = _make_time_dataset(reftimes, leadtimes)
-    this_year = datetime.today().year + datetime.today().timetuple().tm_yday / 365
+    this_year = datetime.today().year * 365 + datetime.today().timetuple().tm_yday
     ds["inverse_sample_age"] = (
-        1.5 / (1 + this_year - ds["time.year"] - ds["time.dayofyear"] / 365) ** 0.5
+        2.0 / (1 + this_year - ds["time.year"] * 365 - ds["time.dayofyear"]) ** 0.5
     )
     return ds.astype("float32")
 
