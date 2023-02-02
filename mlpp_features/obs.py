@@ -266,3 +266,22 @@ def distance_to_nearest_wind_speed_of_gust(
         .preproc.persist_observations(reftimes, leadtimes)
         .astype("float32")
     )
+
+
+@out_format()
+def weight_owner_id(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.Dataset:
+    """
+    Weight the station owner.
+    """
+    if data["obs"] is not None and len(data["obs"]) == 0:
+        raise KeyError([])
+    owner_id = stations.owner_id.to_xarray()
+    owner_weight = xr.full_like(owner_id, 1.0)
+    owner_weight = owner_weight.where(owner_id > 1, 2)
+    ds = xr.Dataset(
+        {"weight_owner_id": ("station", owner_weight.data)},
+        coords={"station": stations.index},
+    )
+    return ds.astype("float32")
