@@ -1026,7 +1026,25 @@ def wind_speed_ensctrl_3hmean(
     uv = wind_speed_ens(data, stations, **kwargs)
     return (
         uv.isel(realization=0, drop=True)
-        .rolling(t=3, center=True)
+        .rolling(t=3, center=True, min_periods=1)
+        .mean()
+        .astype("float32")
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format(units="m s-1")
+def wind_speed_ensctrl_5hmean(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of 5h mean wind speed
+    """
+    uv = wind_speed_ens(data, stations, **kwargs)
+    return (
+        uv.isel(realization=0, drop=True)
+        .rolling(t=5, center=True, min_periods=1)
         .mean()
         .astype("float32")
         .to_dataset()
