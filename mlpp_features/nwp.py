@@ -1142,6 +1142,42 @@ def wind_speed_of_gust_ensctrl(
 
 
 @out_format(units="m s-1")
+def wind_speed_of_gust_ensctrl_3hmean(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of 3h mean hourly wind speed of gust
+    """
+    ug = wind_speed_of_gust_ens(data, stations, **kwargs)
+    return (
+        ug.isel(realization=0, drop=True)
+        .rolling(t=3, center=True, min_periods=1)
+        .mean()
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format(units="m s-1")
+def wind_speed_of_gust_ensctrl_5hmean(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of 5h mean hourly wind speed of gust
+    """
+    ug = wind_speed_of_gust_ens(data, stations, **kwargs)
+    return (
+        ug.isel(realization=0, drop=True)
+        .rolling(t=3, center=True, min_periods=1)
+        .mean()
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format(units="m s-1")
 def wind_speed_of_gust_ensctrl_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
