@@ -154,6 +154,21 @@ def water_vapor_saturation_pressure(
     return calc.water_vapor_saturation_pressure_from_t(t)
 
 
+@out_format()
+def wind_from_direction(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Observed wind directions
+    """
+    return (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
 @out_format(units="m s-1")
 def wind_speed(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
