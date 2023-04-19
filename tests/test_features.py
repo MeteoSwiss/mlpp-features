@@ -46,15 +46,17 @@ class TestFeatures:
             "obs": self._obs,
         }
         stations = self._stations
-        reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=4)
+        reftimes = pd.date_range("2000-01-01T00", "2000-01-01T18", periods=4)
         leadtimes = np.arange(3).astype("timedelta64[h]")
         with tempfile.TemporaryDirectory() as tmp_dir:
             da = pipeline(data, stations, reftimes, leadtimes, tmp_dir=tmp_dir)
         assert isinstance(da, xr.DataArray)
         assert da.dtype == "float32"
         if "forecast_reference_time" in da.dims:
+            assert all([r in da.forecast_reference_time for r in reftimes])
             assert da.forecast_reference_time.dtype == np.dtype("datetime64[ns]")
         if "t" in da.dims:
+            assert all([t in da.t for t in leadtimes])
             assert da.t.dtype == np.dtype("timedelta64[ns]")
         assert "variable" not in da.dims
         assert all([coord in KEEP_STA_COORDS + list(da.dims) for coord in da.coords])

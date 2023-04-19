@@ -21,13 +21,16 @@ def air_temperature_ens(
     """
     Ensemble of temperature in °C
     """
-    return (
+    ens_data = (
         data["nwp"]
         .preproc.get("air_temperature")
         .preproc.interp(stations)
         .pipe(lambda x: x - 273.15)
         .astype("float32")
     )
+    if args:
+        ens_data = ens_data.preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="degC")
@@ -226,13 +229,16 @@ def dew_point_temperature_ens(
     """
     Ensemble of dew point temperature in °C
     """
-    return (
+    ens_data = (
         data["nwp"]
         .preproc.get("dew_point_temperature")
         .preproc.interp(stations)
         .pipe(lambda x: x - 273.15)  # convert to celsius
         .astype("float32")
     )
+    if args:
+        ens_data = ens_data.preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="degC")
@@ -304,7 +310,7 @@ def equivalent_potential_temperature_ensctrl(
 
 @out_format(units="W m-2")
 def diffuse_downward_shortwave_radiation_ensavg(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of diffuse downward shortwave radiation in W/m^2
@@ -314,6 +320,7 @@ def diffuse_downward_shortwave_radiation_ensavg(
         .preproc.get("surface_diffuse_downwelling_shortwave_flux_in_air")
         .mean("realization")
         .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -355,12 +362,15 @@ def direct_downward_shortwave_radiation_ensavg(
 @cache
 @out_format(units="m s-1")
 def eastward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
-    return (
+    ens_data = (
         data["nwp"]
         .preproc.get("eastward_wind")
         .preproc.interp(stations)
         .astype("float32")
     )
+    if args:
+        ens_data = ens_data.preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="m s-1")
@@ -434,12 +444,15 @@ def model_height_difference(
 @cache
 @out_format(units="m s-1")
 def northward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
-    return (
+    ens_data = (
         data["nwp"]
         .preproc.get("northward_wind")
         .preproc.interp(stations)
         .astype("float32")
     )
+    if args:
+        ens_data = ens_data.preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="m s-1")
@@ -653,12 +666,15 @@ def specific_humidity_ens(
     """
     Ensemble mean of specific humidity in g/kg
     """
-    return (
+    ens_data = (
         data["nwp"]
         .preproc.get("specific_humidity")
         .preproc.interp(stations)
         .astype("float32")
     )
+    if args:
+        ens_data = ens_data.preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="g kg-1")
@@ -712,12 +728,15 @@ def surface_air_pressure_ens(
     """
     Ensemble of surface pressure in Pascal
     """
-    return (
+    ens_data = (
         data["nwp"]
         .preproc.get("surface_air_pressure")
         .preproc.interp(stations)
         .astype("float32")
     )
+    if args:
+        ens_data = ens_data.preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="Pa")
@@ -1089,12 +1108,15 @@ def wind_speed_of_gust_ens(
     """
     Ensemble of wind speed gust
     """
-    return (
+    ens_data = (
         data["nwp"]
         .preproc.get("wind_speed_of_gust")
         .preproc.interp(stations)
         .astype("float32")
     )
+    if args:
+        ens_data = ens_data.preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="m s-1")
