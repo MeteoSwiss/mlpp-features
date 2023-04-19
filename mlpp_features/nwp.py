@@ -15,7 +15,7 @@ xr.set_options(keep_attrs=True)
 
 @cache
 @out_format(units="degC")
-def air_temperature_ens(
+def _air_temperature_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.DataArray:
     """
@@ -28,6 +28,19 @@ def air_temperature_ens(
         .pipe(lambda x: x - 273.15)
         .astype("float32")
     )
+
+
+@out_format(units="degC")
+def air_temperature_ens(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of temperature in °C
+    """
+    ens_data = _air_temperature_ens(data, stations, *args, **kwargs)
+    if args:
+        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="degC")
@@ -220,7 +233,7 @@ def dew_point_depression_ensctrl(
 
 @cache
 @out_format(units="degC")
-def dew_point_temperature_ens(
+def _dew_point_temperature_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.DataArray:
     """
@@ -233,6 +246,19 @@ def dew_point_temperature_ens(
         .pipe(lambda x: x - 273.15)  # convert to celsius
         .astype("float32")
     )
+
+
+@out_format(units="degC")
+def dew_point_temperature_ens(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of dew point temperature in °C
+    """
+    ens_data = _dew_point_temperature_ens(data, stations, *args, **kwargs)
+    if args:
+        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="degC")
@@ -304,7 +330,7 @@ def equivalent_potential_temperature_ensctrl(
 
 @out_format(units="W m-2")
 def diffuse_downward_shortwave_radiation_ensavg(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of diffuse downward shortwave radiation in W/m^2
@@ -314,6 +340,7 @@ def diffuse_downward_shortwave_radiation_ensavg(
         .preproc.get("surface_diffuse_downwelling_shortwave_flux_in_air")
         .mean("realization")
         .preproc.interp(stations)
+        .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
 
@@ -354,13 +381,21 @@ def direct_downward_shortwave_radiation_ensavg(
 
 @cache
 @out_format(units="m s-1")
-def eastward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
+def _eastward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
     return (
         data["nwp"]
         .preproc.get("eastward_wind")
         .preproc.interp(stations)
         .astype("float32")
     )
+
+
+@out_format(units="m s-1")
+def eastward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
+    ens_data = _eastward_wind_ens(data, stations, *args, **kwargs)
+    if args:
+        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="m s-1")
@@ -433,13 +468,21 @@ def model_height_difference(
 
 @cache
 @out_format(units="m s-1")
-def northward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
+def _northward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
     return (
         data["nwp"]
         .preproc.get("northward_wind")
         .preproc.interp(stations)
         .astype("float32")
     )
+
+
+@out_format(units="m s-1")
+def northward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
+    ens_data = _northward_wind_ens(data, stations, *args, **kwargs)
+    if args:
+        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="m s-1")
@@ -647,7 +690,7 @@ def sin_wind_from_direction_ensctrl(
 
 @cache
 @out_format(units="g kg-1")
-def specific_humidity_ens(
+def _specific_humidity_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.DataArray:
     """
@@ -659,6 +702,19 @@ def specific_humidity_ens(
         .preproc.interp(stations)
         .astype("float32")
     )
+
+
+@out_format(units="g kg-1")
+def specific_humidity_ens(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of specific humidity in g/kg
+    """
+    ens_data = _specific_humidity_ens(data, stations, *args, **kwargs)
+    if args:
+        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="g kg-1")
@@ -706,7 +762,7 @@ def sunshine_duration_ensavg(
 
 @cache
 @out_format(units="Pa")
-def surface_air_pressure_ens(
+def _surface_air_pressure_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.DataArray:
     """
@@ -718,6 +774,19 @@ def surface_air_pressure_ens(
         .preproc.interp(stations)
         .astype("float32")
     )
+
+
+@out_format(units="Pa")
+def surface_air_pressure_ens(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of surface pressure in Pascal
+    """
+    ens_data = _surface_air_pressure_ens(data, stations, *args, **kwargs)
+    if args:
+        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="Pa")
@@ -850,7 +919,6 @@ def water_vapor_mixing_ratio_ensctrl(
     )
 
 
-@cache
 @out_format(units="hPa")
 def water_vapor_pressure_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -1083,7 +1151,7 @@ def wind_speed_ensstd(
 
 @cache
 @out_format(units="m s-1")
-def wind_speed_of_gust_ens(
+def _wind_speed_of_gust_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.DataArray:
     """
@@ -1095,6 +1163,19 @@ def wind_speed_of_gust_ens(
         .preproc.interp(stations)
         .astype("float32")
     )
+
+
+@out_format(units="m s-1")
+def wind_speed_of_gust_ens(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of wind speed gust
+    """
+    ens_data = _wind_speed_of_gust_ens(data, stations, *args, **kwargs)
+    if args:
+        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    return ens_data
 
 
 @out_format(units="m s-1")
