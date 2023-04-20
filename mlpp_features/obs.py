@@ -285,7 +285,7 @@ def distance_to_nearest_wind_speed_of_gust(
 
 @out_format()
 def weight_owner_id(
-    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
     """
     Weight the station owner.
@@ -297,6 +297,30 @@ def weight_owner_id(
     owner_weight = owner_weight.where(owner_id > 1, 2)
     ds = xr.Dataset(
         {"weight_owner_id": ("station", owner_weight.data)},
+        coords={"station": stations.index},
+    )
+    return ds.astype("float32")
+
+
+@out_format()
+def measurement_height(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Weight the station owner.
+    """
+    if data["obs"] is not None and len(data["obs"]) == 0:
+        raise KeyError([])
+    pole_height = stations.pole_height.to_xarray()
+    fillvalue_pole_height = pole_height.median()
+    LOGGER.debug(f"Fill value pole height: {fillvalue_pole_height:.1f}")
+    pole_height = pole_height.fillna(fillvalue_pole_height)
+    roof_height = stations.roof_height.to_xarray()
+    fillvalue_roof_height = roof_height.median()
+    LOGGER.debug(f"Fill value roof height: {fillvalue_roof_height:.1f}")
+    roof_height = roof_height.fillna(fillvalue_roof_height)
+    ds = xr.Dataset(
+        {"measurement_height": ("station", pole_height.data + roof_height.data)},
         coords={"station": stations.index},
     )
     return ds.astype("float32")

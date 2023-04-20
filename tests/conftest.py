@@ -10,21 +10,29 @@ from pyproj import CRS, Transformer
 def _stations_dataframe(outlier=False):
     stations = pd.DataFrame(
         [
-            ("BAS", 7.583, 47.541, 328, 1.0),
-            ("LUG", 8.960, 46.004, 310, 1.0),
-            ("GVE", 6.122, 46.248, 426, 1.0),
-            ("GUT", 9.279, 47.602, 452, 1.0),
-            ("KLO", 8.536, 47.48, 428, 1.0),
-            ("SCU", 10.283, 46.793, 1306, 1.0),
-            ("LUZ", 8.301, 47.036, 456, 1.0),
-            ("DIS", 8.853, 46.707, 1199, 1.0),
-            ("PMA", 9.529, 46.577, 2670, 1.0),
-            ("CEV", 8.603, 46.32, 421, 1.0),
-            ("MLS", 7.018, 46.546, 1976, 1.0),
-            ("PAY", 6.942, 46.811, 491, 1.0),
-            ("NAP", 7.94, 47.005, 1406, 1.0),
+            ("BAS", 7.583, 47.541, 328, 1.0, 12.0, 0.0),
+            ("LUG", 8.960, 46.004, 310, 1.0, 10.0, 27.34),
+            ("GVE", 6.122, 46.248, 426, 1.0, 10.0, 0.0),
+            ("GUT", 9.279, 47.602, 452, 1.0, 12.0, 0.0),
+            ("KLO", 8.536, 47.48, 428, 1.0, 10.5, 0.0),
+            ("SCU", 10.283, 46.793, 1306, 1.0, 10.0, 0.0),
+            ("LUZ", 8.301, 47.036, 456, 1.0, 8.41, 32.51),
+            ("DIS", 8.853, 46.707, 1199, 1.0, 10.0, 0.0),
+            ("PMA", 9.529, 46.577, 2670, 1.0, 10.0, 0.0),
+            ("CEV", 8.603, 46.32, 421, 1.0, 10.0, 6.85),
+            ("MLS", 7.018, 46.546, 1976, 1.0, 10.0, 13.31),
+            ("PAY", 6.942, 46.811, 491, 1.0, 10.0, 0.0),
+            ("NAP", 7.94, 47.005, 1406, 1.0, 15.0, 0.0),
         ],
-        columns=["station", "longitude", "latitude", "elevation", "owner_id"],
+        columns=[
+            "station",
+            "longitude",
+            "latitude",
+            "elevation",
+            "owner_id",
+            "pole_height",
+            "roof_height",
+        ],
     )
     if outlier:
         # a station far away  ...
@@ -36,6 +44,8 @@ def _stations_dataframe(outlier=False):
                     "latitude": 69.6,
                     "elevation": np.nan,
                     "owner_id": 99.0,
+                    "pole_height": np.nan,
+                    "roof_height": np.nan,
                 }
             ]
         )
@@ -220,6 +230,8 @@ def obs_dataset():
                 "latitude": ("station", stations.latitude),
                 "elevation": ("station", stations.elevation),
                 "owner_id": ("station", np.random.randint(1, 5, stations.shape[0])),
+                "pole_height": ("station", np.random.randint(5, 15, stations.shape[0])),
+                "roof_height": ("station", np.zeros(stations.shape[0])),
             },
         )
         for var in variables:
