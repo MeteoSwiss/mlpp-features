@@ -170,7 +170,9 @@ class PreprocDatasetAccessor:
             selector = sel.EuclideanNearestIrregular(self.ds)
         else:
             selector = sel.EuclideanNearestRegular(self.ds)
-        index = selector.query(stations, **kwargs)
+        valid_arguments = ["search_radius", "vertical_weight"]
+        query_kwargs = {k: v for k, v in kwargs.items() if k in valid_arguments}
+        index = selector.query(stations, **query_kwargs)
         stations = stations[index.valid.to_series()]
         index = index.where(index.valid, drop=True).astype(int)
         ds_out = (
