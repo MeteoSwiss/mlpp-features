@@ -52,6 +52,24 @@ def test_align_time_dims(preproc_dataset):
     assert "forecast_reference_time" in ds_aligned.source_leadtime.dims
 
 
+def test_align_time_None(preproc_dataset):
+    time_shift = 1
+    n_reftimes = 4
+
+    ds = preproc_dataset()
+
+    t0 = pd.Timestamp(ds.forecast_reference_time.values[0])
+    reftimes = [t0 + (1 + n) * timedelta(hours=time_shift) for n in range(n_reftimes)]
+    reftimes = pd.DatetimeIndex(reftimes)
+    leadtimes = np.array([0, 1], dtype="timedelta64[h]")
+    ds_aligned = ds.preproc.align_time(reftimes, None)
+    xr.testing.assert_identical(ds_aligned, ds)
+    ds_aligned = ds.preproc.align_time(None, leadtimes)
+    xr.testing.assert_identical(ds_aligned, ds)
+    ds_aligned = ds.preproc.align_time(None, None)
+    xr.testing.assert_identical(ds_aligned, ds)
+
+
 def test_unstack_time(obs_dataset):
 
     ds = obs_dataset()

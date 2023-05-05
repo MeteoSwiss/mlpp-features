@@ -39,14 +39,17 @@ class PreprocDatasetAccessor:
 
     def align_time(
         self,
-        reftimes: List[datetime],
-        leadtimes: List[timedelta],
+        reftimes: Union[List[datetime], None],
+        leadtimes: Union[List[timedelta], None],
         return_source_leadtimes: bool = False,
     ) -> xr.Dataset:
         """Select most recently available run, consider availability time"""
 
         ds = self.ds
         if not "forecast_reference_time" in ds.dims:
+            return ds
+
+        if reftimes is None or leadtimes is None:
             return ds
 
         reftimes = np.array(reftimes, dtype="datetime64[h]")
@@ -196,9 +199,7 @@ class PreprocDatasetAccessor:
                 "distance": "neighbor_distance",
             }
         )
-        ds = ds.assign_coords(
-            {c: ("station", v.values) for c, v in stations.items()}
-        )
+        ds = ds.assign_coords({c: ("station", v.values) for c, v in stations.items()})
         return ds
 
     def daystat(self, func: Callable, complete: bool = True) -> xr.Dataset:
