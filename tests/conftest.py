@@ -69,7 +69,7 @@ def nwp_dataset():
 
         n_members = 2
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
-        leadtimes = np.array([1, 2, 3], dtype="timedelta64[h]")
+        leadtimes = np.array([0, 1, 2, 3], dtype="timedelta64[h]")
 
         # define dummy dimensions
         n_reftimes = len(reftimes)

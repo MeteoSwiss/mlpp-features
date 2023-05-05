@@ -14,17 +14,14 @@ xr.set_options(keep_attrs=True)
 
 
 @cache
-@out_format(units="degC")
-def _air_temperature_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
-) -> xr.DataArray:
+def _air_temperature_ens(data: Dict[str, xr.Dataset], stations, **kwargs) -> xr.Dataset:
     """
     Ensemble of temperature in °C
     """
     return (
         data["nwp"]
         .preproc.get("air_temperature")
-        .preproc.interp(stations)
+        .preproc.interp(stations, **kwargs)
         .pipe(lambda x: x - 273.15)
         .astype("float32")
     )
@@ -32,14 +29,13 @@ def _air_temperature_ens(
 
 @out_format(units="degC")
 def air_temperature_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble of temperature in °C
     """
-    ens_data = _air_temperature_ens(data, stations, *args, **kwargs)
-    if args:
-        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    ens_data = _air_temperature_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
     return ens_data
 
 
@@ -232,17 +228,16 @@ def dew_point_depression_ensctrl(
 
 
 @cache
-@out_format(units="degC")
 def _dew_point_temperature_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
-) -> xr.DataArray:
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.Dataset:
     """
     Ensemble of dew point temperature in °C
     """
     return (
         data["nwp"]
         .preproc.get("dew_point_temperature")
-        .preproc.interp(stations)
+        .preproc.interp(stations, **kwargs)
         .pipe(lambda x: x - 273.15)  # convert to celsius
         .astype("float32")
     )
@@ -250,14 +245,13 @@ def _dew_point_temperature_ens(
 
 @out_format(units="degC")
 def dew_point_temperature_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble of dew point temperature in °C
     """
-    ens_data = _dew_point_temperature_ens(data, stations, *args, **kwargs)
-    if args:
-        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    ens_data = _dew_point_temperature_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
     return ens_data
 
 
@@ -380,21 +374,21 @@ def direct_downward_shortwave_radiation_ensavg(
 
 
 @cache
-@out_format(units="m s-1")
-def _eastward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
+def _eastward_wind_ens(data: Dict[str, xr.Dataset], stations, **kwargs) -> xr.Dataset:
     return (
         data["nwp"]
         .preproc.get("eastward_wind")
-        .preproc.interp(stations)
+        .preproc.interp(stations, **kwargs)
         .astype("float32")
     )
 
 
 @out_format(units="m s-1")
-def eastward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
-    ens_data = _eastward_wind_ens(data, stations, *args, **kwargs)
-    if args:
-        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+def eastward_wind_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
+) -> xr.DataArray:
+    ens_data = _eastward_wind_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
     return ens_data
 
 
@@ -467,21 +461,21 @@ def model_height_difference(
 
 
 @cache
-@out_format(units="m s-1")
-def _northward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
+def _northward_wind_ens(data: Dict[str, xr.Dataset], stations, **kwargs) -> xr.Dataset:
     return (
         data["nwp"]
         .preproc.get("northward_wind")
-        .preproc.interp(stations)
+        .preproc.interp(stations, **kwargs)
         .astype("float32")
     )
 
 
 @out_format(units="m s-1")
-def northward_wind_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
-    ens_data = _northward_wind_ens(data, stations, *args, **kwargs)
-    if args:
-        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+def northward_wind_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
+) -> xr.DataArray:
+    ens_data = _northward_wind_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
     return ens_data
 
 
@@ -689,31 +683,29 @@ def sin_wind_from_direction_ensctrl(
 
 
 @cache
-@out_format(units="g kg-1")
 def _specific_humidity_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
-) -> xr.DataArray:
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.Dataset:
     """
     Ensemble mean of specific humidity in g/kg
     """
     return (
         data["nwp"]
         .preproc.get("specific_humidity")
-        .preproc.interp(stations)
+        .preproc.interp(stations, **kwargs)
         .astype("float32")
     )
 
 
 @out_format(units="g kg-1")
 def specific_humidity_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble mean of specific humidity in g/kg
     """
-    ens_data = _specific_humidity_ens(data, stations, *args, **kwargs)
-    if args:
-        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    ens_data = _specific_humidity_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
     return ens_data
 
 
@@ -761,31 +753,29 @@ def sunshine_duration_ensavg(
 
 
 @cache
-@out_format(units="Pa")
 def _surface_air_pressure_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
-) -> xr.DataArray:
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.Dataset:
     """
     Ensemble of surface pressure in Pascal
     """
     return (
         data["nwp"]
         .preproc.get("surface_air_pressure")
-        .preproc.interp(stations)
+        .preproc.interp(stations, **kwargs)
         .astype("float32")
     )
 
 
 @out_format(units="Pa")
 def surface_air_pressure_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble of surface pressure in Pascal
     """
-    ens_data = _surface_air_pressure_ens(data, stations, *args, **kwargs)
-    if args:
-        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    ens_data = _surface_air_pressure_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
     return ens_data
 
 
@@ -1150,31 +1140,29 @@ def wind_speed_ensstd(
 
 
 @cache
-@out_format(units="m s-1")
 def _wind_speed_of_gust_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
-) -> xr.DataArray:
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.Dataset:
     """
     Ensemble of wind speed gust
     """
     return (
         data["nwp"]
         .preproc.get("wind_speed_of_gust")
-        .preproc.interp(stations)
+        .preproc.interp(stations, **kwargs)
         .astype("float32")
     )
 
 
 @out_format(units="m s-1")
 def wind_speed_of_gust_ens(
-    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
 ) -> xr.DataArray:
     """
     Ensemble of wind speed gust
     """
-    ens_data = _wind_speed_of_gust_ens(data, stations, *args, **kwargs)
-    if args:
-        ens_data = ens_data.to_dataset().preproc.align_time(*args)
+    ens_data = _wind_speed_of_gust_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
     return ens_data
 
 

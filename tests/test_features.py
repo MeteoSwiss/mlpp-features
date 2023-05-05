@@ -48,8 +48,7 @@ class TestFeatures:
         stations = self._stations
         reftimes = pd.date_range("2000-01-01T00", "2000-01-01T18", periods=4)
         leadtimes = np.arange(3).astype("timedelta64[h]")
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            da = pipeline(data, stations, reftimes, leadtimes, tmp_dir=tmp_dir)
+        da = pipeline(data, stations, reftimes, leadtimes)
         assert isinstance(da, xr.DataArray)
         assert da.dtype == "float32"
         if "forecast_reference_time" in da.dims:
