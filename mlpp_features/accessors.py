@@ -197,7 +197,7 @@ class PreprocDatasetAccessor:
             }
         )
         ds = ds.assign_coords(
-            {c: ("station", v.values) for c, v in stations.iteritems()}
+            {c: ("station", v.values) for c, v in stations.items()}
         )
         return ds
 
