@@ -189,6 +189,48 @@ def cos_wind_from_direction_ensctrl(
     )
 
 
+@out_format(units="degrees")
+def cos_wind_from_direction_ensavg_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble average cosine wind direction
+    """
+    nwp = cos_wind_from_direction_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    obs = (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.cos)
+        .preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="wind_speed")
+        .squeeze("variable", drop=True)
+        .astype("float32")
+    )
+    return nwp - obs
+
+
+@out_format(units="degrees")
+def cos_wind_from_direction_ensctrl_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble control cosine wind direction
+    """
+    nwp = cos_wind_from_direction_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    obs = (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.cos)
+        .preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="wind_speed")
+        .squeeze("variable", drop=True)
+        .astype("float32")
+    )
+    return nwp - obs
+
+
 @out_format(units="degC")
 def dew_point_depression_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -680,6 +722,48 @@ def sin_wind_from_direction_ensctrl(
         .to_dataset()
         .preproc.align_time(reftimes, leadtimes)
     )
+
+
+@out_format(units="degrees")
+def sin_wind_from_direction_ensavg_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble average sine wind direction
+    """
+    nwp = sin_wind_from_direction_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    obs = (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.sin)
+        .preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="wind_speed")
+        .squeeze("variable", drop=True)
+        .astype("float32")
+    )
+    return nwp - obs
+
+
+@out_format(units="degrees")
+def sin_wind_from_direction_ensctrl_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble control sine wind direction
+    """
+    nwp = sin_wind_from_direction_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    obs = (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.sin)
+        .preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="wind_speed")
+        .squeeze("variable", drop=True)
+        .astype("float32")
+    )
+    return nwp - obs
 
 
 @cache
