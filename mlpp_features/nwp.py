@@ -1230,8 +1230,8 @@ def wind_speed_enscov(
     """
     Calculate ensemble coefficient of variation of wind speed
     """
-    mean = wind_speed_of_gust_ensavg(data, stations, *args, **kwargs)
-    std = wind_speed_of_gust_ensstd(data, stations, *args, **kwargs)
+    mean = wind_speed_ensavg(data, stations, *args, **kwargs)
+    std = wind_speed_ensstd(data, stations, *args, **kwargs)
     return (std + 0.1) / (mean + 0.1)
 
 
