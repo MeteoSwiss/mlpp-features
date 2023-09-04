@@ -1223,6 +1223,18 @@ def wind_speed_ensstd(
     return uv.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
+@out_format()
+def wind_speed_enscov(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble coefficient of variation of wind speed
+    """
+    mean = wind_speed_of_gust_ensavg(data, stations, *args, **kwargs)
+    std = wind_speed_of_gust_ensstd(data, stations, *args, **kwargs)
+    return (std + 0.1) / (mean + 0.1)
+
+
 @cache
 def _wind_speed_of_gust_ens(
     data: Dict[str, xr.Dataset], stations, **kwargs
@@ -1357,6 +1369,18 @@ def wind_speed_of_gust_ensstd(
     """
     ug = wind_speed_of_gust_ens(data, stations, **kwargs)
     return ug.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format()
+def wind_speed_of_gust_enscov(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate ensemble coefficient of variation of wind gust
+    """
+    mean = wind_speed_of_gust_ensavg(data, stations, *args, **kwargs)
+    std = wind_speed_of_gust_ensstd(data, stations, *args, **kwargs)
+    return (std + 0.1) / (mean + 0.1)
 
 
 @out_format()
