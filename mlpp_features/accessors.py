@@ -11,11 +11,15 @@ import xarray as xr
 
 import mlpp_features.selectors as sel
 
-
 LOGGER = logging.getLogger(__name__)
 
 # Set global options
 xr.set_options(keep_attrs=True)
+
+# Silence non-nanosecond conversion warning
+warnings.filterwarnings(
+    "ignore", category=UserWarning, message="Converting non-nanosecond.*"
+)
 
 
 @xr.register_dataset_accessor("preproc")
