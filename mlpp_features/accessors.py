@@ -3,11 +3,12 @@ import logging
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import List, Union, Callable
+from typing import List, Optional, Union, Callable
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+from bottleneck import rankdata as bn_rankdata
 
 import mlpp_features.selectors as sel
 
@@ -86,13 +87,14 @@ class PreprocDatasetAccessor:
         for lag in lags_unique:
             iref = list(np.where(lags_timedelta == lag)[0])
             ds_sub = ds.isel(forecast_reference_time=iref)
+            lagged_leadtimes = (leadtimes + lag).astype("timedelta64[ns]")
             ds_sub = ds_sub.interp(
-                t=leadtimes + lag, method="nearest", kwargs={"fill_value": np.nan}
+                t=lagged_leadtimes, method="nearest", kwargs={"fill_value": np.nan}
             )
-            ds_sub["t"] = leadtimes
+            ds_sub["t"] = leadtimes.astype("timedelta64[ns]")
             if return_source_leadtimes:
                 ds_sub = ds_sub.assign_coords(
-                    {"source_leadtime": ("t", leadtimes + lag)}
+                    {"source_leadtime": ("t", lagged_leadtimes)}
                 )
             new_ds.append(ds_sub)
 
@@ -109,8 +111,8 @@ class PreprocDatasetAccessor:
                 new_ds[var] = new_ds[var].isel(forecast_reference_time=0, drop=True)
 
         # Finally update coordinates
-        new_ds["forecast_reference_time"] = reftimes
-        new_ds["t"] = leadtimes
+        new_ds["forecast_reference_time"] = reftimes.astype("datetime64[ns]")
+        new_ds["t"] = leadtimes.astype("timedelta64[ns]")
         new_ds = new_ds.drop_vars(["arrival_time", "init_time"], errors="ignore")
 
         if (
@@ -133,8 +135,8 @@ class PreprocDatasetAccessor:
         if not "time" in self.ds.dims:
             return self.ds
 
-        reftimes = np.array(reftimes, dtype="datetime64[h]")
-        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+        reftimes = np.array(reftimes, dtype="datetime64[ns]")
+        leadtimes = np.array(leadtimes, dtype="timedelta64[ns]")
 
         times = xr.DataArray(
             reftimes[:, None] + leadtimes,
@@ -153,8 +155,8 @@ class PreprocDatasetAccessor:
         if not "time" in self.ds.dims:
             return self.ds
 
-        reftimes = np.array(reftimes, dtype="datetime64[h]")
-        leadtimes = np.array(leadtimes, dtype="timedelta64[h]")
+        reftimes = np.array(reftimes, dtype="datetime64[ns]")
+        leadtimes = np.array(leadtimes, dtype="timedelta64[ns]")
 
         reftimes = reftimes[np.isin(reftimes, self.ds.time.values)]
         times = xr.DataArray(
@@ -293,3 +295,63 @@ class PreprocDatasetAccessor:
         da = (270 - 180 / np.pi * da) % 360
         da.attrs["units"] = "degrees"
         return da.to_dataset(name="wind_from_direction")
+
+    def rankdata(
+        self,
+        dim: str = "realization",
+        loop: Optional[str] = None,
+        circular: bool = False,
+    ) -> xr.Dataset:
+        """
+        Perform ranking along one dimension with the option of looping along
+        a second dimension to reduce memory usage. Currently missing data
+        are not supported.
+
+        Parameters
+        ----------
+        dim: str
+            Dimension along which to perform the ranking.
+        loop: str, optional
+            If specified, ranking is done while looping along the given dimension
+            to limit memory.
+        circular: bool
+            Compute ranks of circular data, i.e. angles between 0 and 360 degrees.
+        """
+
+        if loop is None:
+            loop = "dummy"
+
+        output = xr.Dataset()
+        for var, da in self.ds.data_vars.items():
+            if dim not in da.dims:
+                continue
+
+            if circular:
+                sin_sum = np.sin(da * np.pi / 180).sum(dim)
+                cos_sum = np.cos(da * np.pi / 180).sum(dim)
+                da_mean = np.arctan2(sin_sum, cos_sum) * 180 / np.pi + 360
+                rank_origin = (da_mean + 180) % 360
+                da = da.where(da >= rank_origin, da + 360)
+
+            # resolve ties at random
+            da += np.random.random(da.shape) / 1e10
+
+            if loop == "dummy":
+                da = da.expand_dims("dummy")
+            dai = []
+            for i in range(da[loop].size):
+                rank_kwargs = {"axis": list(da.dims).index(dim)}
+                dai.append(
+                    xr.apply_ufunc(
+                        bn_rankdata,
+                        da.isel({loop: slice(i, i + 1)}),
+                        kwargs=rank_kwargs,
+                        dask="parallelized",
+                    ).astype("float32")
+                )
+            da = xr.concat(dai, loop, join="override")
+            da.attrs["units"] = "rank"
+            if loop == "dummy":
+                da = da.squeeze("dummy", drop=True)
+            output[var] = da
+        return output

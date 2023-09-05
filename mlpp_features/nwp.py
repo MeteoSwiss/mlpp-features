@@ -84,7 +84,7 @@ def air_temperature_dailyrange_ens(
     Ensemble mean of daily temperature range in °C
     """
     t = air_temperature_ens(data, stations, *args, **kwargs).to_dataset()
-    t = t.assign_coords(time=t.forecast_reference_time + t.t.astype("timedelta64[h]"))
+    t = t.assign_coords(time=t.forecast_reference_time + t.t)
     daymax = t.preproc.daystat(xr.Dataset.max)
     daymin = t.preproc.daystat(xr.Dataset.min)
     return daymax - daymin
@@ -472,7 +472,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     ds = ds.drop_dims(("x", "y", "realization"), errors="ignore")
     ds = ds.preproc.align_time(reftimes, leadtimes, return_source_leadtimes=True)
     ds = ds.reset_coords("source_leadtime").rename({"source_leadtime": "leadtime"})
-    ds["leadtime"] = ds.leadtime.astype("timedelta64[h]") // np.timedelta64(1, "h")
+    ds["leadtime"] = ds.leadtime // np.timedelta64(1, "h")
     return ds.astype("float32")
 
 
@@ -1107,6 +1107,21 @@ def wind_from_direction_ensctrl(
     )
 
 
+@out_format(units="rank")
+def wind_from_direction_rank(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate rank of ensemble of wind direction
+    """
+    d = wind_from_direction_ens(data, stations, **kwargs)
+    return (
+        d.to_dataset()
+        .preproc.rankdata(dim="realization", circular=True)
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
 @out_format(units="m s-1")
 def wind_speed_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
     u = eastward_wind_ens(data, stations, *args, **kwargs)
@@ -1233,6 +1248,21 @@ def wind_speed_enscov(
     mean = wind_speed_ensavg(data, stations, *args, **kwargs)
     std = wind_speed_ensstd(data, stations, *args, **kwargs)
     return (std + 0.1) / (mean + 0.1)
+
+
+@out_format(units="rank")
+def wind_speed_rank(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate rank of ensemble of wind speed
+    """
+    d = wind_speed_ens(data, stations, **kwargs)
+    return (
+        d.to_dataset()
+        .preproc.rankdata(dim="realization")
+        .preproc.align_time(reftimes, leadtimes)
+    )
 
 
 @cache
@@ -1381,6 +1411,21 @@ def wind_speed_of_gust_enscov(
     mean = wind_speed_of_gust_ensavg(data, stations, *args, **kwargs)
     std = wind_speed_of_gust_ensstd(data, stations, *args, **kwargs)
     return (std + 0.1) / (mean + 0.1)
+
+
+@out_format(units="rank")
+def wind_speed_of_gust_rank(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate rank of ensemble of wind speed of gust
+    """
+    d = wind_speed_of_gust_ens(data, stations, **kwargs)
+    return (
+        d.to_dataset()
+        .preproc.rankdata(dim="realization")
+        .preproc.align_time(reftimes, leadtimes)
+    )
 
 
 @out_format()
