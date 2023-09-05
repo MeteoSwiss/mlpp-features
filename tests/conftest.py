@@ -110,8 +110,8 @@ def nwp_dataset():
                 "longitude": (["y", "x"], longitude),
                 "x": x,
                 "y": y,
-                "forecast_reference_time": reftimes,
-                "t": leadtimes,
+                "forecast_reference_time": reftimes.astype("datetime64[ns]"),
+                "t": leadtimes.astype("timedelta64[ns]"),
                 "realization": np.arange(n_members),
                 "HSURF": (["y", "x"], np.random.randn(y.size, x.size)),
             },
@@ -125,9 +125,7 @@ def nwp_dataset():
             )
 
         # Add valid time coordinate
-        ds = ds.assign_coords(
-            time=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
-        )
+        ds = ds.assign_coords(time=ds.forecast_reference_time + ds.t)
 
         ds.attrs.update({"crs": "epsg:4326"})
 
@@ -277,6 +275,47 @@ def preproc_dataset():
             },
         )
         test_ds = test_ds.transpose("forecast_reference_time", "t", "station")
+        return test_ds.astype("float32", casting="same_kind")
+
+    return _data
+
+
+@pytest.fixture
+def preproc_dataset_ens():
+    def _data():
+        reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
+        leadtimes = [timedelta(hours=t) for t in range(0, 49)]
+        stations = _stations_dataframe()
+        realizations = list(range(3))
+
+        # define dummy dimensions
+        n_reftimes = len(reftimes)
+        n_leadtimes = len(leadtimes)
+        n_stations = len(stations)
+        n_realizations = len(realizations)
+
+        test_ds = xr.Dataset(
+            coords={
+                "station": stations.index,
+                "longitude": ("station", stations.longitude),
+                "latitude": ("station", stations.latitude),
+                "elevation": ("station", stations.elevation),
+                "forecast_reference_time": ("forecast_reference_time", reftimes),
+                "t": ("t", leadtimes),
+                "realization": ("realization", realizations),
+            },
+            data_vars={
+                "bar": (
+                    ("station", "forecast_reference_time", "t", "realization"),
+                    np.random.randn(
+                        n_stations, n_reftimes, n_leadtimes, n_realizations
+                    ),
+                ),
+            },
+        )
+        test_ds = test_ds.transpose(
+            "forecast_reference_time", "t", "station", "realization"
+        )
         return test_ds.astype("float32", casting="same_kind")
 
     return _data

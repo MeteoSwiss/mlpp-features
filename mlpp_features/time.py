@@ -18,13 +18,11 @@ def _make_time_dataset(reftimes, leadtimes):
     ds = xr.Dataset(
         None,
         coords={
-            "forecast_reference_time": reftimes,
-            "t": leadtimes,
+            "forecast_reference_time": reftimes.astype("datetime64[ns]"),
+            "t": leadtimes.astype("timedelta64[ns]"),
         },
     )
-    return ds.assign_coords(
-        time=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
-    )
+    return ds.assign_coords(time=ds.forecast_reference_time + ds.t)
 
 
 @out_format()
@@ -39,13 +37,11 @@ def cos_dayofyear(
     ds = xr.Dataset(
         None,
         coords={
-            "forecast_reference_time": reftimes,
-            "t": leadtimes,
+            "forecast_reference_time": reftimes.astype("datetime64[ns]"),
+            "t": leadtimes.astype("timedelta64[ns]"),
         },
     )
-    ds = ds.assign_coords(
-        time=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
-    )
+    ds = ds.assign_coords(time=ds.forecast_reference_time + ds.t)
     ds["cos_dayofyear"] = (
         (ds["time.dayofyear"] + ds["time.hour"] / 24) * 2 * np.pi / 366
     )
@@ -64,13 +60,11 @@ def cos_hourofday(
     ds = xr.Dataset(
         None,
         coords={
-            "forecast_reference_time": reftimes,
-            "t": leadtimes,
+            "forecast_reference_time": reftimes.astype("datetime64[ns]"),
+            "t": leadtimes.astype("timedelta64[ns]"),
         },
     )
-    ds = ds.assign_coords(
-        time=ds.forecast_reference_time + ds.t.astype("timedelta64[h]")
-    )
+    ds = ds.assign_coords(time=ds.forecast_reference_time + ds.t)
     ds["cos_hourofday"] = ds["time.hour"] * 2 * np.pi / 24
     return ds.pipe(np.cos).astype("float32")
 
@@ -133,6 +127,7 @@ def weight_leadtime(
         raise KeyError([])
     weight_leadtime = 1.5 / (1 + leadtimes / pd.Timedelta(hours=24))
     ds = xr.Dataset(
-        {"weight_leadtime": ("t", weight_leadtime)}, coords={"t": leadtimes}
+        {"weight_leadtime": ("t", weight_leadtime)},
+        coords={"t": leadtimes.astype("timedelta64[ns]")},
     )
     return ds.astype("float32")

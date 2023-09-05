@@ -92,7 +92,6 @@ def test_unstack_time(obs_dataset):
 
 
 def test_persist_observations(obs_dataset):
-
     ds = obs_dataset()
     t0 = pd.Timestamp(ds.time.values[0])
     reftimes = pd.date_range(t0, t0 + timedelta(hours=3), freq="1H")
@@ -117,7 +116,6 @@ def test_persist_observations(obs_dataset):
 
 
 def test_daystat(preproc_dataset):
-    reduction_dims = ["forecast_reference_time", "t"]
     ds = preproc_dataset()
     time = ds.forecast_reference_time + ds.t
     ds = ds.assign_coords(time=time)
@@ -164,7 +162,7 @@ def test_euclidean_nearest_k(stations_dataframe, obs_dataset):
     assert obs_nearest_k.dims["neighbor_rank"] == k
     assert isinstance(obs_nearest_k, xr.Dataset)
     assert (obs_nearest_k.station.values == stations.index).all()
-    for coord, coords in stations.iteritems():
+    for coord, coords in stations.items():
         assert (obs_nearest_k[coord].values == coords).all()
     assert list(obs_nearest_k.dims) == ["time", "station", "neighbor_rank"]
 
@@ -194,7 +192,7 @@ def test_select_rank(stations_dataframe, obs_dataset):
     obs_nearest = obs_nearest_k[["wind_speed"]].preproc.select_rank(rank)
     assert isinstance(obs_nearest, xr.Dataset)
     assert (obs_nearest.station.values == stations.index).all()
-    for coord, coords in stations[["longitude", "latitude", "elevation"]].iteritems():
+    for coord, coords in stations[["longitude", "latitude", "elevation"]].items():
         assert (obs_nearest[coord].values == coords).all()
         assert f"neighbor_{rank}_{coord}" in obs_nearest.coords
     assert list(obs_nearest.dims) == ["time", "station"]
@@ -219,3 +217,13 @@ def test_select_rank(stations_dataframe, obs_dataset):
         obs.stack(sample=["time", "station"]).sel(sample=nan_subs_idx).wind_speed
     )
     np.testing.assert_equal(nan_subs.values, nan_sub_original.values)
+
+
+def test_rankdata(preproc_dataset_ens):
+    ds = preproc_dataset_ens()
+    ds_ranked = ds.preproc.rankdata()
+
+    assert ds_ranked.dims["realization"] == ds.dims["realization"]
+    assert set(ds_ranked.to_array().values.ravel()) == set(
+        np.arange(ds.dims["realization"], dtype="float32") + 1
+    )
