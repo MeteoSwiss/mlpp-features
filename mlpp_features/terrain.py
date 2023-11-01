@@ -41,6 +41,26 @@ def aspect_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.D
 
 
 @out_format()
+def cos_valley_index_1000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Calculate cosine of valley index 1km resolution
+    """
+    norm_valley = (
+        data["terrain"]
+        .preproc.get("VALLEY_NORM_1000M_SMTHFACT0.5")
+        .rename({"VALLEY_NORM_1000M_SMTHFACT0.5": "cos_valley"})
+    )
+    dir_valley = np.cos(
+        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_1000M_SMTHFACT0.5")
+    ).rename({"VALLEY_DIR_1000M_SMTHFACT0.5": "cos_valley"})
+    cos_valley = norm_valley * dir_valley
+    cos_valley.attrs.update(data["terrain"].attrs)
+    return cos_valley.preproc.interp(stations).astype("float32")
+
+
+@out_format()
 def cos_valley_index_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
 ) -> xr.Dataset:
@@ -61,11 +81,91 @@ def cos_valley_index_2000m(
 
 
 @out_format()
+def cos_valley_index_10000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Calculate cosine of valley index 10km resolution
+    """
+    norm_valley = (
+        data["terrain"]
+        .preproc.get("VALLEY_NORM_10000M_SMTHFACT0.5")
+        .rename({"VALLEY_NORM_10000M_SMTHFACT0.5": "cos_valley"})
+    )
+    dir_valley = np.cos(
+        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_10000M_SMTHFACT0.5")
+    ).rename({"VALLEY_DIR_10000M_SMTHFACT0.5": "cos_valley"})
+    cos_valley = norm_valley * dir_valley
+    cos_valley.attrs.update(data["terrain"].attrs)
+    return cos_valley.preproc.interp(stations).astype("float32")
+
+
+@out_format()
 def elevation_50m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain elevation at 50m resolution.
     """
     return data["terrain"].preproc.get("DEM").preproc.interp(stations).astype("float32")
+
+
+@out_format()
+def sin_valley_index_1000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Calculate sine of valley index 1km resolution
+    """
+    norm_valley = (
+        data["terrain"]
+        .preproc.get("VALLEY_NORM_1000M_SMTHFACT0.5")
+        .rename({"VALLEY_NORM_1000M_SMTHFACT0.5": "sin_valley"})
+    )
+    dir_valley = np.sin(
+        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_1000M_SMTHFACT0.5")
+    ).rename({"VALLEY_DIR_1000M_SMTHFACT0.5": "sin_valley"})
+    sin_valley = norm_valley * dir_valley
+    sin_valley.attrs.update(data["terrain"].attrs)
+    return sin_valley.preproc.interp(stations).astype("float32")
+
+
+@out_format()
+def sin_valley_index_2000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Calculate sine of valley index 2km resolution
+    """
+    norm_valley = (
+        data["terrain"]
+        .preproc.get("VALLEY_NORM_2000M_SMTHFACT0.5")
+        .rename({"VALLEY_NORM_2000M_SMTHFACT0.5": "sin_valley"})
+    )
+    dir_valley = np.sin(
+        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_2000M_SMTHFACT0.5")
+    ).rename({"VALLEY_DIR_2000M_SMTHFACT0.5": "sin_valley"})
+    sin_valley = norm_valley * dir_valley
+    sin_valley.attrs.update(data["terrain"].attrs)
+    return sin_valley.preproc.interp(stations).astype("float32")
+
+
+@out_format()
+def sin_valley_index_10000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Calculate sine of valley index 10km resolution
+    """
+    norm_valley = (
+        data["terrain"]
+        .preproc.get("VALLEY_NORM_10000M_SMTHFACT0.5")
+        .rename({"VALLEY_NORM_10000M_SMTHFACT0.5": "sin_valley"})
+    )
+    dir_valley = np.sin(
+        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_10000M_SMTHFACT0.5")
+    ).rename({"VALLEY_DIR_10000M_SMTHFACT0.5": "sin_valley"})
+    sin_valley = norm_valley * dir_valley
+    sin_valley.attrs.update(data["terrain"].attrs)
+    return sin_valley.preproc.interp(stations).astype("float32")
 
 
 @out_format()
@@ -119,6 +219,21 @@ def sn_derivative_2000m(
     return (
         data["terrain"]
         .preproc.get("SN_DERIVATIVE_2000M_SIGRATIO1")
+        .preproc.interp(stations)
+        .astype("float32")
+    )
+
+
+@out_format()
+def sn_derivative_100000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Extract S-N derivative at 100km resolution
+    """
+    return (
+        data["terrain"]
+        .preproc.get("SN_DERIVATIVE_100000M_SIGRATIO1")
         .preproc.interp(stations)
         .astype("float32")
     )
