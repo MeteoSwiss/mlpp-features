@@ -5,6 +5,7 @@ import numpy as np
 import xarray as xr
 
 from mlpp_features.decorators import out_format
+from mlpp_features.experimental import distances_points_to_line, reproject_points
 
 
 LOGGER = logging.getLogger(__name__)
@@ -98,6 +99,53 @@ def cos_valley_index_10000m(
     cos_valley = norm_valley * dir_valley
     cos_valley.attrs.update(data["terrain"].attrs)
     return cos_valley.preproc.interp(stations).astype("float32")
+
+
+@out_format()
+def distance_to_alpine_ridge(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
+    """
+    Compute horizontal distance to the main Alpine ridge
+
+    **Experimental feature, use with caution!**
+    """
+    alpine_crest_wgs84 = [
+        [45.67975, 6.88306],
+        [45.75149, 6.80643],
+        [45.88912, 7.07724],
+        [45.86909, 7.17029],
+        [46.25074, 8.03064],
+        [46.47280, 8.38946],
+        [46.55972, 8.55968],
+        [46.56318, 8.80080],
+        [46.61256, 8.96059],
+        [46.49712, 9.17104],
+        [46.50524, 9.33031],
+        [46.39905, 9.69325],
+        [46.40885, 10.01963],
+        [46.63982, 10.29218],
+        [46.83630, 10.50783],
+        [46.90567, 11.09742],
+    ]
+    points = [(lat, lon) for lat, lon in zip(stations.latitude, stations.longitude)]
+    points_proj = reproject_points(points, "epsg:2056")
+    line_proj = reproject_points(alpine_crest_wgs84, "epsg:2056")
+    distances = distances_points_to_line(points_proj, line_proj)
+    return xr.Dataset(
+        coords={
+            "station": stations.index,
+            "longitude": ("station", stations.longitude),
+            "latitude": ("station", stations.latitude),
+            "elevation": ("station", stations.elevation),
+        },
+        data_vars={
+            "distance_to_alpine_ridge": (
+                "station",
+                distances,
+            ),
+        },
+    ).astype("float32")
 
 
 @out_format()
