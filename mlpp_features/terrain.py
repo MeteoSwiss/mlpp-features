@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 
 from mlpp_features.decorators import out_format
-from mlpp_features.experimental import distances_points_to_line, reproject_points
+from mlpp_features import experimental as exp
 
 
 LOGGER = logging.getLogger(__name__)
@@ -110,6 +110,8 @@ def distance_to_alpine_ridge(
 
     **Experimental feature, use with caution!**
     """
+    if all([len(ds) == 0 for ds in data.values()]):
+        raise KeyError()
     alpine_crest_wgs84 = [
         [45.67975, 6.88306],
         [45.75149, 6.80643],
@@ -129,9 +131,9 @@ def distance_to_alpine_ridge(
         [46.90567, 11.09742],
     ]
     points = [(lat, lon) for lat, lon in zip(stations.latitude, stations.longitude)]
-    points_proj = reproject_points(points, "epsg:2056")
-    line_proj = reproject_points(alpine_crest_wgs84, "epsg:2056")
-    distances = distances_points_to_line(points_proj, line_proj)
+    points_proj = exp.reproject_points(points, "epsg:2056")
+    line_proj = exp.reproject_points(alpine_crest_wgs84, "epsg:2056")
+    distances = exp.distances_points_to_line(points_proj, line_proj)
     return xr.Dataset(
         coords={
             "station": stations.index,
