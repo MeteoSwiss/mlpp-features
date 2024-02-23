@@ -4,7 +4,7 @@ from typing import Dict
 import numpy as np
 import xarray as xr
 
-from mlpp_features.decorators import out_format
+from mlpp_features.decorators import inputs, out_format
 from mlpp_features import experimental as exp
 
 
@@ -41,6 +41,7 @@ def aspect_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.D
     )
 
 
+@inputs("terrain:VALLEY_NORM_1000M_SMTHFACT0.5", "terrain:VALLEY_DIR_1000M_SMTHFACT0.5")
 @out_format()
 def cos_valley_index_1000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -61,6 +62,7 @@ def cos_valley_index_1000m(
     return cos_valley.preproc.interp(stations).astype("float32")
 
 
+@inputs("terrain:VALLEY_NORM_2000M_SMTHFACT0.5", "terrain:VALLEY_DIR_2000M_SMTHFACT0.5")
 @out_format()
 def cos_valley_index_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -81,6 +83,9 @@ def cos_valley_index_2000m(
     return cos_valley.preproc.interp(stations).astype("float32")
 
 
+@inputs(
+    "terrain:VALLEY_NORM_10000M_SMTHFACT0.5", "terrain:VALLEY_DIR_10000M_SMTHFACT0.5"
+)
 @out_format()
 def cos_valley_index_10000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -110,6 +115,7 @@ def distance_to_alpine_ridge(
 
     **Experimental feature, use with caution!**
     """
+    # raise KeyError during discover
     if all([len(ds) == 0 for ds in data.values()]):
         raise KeyError()
     alpine_crest_wgs84 = [
@@ -158,6 +164,7 @@ def elevation_50m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.
     return data["terrain"].preproc.get("DEM").preproc.interp(stations).astype("float32")
 
 
+@inputs("terrain:VALLEY_NORM_1000M_SMTHFACT0.5", "terrain:VALLEY_DIR_1000M_SMTHFACT0.5")
 @out_format()
 def sin_valley_index_1000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -178,6 +185,7 @@ def sin_valley_index_1000m(
     return sin_valley.preproc.interp(stations).astype("float32")
 
 
+@inputs("terrain:VALLEY_NORM_2000M_SMTHFACT0.5", "terrain:VALLEY_DIR_2000M_SMTHFACT0.5")
 @out_format()
 def sin_valley_index_2000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -198,6 +206,9 @@ def sin_valley_index_2000m(
     return sin_valley.preproc.interp(stations).astype("float32")
 
 
+@inputs(
+    "terrain:VALLEY_NORM_10000M_SMTHFACT0.5", "terrain:VALLEY_DIR_10000M_SMTHFACT0.5"
+)
 @out_format()
 def sin_valley_index_10000m(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs

@@ -4,7 +4,7 @@ from typing import Dict
 import xarray as xr
 import numpy as np
 
-from mlpp_features.decorators import cache, out_format
+from mlpp_features.decorators import cache, inputs, out_format
 from mlpp_features import calc
 
 LOGGER = logging.getLogger(__name__)
@@ -476,6 +476,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     return ds.astype("float32")
 
 
+@inputs("nwp:HSURF", "terrain:DEM")
 @out_format(units="m")
 def model_height_difference(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -483,13 +484,6 @@ def model_height_difference(
     """
     Difference between model height and height from the more precise DEM in m
     """
-    # try/except block necessary to expose all the required input data
-    try:
-        data["nwp"]["HSURF"]
-        data["terrain"]["DEM"]
-    except KeyError:
-        raise KeyError(["HSURF", "DEM"])
-
     hsurf_on_poi = data["nwp"].preproc.get("HSURF").preproc.interp(stations)
     dem_on_poi = data["terrain"].preproc.get("DEM").preproc.interp(stations)
 
@@ -547,6 +541,7 @@ def northward_wind_ensctrl(
     )
 
 
+@inputs("nwp:air_temperature", "nwp:surface_air_pressure")
 @out_format(units="degC")
 def potential_temperature_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -649,6 +644,10 @@ def pressure_difference_GVE_GUT_ensctrl(
     )
 
 
+@inputs(
+    "nwp:dew_point_temperature",
+    "nwp:air_temperature",
+)
 @out_format(units="%")
 def relative_humidity_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -889,6 +888,7 @@ def surface_air_pressure_ensctrl(
     )
 
 
+@inputs("terrain:SX_50M_RADIUS500", "nwp:eastward_wind", "nwp:northward_wind")
 @out_format()
 def sx_500m_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -922,6 +922,7 @@ def sx_500m_ensavg(
     return sx.astype("float32")
 
 
+@inputs("terrain:SX_50M_RADIUS500", "nwp:eastward_wind", "nwp:northward_wind")
 @out_format()
 def sx_500m_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -955,6 +956,7 @@ def sx_500m_ensctrl(
     return sx.astype("float32")
 
 
+@inputs("nwp:air_temperature", "nwp:surface_air_pressure", "nwp:dew_point_temperature")
 @out_format(units="g kg-1")
 def water_vapor_mixing_ratio_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -993,6 +995,7 @@ def water_vapor_mixing_ratio_ensctrl(
     )
 
 
+@inputs("nwp:air_temperature", "nwp:dew_point_temperature")
 @out_format(units="hPa")
 def water_vapor_pressure_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -1068,6 +1071,7 @@ def water_vapor_saturation_pressure_ensctrl(
     )
 
 
+@inputs("nwp:eastward_wind", "nwp:northward_wind")
 @out_format(units="degrees")
 def wind_from_direction_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -1122,6 +1126,7 @@ def wind_from_direction_rank(
     )
 
 
+@inputs("nwp:eastward_wind", "nwp:northward_wind")
 @out_format(units="m s-1")
 def wind_speed_ens(data: Dict[str, xr.Dataset], stations, *args, **kwargs):
     u = eastward_wind_ens(data, stations, *args, **kwargs)
@@ -1140,6 +1145,7 @@ def wind_speed_ensavg(
     return uv.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
+@inputs("nwp:eastward_wind", "nwp:northward_wind", "obs:wind_speed")
 @out_format(units="m s-1")
 def wind_speed_ensavg_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -1209,6 +1215,7 @@ def wind_speed_ensctrl_5hmean(
     )
 
 
+@inputs("nwp:eastward_wind", "nwp:northward_wind", "obs:wind_speed")
 @out_format(units="m s-1")
 def wind_speed_ensctrl_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -1303,6 +1310,7 @@ def wind_speed_of_gust_ensavg(
     return ug.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
+@inputs("nwp:wind_speed_of_gust", "obs:wind_speed_of_gust")
 @out_format(units="m s-1")
 def wind_speed_of_gust_ensavg_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -1372,6 +1380,7 @@ def wind_speed_of_gust_ensctrl_5hmean(
     )
 
 
+@inputs("nwp:wind_speed_of_gust", "obs:wind_speed_of_gust")
 @out_format(units="m s-1")
 def wind_speed_of_gust_ensctrl_error(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -1428,6 +1437,7 @@ def wind_speed_of_gust_rank(
     )
 
 
+@inputs("nwp:wind_speed_of_gust", "nwp:eastward_wind", "nwp:northward_wind")
 @out_format()
 def wind_gust_factor_ens(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs

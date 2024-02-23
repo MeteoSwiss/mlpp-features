@@ -1,4 +1,5 @@
 """This module implements experimental features"""
+
 from typing import List, Tuple
 
 import numpy as np

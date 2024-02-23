@@ -4,7 +4,7 @@ from typing import Dict
 import numpy as np
 import xarray as xr
 
-from mlpp_features.decorators import out_format
+from mlpp_features.decorators import inputs, out_format
 from mlpp_features import calc
 
 LOGGER = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ def air_temperature(
     )
 
 
+@inputs("obs:air_temperature", "obs:dew_point_temperature")
 @out_format(units="degC")
 def dew_point_depression(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -40,6 +41,7 @@ def dew_point_depression(
     return (t - t_d).astype("float32")
 
 
+@inputs("obs:air_temperature", "obs:relative_humidity")
 @out_format(units="degC")
 def dew_point_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -83,6 +85,7 @@ def relative_humidity(
     )
 
 
+@inputs("obs:air_temperature", "obs:relative_humidity", "obs:surface_air_pressure")
 @out_format(units="g kg-1")
 def water_vapor_mixing_ratio(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -131,6 +134,7 @@ def sin_wind_from_direction(
     )
 
 
+@inputs("obs:air_temperature", "obs:relative_humidity")
 @out_format(units="hPa")
 def water_vapor_pressure(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -199,6 +203,7 @@ def wind_speed_of_gust(
     )
 
 
+@inputs("obs:air_temperature", "obs:surface_air_pressure")
 @out_format(units="degC")
 def potential_temperature(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -283,6 +288,7 @@ def distance_to_nearest_wind_speed_of_gust(
     )
 
 
+@inputs()
 @out_format()
 def weight_owner_id(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -290,8 +296,6 @@ def weight_owner_id(
     """
     Weight the station owner.
     """
-    if data["obs"] is not None and len(data["obs"]) == 0:
-        raise KeyError([])
     owner_id = stations.owner_id.to_xarray()
     owner_weight = xr.full_like(owner_id, 1.0)
     owner_weight = owner_weight.where(owner_id > 1, 2)
@@ -302,6 +306,7 @@ def weight_owner_id(
     return ds.astype("float32")
 
 
+@inputs()
 @out_format()
 def measurement_height(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -309,8 +314,6 @@ def measurement_height(
     """
     Weight the station owner.
     """
-    if data["obs"] is not None and len(data["obs"]) == 0:
-        raise KeyError([])
     pole_height = stations.pole_height.to_xarray()
     fillvalue_pole_height = pole_height.median()
     LOGGER.debug(f"Fill value pole height: {fillvalue_pole_height:.1f}")

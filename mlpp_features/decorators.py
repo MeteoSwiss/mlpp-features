@@ -4,6 +4,7 @@ import pickle
 from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Dict, List
 
 import xarray as xr
 
@@ -84,3 +85,27 @@ def cache(fn):
         return out.chunk("auto").persist()
 
     return inner
+
+
+def inputs(*vars: str):
+    """
+    Raise a KeyError to expose all the required input data during discovery, which
+    is done by calling the feature function with a dictionary of empty datasets.
+    This decorator is currently needed for features that require multiple or no input data.
+    """
+
+    def decorator(fn):
+        @wraps(fn)
+        def inner(*args, **kwargs):
+            data = args[0]
+            is_discovery = all(
+                arr is not None and len(arr) == 0 for arr in data.values()
+            )
+            if is_discovery:
+                raise KeyError([var.split(":")[1] for var in vars])
+            else:
+                return fn(*args, **kwargs)
+
+        return inner
+
+    return decorator
