@@ -28,7 +28,7 @@ class TestFeatures:
 
     @pytest.mark.parametrize("pipeline,", pipelines)
     def test_raise_keyerror(self, pipeline):
-        """Test that all features raise a KeyError when called with empy inputs"""
+        """Test that all features raise a KeyError when called with empty inputs"""
         empty_data = {
             "nwp": xr.Dataset(),
             "terrain": xr.Dataset(),
