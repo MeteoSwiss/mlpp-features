@@ -159,7 +159,7 @@ def test_euclidean_nearest_k(stations_dataframe, obs_dataset):
     obs = obs_dataset()
     obs_nearest_k = obs.preproc.euclidean_nearest_k(stations, k)
     assert isinstance(obs_nearest_k, xr.Dataset)
-    assert obs_nearest_k.dims["neighbor_rank"] == k
+    assert obs_nearest_k.sizes["neighbor_rank"] == k
     assert isinstance(obs_nearest_k, xr.Dataset)
     assert (obs_nearest_k.station.values == stations.index).all()
     for coord, coords in stations.items():
@@ -223,7 +223,7 @@ def test_rankdata(preproc_dataset_ens):
     ds = preproc_dataset_ens()
     ds_ranked = ds.preproc.rankdata()
 
-    assert ds_ranked.dims["realization"] == ds.dims["realization"]
+    assert ds_ranked.sizes["realization"] == ds.sizes["realization"]
     assert set(ds_ranked.to_array().values.ravel()) == set(
-        np.arange(ds.dims["realization"], dtype="float32") + 1
+        np.arange(ds.sizes["realization"], dtype="float32") + 1
     )
