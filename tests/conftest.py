@@ -193,7 +193,7 @@ def terrain_dataset():
         )
         ds["wind_from_direction"] = np.arange(10)
 
-        ds.attrs.update({"crs": "epsg:21781"})
+        ds.attrs.update({"grid_mapping": str({"epsg_code": "21781"})})
 
         return ds
 
