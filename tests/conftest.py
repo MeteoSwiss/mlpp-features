@@ -111,7 +111,7 @@ def nwp_dataset():
                 "x": x,
                 "y": y,
                 "forecast_reference_time": reftimes.astype("datetime64[ns]"),
-                "t": leadtimes.astype("timedelta64[ns]"),
+                "lead_time": leadtimes.astype("timedelta64[ns]"),
                 "realization": np.arange(n_members),
                 "HSURF": (["y", "x"], np.random.randn(y.size, x.size)),
             },
@@ -120,12 +120,12 @@ def nwp_dataset():
         # Add variables
         for var in var_names:
             ds[var] = (
-                ["forecast_reference_time", "t", "realization", "y", "x"],
+                ["forecast_reference_time", "lead_time", "realization", "y", "x"],
                 np.random.randn(*var_shape).astype(np.float32),
             )
 
         # Add valid time coordinate
-        ds = ds.assign_coords(time=ds.forecast_reference_time + ds.t)
+        ds = ds.assign_coords(time=ds.forecast_reference_time + ds.lead_time)
 
         ds.attrs.update({"crs": "epsg:4326"})
 
@@ -251,7 +251,7 @@ def obs_dataset():
 def preproc_dataset():
     def _data():
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
-        leadtimes = [timedelta(hours=t) for t in range(0, 49)]
+        leadtimes = [timedelta(hours=lead_time) for lead_time in range(0, 49)]
         stations = _stations_dataframe()
 
         # define dummy dimensions
@@ -266,7 +266,7 @@ def preproc_dataset():
                 "latitude": ("station", stations.latitude),
                 "elevation": ("station", stations.elevation),
                 "forecast_reference_time": ("forecast_reference_time", reftimes),
-                "t": ("t", leadtimes),
+                "lead_time": ("lead_time", leadtimes),
             },
             data_vars={
                 "foo": (
@@ -274,12 +274,12 @@ def preproc_dataset():
                     np.random.randn(n_stations),
                 ),
                 "bar": (
-                    ("station", "forecast_reference_time", "t"),
+                    ("station", "forecast_reference_time", "lead_time"),
                     np.random.randn(n_stations, n_reftimes, n_leadtimes),
                 ),
             },
         )
-        test_ds = test_ds.transpose("forecast_reference_time", "t", "station")
+        test_ds = test_ds.transpose("forecast_reference_time", "lead_time", "station")
         return test_ds.astype("float32", casting="same_kind")
 
     return _data
@@ -289,7 +289,7 @@ def preproc_dataset():
 def preproc_dataset_ens():
     def _data():
         reftimes = pd.date_range("2000-01-01T00", "2000-01-02T00", periods=3)
-        leadtimes = [timedelta(hours=t) for t in range(0, 49)]
+        leadtimes = [timedelta(hours=lead_time) for lead_time in range(0, 49)]
         stations = _stations_dataframe()
         realizations = list(range(3))
 
@@ -306,12 +306,12 @@ def preproc_dataset_ens():
                 "latitude": ("station", stations.latitude),
                 "elevation": ("station", stations.elevation),
                 "forecast_reference_time": ("forecast_reference_time", reftimes),
-                "t": ("t", leadtimes),
+                "lead_time": ("lead_time", leadtimes),
                 "realization": ("realization", realizations),
             },
             data_vars={
                 "bar": (
-                    ("station", "forecast_reference_time", "t", "realization"),
+                    ("station", "forecast_reference_time", "lead_time", "realization"),
                     np.random.randn(
                         n_stations, n_reftimes, n_leadtimes, n_realizations
                     ),
@@ -319,7 +319,7 @@ def preproc_dataset_ens():
             },
         )
         test_ds = test_ds.transpose(
-            "forecast_reference_time", "t", "station", "realization"
+            "forecast_reference_time", "lead_time", "station", "realization"
         )
         return test_ds.astype("float32", casting="same_kind")
 

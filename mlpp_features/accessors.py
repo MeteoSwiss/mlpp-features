@@ -90,12 +90,14 @@ class PreprocDatasetAccessor:
             ds_sub = ds.isel(forecast_reference_time=iref)
             lagged_leadtimes = (leadtimes + lag).astype("timedelta64[ns]")
             ds_sub = ds_sub.interp(
-                t=lagged_leadtimes, method="nearest", kwargs={"fill_value": np.nan}
+                lead_time=lagged_leadtimes,
+                method="nearest",
+                kwargs={"fill_value": np.nan},
             )
-            ds_sub["t"] = leadtimes.astype("timedelta64[ns]")
+            ds_sub["lead_time"] = leadtimes.astype("timedelta64[ns]")
             if return_source_leadtimes:
                 ds_sub = ds_sub.assign_coords(
-                    {"source_leadtime": ("t", lagged_leadtimes)}
+                    {"source_leadtime": ("lead_time", lagged_leadtimes)}
                 )
             new_ds.append(ds_sub)
 
@@ -113,7 +115,7 @@ class PreprocDatasetAccessor:
 
         # Finally update coordinates
         new_ds["forecast_reference_time"] = reftimes.astype("datetime64[ns]")
-        new_ds["t"] = leadtimes.astype("timedelta64[ns]")
+        new_ds["lead_time"] = leadtimes.astype("timedelta64[ns]")
         new_ds = new_ds.drop_vars(["arrival_time", "init_time"], errors="ignore")
 
         if (
@@ -142,7 +144,7 @@ class PreprocDatasetAccessor:
         times = xr.DataArray(
             reftimes[:, None] + leadtimes,
             coords=[reftimes, leadtimes],
-            dims=["forecast_reference_time", "t"],
+            dims=["forecast_reference_time", "lead_time"],
         )
         times = times.where(times.isin(self.ds.time))
         times = times.dropna("forecast_reference_time", how="any")
@@ -163,10 +165,10 @@ class PreprocDatasetAccessor:
         times = xr.DataArray(
             reftimes[:, None] + leadtimes,
             coords=[reftimes, leadtimes],
-            dims=["forecast_reference_time", "t"],
+            dims=["forecast_reference_time", "lead_time"],
         )
         ds = self.ds.sel(time=reftimes).rename({"time": "forecast_reference_time"})
-        ds = ds.expand_dims(t=leadtimes, axis=1).assign_coords(time=times)
+        ds = ds.expand_dims(lead_time=leadtimes, axis=1).assign_coords(time=times)
         return ds
 
     def interp(self, stations: pd.DataFrame, **kwargs):
@@ -224,7 +226,7 @@ class PreprocDatasetAccessor:
             ds_tmp = ds.sel(forecast_reference_time=reftime)
             res_reftime = []
             for i, group in ds_tmp.groupby("time.date"):
-                dayfunc = func(group, dim="t", skipna=~complete)
+                dayfunc = func(group, dim="lead_time", skipna=~complete)
                 dayfunc = dayfunc.broadcast_like(group).unstack()
                 res_reftime.append(dayfunc)
             res.append(xr.merge(res_reftime))
