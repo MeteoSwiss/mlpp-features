@@ -9,8 +9,6 @@ license = "BSD 3-Clause License"
 python = ">= 3.9, < 3.11"  # required by scipy
 scipy = "^1.12.0"
 xarray = "^2024.2.0"
-dask = "^2024.2.0"
-zarr = "^2.17.0"
 bottleneck = "^1.3.7"
 pyproj = "^3.6.1"
 
@@ -18,6 +16,9 @@ pyproj = "^3.6.1"
 black = "*"
 pytest = "*"
 isort = "*"
+zarr = "*"
+dask = "*"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.8"]
