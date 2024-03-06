@@ -6,7 +6,7 @@ import mlpp_features.discover as di
 def test_discover_inputs():
 
     vars = di.discover_inputs("model_height_difference")
-    assert vars == ["DEM", "HSURF"]
+    assert vars == ["DEM", "surface_altitude"]
 
     vars = di.discover_inputs(
         ["air_temperature_ensctrl", "water_vapor_mixing_ratio_ensavg"]

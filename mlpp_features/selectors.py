@@ -69,10 +69,10 @@ class EuclideanNearestRegular(StationSelector):
             x_grid_res = np.abs(np.gradient(self.x_coords)).mean()
             y_grid_res = np.abs(np.gradient(self.y_coords)).mean()
             self.grid_res = np.mean((x_grid_res, y_grid_res))
-        if "HSURF" in self.dataset:
-            self.hsurf = self.dataset.HSURF.values
-        if "FR_LAND" in self.dataset:
-            self.fr_land = self.dataset.FR_LAND.values
+        if "surface_altitude" in self.dataset:
+            self.hsurf = self.dataset.surface_altitude.values
+        if "land_area_franction" in self.dataset:
+            self.fr_land = self.dataset.land_area_franction.values
         del self.dataset
 
     def query(self, stations, search_radius=1.415, vertical_weight=0):
@@ -171,10 +171,10 @@ class EuclideanNearestIrregular(StationSelector):
             x_grid_res = np.abs(np.gradient(x_coords[0, :])).mean()
             y_grid_res = np.abs(np.gradient(y_coords[:, 0])).mean()
             self.grid_res = np.mean((x_grid_res, y_grid_res))
-        if "HSURF" in self.dataset:
-            self.hsurf = self.dataset.HSURF.values
-        if "FR_LAND" in self.dataset:
-            self.fr_land = self.dataset.FR_LAND.values
+        if "surface_altitude" in self.dataset:
+            self.hsurf = self.dataset.surface_altitude.values
+        if "land_area_franction" in self.dataset:
+            self.fr_land = self.dataset.land_area_franction.values
         del self.dataset
 
     def query(self, stations, search_radius=1.415, vertical_weight=0):

@@ -476,7 +476,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     return ds.astype("float32")
 
 
-@inputs("nwp:HSURF", "terrain:DEM")
+@inputs("nwp:surface_altitude", "terrain:DEM")
 @out_format(units="m")
 def model_height_difference(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -484,7 +484,7 @@ def model_height_difference(
     """
     Difference between model height and height from the more precise DEM in m
     """
-    hsurf_on_poi = data["nwp"].preproc.get("HSURF").preproc.interp(stations)
+    hsurf_on_poi = data["nwp"].preproc.get("surface_altitude").preproc.interp(stations)
     dem_on_poi = data["terrain"].preproc.get("DEM").preproc.interp(stations)
 
     # drop grid coordinates to avoid conflicts when merging
@@ -493,7 +493,7 @@ def model_height_difference(
 
     ds = xr.merge([hsurf_on_poi, dem_on_poi])
 
-    return ds.preproc.difference("HSURF", "DEM").astype("float32")
+    return ds.preproc.difference("surface_altitude", "DEM").astype("float32")
 
 
 @cache

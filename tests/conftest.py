@@ -113,7 +113,7 @@ def nwp_dataset():
                 "forecast_reference_time": reftimes.astype("datetime64[ns]"),
                 "lead_time": leadtimes.astype("timedelta64[ns]"),
                 "realization": np.arange(n_members),
-                "HSURF": (["y", "x"], np.random.randn(y.size, x.size)),
+                "surface_altitude": (["y", "x"], np.random.randn(y.size, x.size)),
             },
         )
 
