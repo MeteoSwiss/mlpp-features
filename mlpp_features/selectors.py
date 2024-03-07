@@ -53,10 +53,10 @@ class EuclideanNearestRegular(StationSelector):
     fr_land: np.ndarray = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
-        src_crs = self.dataset.attrs["crs"]
-        self.x_coords = self.dataset.x.values
-        self.y_coords = self.dataset.y.values
-        src_proj = CRS(src_crs)
+        grid_mapping_attrs = eval(self.dataset.attrs["grid_mapping"])
+        if "epsg_code" not in grid_mapping_attrs:
+            raise ValueError("missing 'epsg_code' in grid_mapping attribute")
+        src_proj = CRS.from_string(grid_mapping_attrs["epsg_code"])
         dst_proj = CRS(self.dst_crs)
         if not (src_proj.to_epsg() == dst_proj.to_epsg()):
             # TODO: should give it more thoughts, but to be safe, let's not allow
@@ -65,14 +65,16 @@ class EuclideanNearestRegular(StationSelector):
         self.transformer = Transformer.from_crs(
             CRS("epsg:4326"), dst_proj, always_xy=True
         )
+        self.x_coords = self.dataset.x.values
+        self.y_coords = self.dataset.y.values
         if self.grid_res is None:
             x_grid_res = np.abs(np.gradient(self.x_coords)).mean()
             y_grid_res = np.abs(np.gradient(self.y_coords)).mean()
             self.grid_res = np.mean((x_grid_res, y_grid_res))
-        if "HSURF" in self.dataset:
-            self.hsurf = self.dataset.HSURF.values
-        if "FR_LAND" in self.dataset:
-            self.fr_land = self.dataset.FR_LAND.values
+        if "surface_altitude" in self.dataset:
+            self.hsurf = self.dataset.surface_altitude.values
+        if "land_area_franction" in self.dataset:
+            self.fr_land = self.dataset.land_area_franction.values
         del self.dataset
 
     def query(self, stations, search_radius=1.415, vertical_weight=0):
@@ -171,10 +173,10 @@ class EuclideanNearestIrregular(StationSelector):
             x_grid_res = np.abs(np.gradient(x_coords[0, :])).mean()
             y_grid_res = np.abs(np.gradient(y_coords[:, 0])).mean()
             self.grid_res = np.mean((x_grid_res, y_grid_res))
-        if "HSURF" in self.dataset:
-            self.hsurf = self.dataset.HSURF.values
-        if "FR_LAND" in self.dataset:
-            self.fr_land = self.dataset.FR_LAND.values
+        if "surface_altitude" in self.dataset:
+            self.hsurf = self.dataset.surface_altitude.values
+        if "land_area_franction" in self.dataset:
+            self.fr_land = self.dataset.land_area_franction.values
         del self.dataset
 
     def query(self, stations, search_radius=1.415, vertical_weight=0):

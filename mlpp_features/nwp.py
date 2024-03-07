@@ -84,7 +84,7 @@ def air_temperature_dailyrange_ens(
     Ensemble mean of daily temperature range in °C
     """
     t = air_temperature_ens(data, stations, *args, **kwargs).to_dataset()
-    t = t.assign_coords(time=t.forecast_reference_time + t.t)
+    t = t.assign_coords(time=t.forecast_reference_time + t.lead_time)
     daymax = t.preproc.daystat(xr.Dataset.max)
     daymin = t.preproc.daystat(xr.Dataset.min)
     return daymax - daymin
@@ -476,7 +476,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     return ds.astype("float32")
 
 
-@inputs("nwp:HSURF", "terrain:DEM")
+@inputs("nwp:surface_altitude", "terrain:DEM")
 @out_format(units="m")
 def model_height_difference(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
@@ -484,7 +484,7 @@ def model_height_difference(
     """
     Difference between model height and height from the more precise DEM in m
     """
-    hsurf_on_poi = data["nwp"].preproc.get("HSURF").preproc.interp(stations)
+    hsurf_on_poi = data["nwp"].preproc.get("surface_altitude").preproc.interp(stations)
     dem_on_poi = data["terrain"].preproc.get("DEM").preproc.interp(stations)
 
     # drop grid coordinates to avoid conflicts when merging
@@ -493,7 +493,7 @@ def model_height_difference(
 
     ds = xr.merge([hsurf_on_poi, dem_on_poi])
 
-    return ds.preproc.difference("HSURF", "DEM").astype("float32")
+    return ds.preproc.difference("surface_altitude", "DEM").astype("float32")
 
 
 @cache
@@ -1189,7 +1189,7 @@ def wind_speed_ensctrl_3hmean(
     uv = wind_speed_ens(data, stations, **kwargs)
     return (
         uv.isel(realization=0, drop=True)
-        .rolling(t=3, center=True, min_periods=1)
+        .rolling(lead_time=3, center=True, min_periods=1)
         .mean()
         .astype("float32")
         .to_dataset()
@@ -1207,7 +1207,7 @@ def wind_speed_ensctrl_5hmean(
     uv = wind_speed_ens(data, stations, **kwargs)
     return (
         uv.isel(realization=0, drop=True)
-        .rolling(t=5, center=True, min_periods=1)
+        .rolling(lead_time=5, center=True, min_periods=1)
         .mean()
         .astype("float32")
         .to_dataset()
@@ -1354,7 +1354,7 @@ def wind_speed_of_gust_ensctrl_3hmean(
     ug = wind_speed_of_gust_ens(data, stations, **kwargs)
     return (
         ug.isel(realization=0, drop=True)
-        .rolling(t=3, center=True, min_periods=1)
+        .rolling(lead_time=3, center=True, min_periods=1)
         .mean()
         .to_dataset()
         .preproc.align_time(reftimes, leadtimes)
@@ -1372,7 +1372,7 @@ def wind_speed_of_gust_ensctrl_5hmean(
     ug = wind_speed_of_gust_ens(data, stations, **kwargs)
     return (
         ug.isel(realization=0, drop=True)
-        .rolling(t=3, center=True, min_periods=1)
+        .rolling(lead_time=3, center=True, min_periods=1)
         .mean()
         .to_dataset()
         .preproc.align_time(reftimes, leadtimes)

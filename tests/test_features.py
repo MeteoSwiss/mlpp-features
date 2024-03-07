@@ -54,9 +54,9 @@ class TestFeatures:
         if "forecast_reference_time" in da.dims:
             assert all([r in da.forecast_reference_time for r in reftimes])
             assert da.forecast_reference_time.dtype == np.dtype("datetime64[ns]")
-        if "t" in da.dims:
-            assert all([t in da.t for t in leadtimes])
-            assert da.t.dtype == np.dtype("timedelta64[ns]")
+        if "lead_time" in da.dims:
+            assert all([lead_time in da.lead_time for lead_time in leadtimes])
+            assert da.lead_time.dtype == np.dtype("timedelta64[ns]")
         assert "variable" not in da.dims
         assert all([coord in KEEP_STA_COORDS + list(da.dims) for coord in da.coords])
         assert all([dim in da.coords for dim in da.dims])
