@@ -76,7 +76,7 @@ def test_unstack_time(obs_dataset):
 
     ds = obs_dataset()
     t0 = pd.Timestamp(ds.time.values[0])
-    reftimes = pd.date_range(t0, t0 + timedelta(hours=12), freq="3H")
+    reftimes = pd.date_range(t0, t0 + timedelta(hours=12), freq="3h")
     leadtimes = np.array([0, 1, 2], dtype="timedelta64[h]")
     ds_unstacked = ds.preproc.unstack_time(reftimes, leadtimes)
     assert isinstance(ds_unstacked, xr.Dataset)
@@ -96,7 +96,7 @@ def test_unstack_time(obs_dataset):
 def test_persist_observations(obs_dataset):
     ds = obs_dataset()
     t0 = pd.Timestamp(ds.time.values[0])
-    reftimes = pd.date_range(t0, t0 + timedelta(hours=3), freq="1H")
+    reftimes = pd.date_range(t0, t0 + timedelta(hours=3), freq="1h")
     leadtimes = np.array([0, 1, 2], dtype="timedelta64[h]")
     ds_persisted = ds.preproc.persist_observations(reftimes, leadtimes)
     assert isinstance(ds_persisted, xr.Dataset)

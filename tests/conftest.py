@@ -218,7 +218,7 @@ def obs_dataset():
         ]
 
         stations = _stations_dataframe()
-        times = pd.date_range("2000-01-01T00", "2000-01-02T00", freq="1H")
+        times = pd.date_range("2000-01-01T00", "2000-01-02T00", freq="1h")
 
         n_times = len(times)
         n_stations = len(stations)
