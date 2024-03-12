@@ -127,7 +127,7 @@ def nwp_dataset():
         # Add valid time coordinate
         ds = ds.assign_coords(time=ds.forecast_reference_time + ds.lead_time)
 
-        ds.attrs.update({"crs": "epsg:4326"})
+        ds.attrs.update({"crs": "epsg:4326", "source_id": "dummy_model"})
 
         return ds
 

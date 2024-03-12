@@ -50,7 +50,8 @@ class TestFeatures:
         leadtimes = np.arange(3).astype("timedelta64[h]")
         da = pipeline(data, stations, reftimes, leadtimes)
         assert isinstance(da, xr.DataArray)
-        assert da.dtype == "float32"
+        if np.issubdtype(da.dtype, np.number):
+            assert da.dtype == "float32"
         if "forecast_reference_time" in da.dims:
             assert all([r in da.forecast_reference_time for r in reftimes])
             assert da.forecast_reference_time.dtype == np.dtype("datetime64[ns]")

@@ -496,6 +496,28 @@ def model_height_difference(
     return ds.preproc.difference("surface_altitude", "DEM").astype("float32")
 
 
+@out_format()
+def model_id(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Use model id/name as a feature
+    """
+    if len(data["nwp"]) == 0:
+        raise KeyError([])
+    id = data["nwp"].attrs.get("source_id") or data["nwp"].attrs.get(
+        "source", "unknown"
+    )
+    return xr.DataArray(
+        [
+            id,
+        ]
+        * len(reftimes),
+        dims="forecast_reference_time",
+        coords={"forecast_reference_time": reftimes},
+    )
+
+
 @cache
 def _northward_wind_ens(data: Dict[str, xr.Dataset], stations, **kwargs) -> xr.Dataset:
     return (
