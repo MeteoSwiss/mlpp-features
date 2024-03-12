@@ -473,6 +473,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     ds = ds.preproc.align_time(reftimes, leadtimes, return_source_leadtimes=True)
     ds = ds.reset_coords("source_leadtime").rename({"source_leadtime": "leadtime"})
     ds["leadtime"] = ds.leadtime // np.timedelta64(1, "h")
+    ds.leadtime.attrs = {}
     return ds.astype("float32")
 
 
