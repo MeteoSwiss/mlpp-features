@@ -117,7 +117,7 @@ def distance_to_alpine_ridge(
     """
     # raise KeyError during discover
     if all([len(ds) == 0 for ds in data.values()]):
-        raise KeyError()
+        raise KeyError([])
     alpine_crest_wgs84 = [
         [45.67975, 6.88306],
         [45.75149, 6.80643],
