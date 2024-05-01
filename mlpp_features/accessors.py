@@ -89,10 +89,17 @@ class PreprocDatasetAccessor:
             iref = list(np.where(lags_timedelta == lag)[0])
             ds_sub = ds.isel(forecast_reference_time=iref)
             lagged_leadtimes = (leadtimes + lag).astype("timedelta64[ns]")
-            ds_sub = ds_sub.interp(
+            # pad to make sure that out-of-range leadtimes are filled with nans
+            ds_sub = ds_sub.pad(
+                {"lead_time": (0, 1)}, mode="constant", constant_values=np.nan
+            )
+            ds_sub["lead_time"] = np.append(
+                ds_sub["lead_time"].values[:-1],
+                ds_sub["lead_time"].values[-2] + np.timedelta64(1, "s"),
+            )
+            ds_sub = ds_sub.sel(
                 lead_time=lagged_leadtimes,
                 method="nearest",
-                kwargs={"fill_value": np.nan},
             )
             ds_sub["lead_time"] = leadtimes.astype("timedelta64[ns]")
             if return_source_leadtimes:
