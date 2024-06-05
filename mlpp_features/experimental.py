@@ -42,9 +42,21 @@ def distance_point_to_segment(
         closest_point = segment_end
     else:
         closest_point = segment_start + projection * start_to_end
+    
+    # compute north/south sign wrt to segment
+    # By default, we assign a positive sign for points on the line
+    if point[0] - closest_point[0] > 0:
+        sign = -1
+    elif point[0] - closest_point[0] < 0:
+        sign = 1
+    else:
+        if point[1] - closest_point[1] > 0:
+            sign = -1
+        else:
+            sign = 1
 
     # Compute the distance from the point to the closest point
-    return np.linalg.norm(point - closest_point)
+    return sign * np.linalg.norm(point - closest_point)
 
 
 def distances_points_to_line(
@@ -58,7 +70,7 @@ def distances_points_to_line(
             segment_start = line_points[i]
             segment_end = line_points[i + 1]
             distance = distance_point_to_segment(point, segment_start, segment_end)
-            if distance < min_distance:
+            if np.abs(distance) < np.abs(min_distance):
                 min_distance = distance
         min_distances.append(min_distance)
     return min_distances
