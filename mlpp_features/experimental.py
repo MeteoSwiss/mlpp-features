@@ -42,21 +42,42 @@ def distance_point_to_segment(
         closest_point = segment_end
     else:
         closest_point = segment_start + projection * start_to_end
-    
-    # compute north/south sign wrt to segment
-    # By default, we assign a positive sign for points on the line
-    if point[0] - closest_point[0] > 0:
-        sign = -1
-    elif point[0] - closest_point[0] < 0:
-        sign = 1
-    else:
-        if point[1] - closest_point[1] > 0:
-            sign = -1
-        else:
-            sign = 1
 
     # Compute the distance from the point to the closest point
-    return sign * np.linalg.norm(point - closest_point)
+    return np.linalg.norm(point - closest_point)
+
+
+def signs_points_to_line(
+    points: List[Tuple[float, float]], line_points: List[Tuple[float, float]]
+) -> List[int]:
+    """For a list of points, find the sign of the distance to a polyline."""
+    signs = []
+    min_longitude = min([point[1] for point in line_points])
+    max_longitude = max([point[1] for point in line_points])
+    print(min_longitude, max_longitude)
+    for point in points:
+        if point[1] < min_longitude:
+            segment_latitude = line_points[list(list(zip(*line_points))[1]).index(min_longitude)][0]
+            print(segment_latitude, point[0] - segment_latitude)
+            sign = np.sign(point[0] - segment_latitude)
+        elif point[1] > max_longitude:
+            segment_latitude = line_points[list(list(zip(*line_points))[1]).index(max_longitude)][0]
+            print(segment_latitude, point[0] - segment_latitude)
+            sign = np.sign(point[0] - segment_latitude)
+        else:
+            for i in range(len(line_points) - 1):
+                segment_start = line_points[i]
+                segment_end = line_points[i + 1]
+                if point[1] >= segment_start[1] and point[1] <= segment_end[1]:
+                    slope = (segment_end[0] - segment_start[0]) / (segment_end[1] - segment_start[1])
+                    lat_intercept = segment_start[0] - slope * segment_start[1]
+                    y_proj_point_to_segment = slope * point[1] + lat_intercept
+                    if point[0] >= y_proj_point_to_segment:
+                        sign = 1
+                    else:
+                        sign = -1
+        signs.append(sign)
+    return signs
 
 
 def distances_points_to_line(
@@ -64,6 +85,7 @@ def distances_points_to_line(
 ) -> List[float]:
     """For a list of points, find the minimum distance a polyline."""
     min_distances = []
+    signs = signs_points_to_line(points, line_points)
     for point in points:
         min_distance = float("inf")
         for i in range(len(line_points) - 1):
@@ -73,4 +95,4 @@ def distances_points_to_line(
             if np.abs(distance) < np.abs(min_distance):
                 min_distance = distance
         min_distances.append(min_distance)
-    return min_distances
+    return np.array(min_distances)*np.array(signs)
