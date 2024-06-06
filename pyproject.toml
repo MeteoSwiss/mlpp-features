@@ -13,6 +13,7 @@ xarray = "*"
 pyproj = "*"
 bottleneck = "*"
 matplotlib = "*"
+seaborn = "*"
 
 [tool.poetry.dev-dependencies]
 black = "*"
