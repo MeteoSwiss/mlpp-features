@@ -10,7 +10,7 @@ import mlpp_features.experimental as exp
 def test_sign_distance_to_alpine_ridge():
     """Test distance to alpine ridge with sign"""
 
-    rigde1 = [(46.75, 6.0), (46.75, 11.0)] # horizontal line
+    rigde1 = [(46, 6.0), (46, 11.0)] # horizontal line
     ridge2 = [(45.5, 6.0), (47.0, 11.0)] # diagonal line
     ridge3 = [(47.0, 6.0), (45.5, 11.0)] # diagonal line
     ridge4 = [[45.67975, 6.88306],
@@ -29,7 +29,7 @@ def test_sign_distance_to_alpine_ridge():
               [46.63982, 10.29218],
               [46.83630, 10.50783],
               [46.90567, 11.09742],
-    ] # the actual alpine ridge
+    ] # the "actual" alpine ridge
     
     # generate 400 random points
     rand_lat = np.random.uniform(45.5, 47.0, 20)
@@ -71,6 +71,7 @@ def test_sign_distance_to_alpine_ridge():
     )
     axs[1, 1].plot([ridge4[i][1] for i in range(len(ridge4))], [ridge4[i][0] for i in range(len(ridge4))], color="red")
 
+    fig.suptitle("Sign of distance to alpine ridge for different configuration of the Alpine ridge (red line)")
     fig.savefig("./test_sign_distance_to_alpine_ridge.png")
 
 if __name__ == "__main__":
