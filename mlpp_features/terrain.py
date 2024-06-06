@@ -106,6 +106,7 @@ def cos_valley_index_10000m(
     return cos_valley.preproc.interp(stations).astype("float32")
 
 
+@inputs()
 @out_format()
 def distance_to_alpine_ridge(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -116,8 +117,8 @@ def distance_to_alpine_ridge(
     **Experimental feature, use with caution!**
     """
     # raise KeyError during discover
-    if all([len(ds) == 0 for ds in data.values()]):
-        raise KeyError()
+    #if all([len(ds) == 0 for ds in data.values()]):
+    #    raise KeyError()
     alpine_crest_wgs84 = [
         [45.67975, 6.88306],
         [45.75149, 6.80643],
