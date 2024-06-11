@@ -47,35 +47,78 @@ def distance_point_to_segment(
     return np.linalg.norm(point - closest_point)
 
 
+def get_sign_for_outside_point(point: Tuple[float, float], extreme_line_point) -> int:
+    """
+    For a point outside the line, find the sign of the distance to the line.
+    Inputs:
+        - point: point outside (west or east to the west-most/east-most point) the line (latitude, longitude)
+        - extreme_line_point: extreme point of the line (latitude, longitude)
+
+    Outputs:
+        - sign: sign (+1 or -1) depending if the point is above (north) or below (south) the extreme point
+    
+    """
+
+    s = np.sign(point[0] - extreme_line_point[0])
+    return s if s != 0 else 1
+
+
+def get_sign_for_inside_point(point: Tuple[float, float], segment_start: Tuple[float, float], segment_end: Tuple[float, float]) -> int:
+    """
+    For a point inside a segment of the line (i.e., lon_segment_start <= lon_point <= long_segment_end), 
+    find the sign of the distance to the line.
+    Inputs:
+        - point: point inside the line (latitude, longitude)
+        - segment_start: start point of the segment (latitude, longitude)
+        - segment_end: end point of the segment (latitude, longitude)
+
+    Outputs:
+        - sign: sign (+1 or -1) depending if the point is above (north) or below (south) the segment
+    
+    """
+    slope = (segment_end[0] - segment_start[0]) / (segment_end[1] - segment_start[1])
+    lat_intercept = segment_start[0] - slope * segment_start[1]
+    y_proj_point_to_segment = slope * point[1] + lat_intercept
+    if point[0] >= y_proj_point_to_segment:
+        sign = 1
+    else:
+        sign = -1
+    return sign
+
+
+
 def signs_points_to_line(
     points: List[Tuple[float, float]], line_points: List[Tuple[float, float]]
 ) -> List[int]:
-    """For a list of points, find the sign of the distance to a polyline."""
+    """
+    For a list of points, find the sign of the distance to a polyline.
+    Inputs:
+        - points: list of points (latitude, longitude)
+        - line_points: list of points defining the polyline (latitude, longitude)
+
+    Outputs:
+        - signs: list of signs (+1 or -1) depending if the point is above (north) or below (south) the polyline
+    
+    """
     signs = []
-    min_longitude = min([point[1] for point in line_points])
-    max_longitude = max([point[1] for point in line_points])
-    print(min_longitude, max_longitude)
+    
+    # Extract the west and east most points
+    longitudes = list(zip(*line_points))[1]
+    
+    west_most_point = line_points[list(longitudes).index(min(longitudes))]
+    east_most_point = line_points[list(longitudes).index(max(longitudes))]
+
     for point in points:
-        if point[1] < min_longitude:
-            segment_latitude = line_points[list(list(zip(*line_points))[1]).index(min_longitude)][0]
-            print(segment_latitude, point[0] - segment_latitude)
-            sign = np.sign(point[0] - segment_latitude)
-        elif point[1] > max_longitude:
-            segment_latitude = line_points[list(list(zip(*line_points))[1]).index(max_longitude)][0]
-            print(segment_latitude, point[0] - segment_latitude)
-            sign = np.sign(point[0] - segment_latitude)
+        if point[1] < min(longitudes):
+            sign = get_sign_for_outside_point(point, west_most_point)
+        elif point[1] > max(longitudes):
+            sign = get_sign_for_outside_point(point, east_most_point)
         else:
             for i in range(len(line_points) - 1):
                 segment_start = line_points[i]
                 segment_end = line_points[i + 1]
                 if point[1] >= segment_start[1] and point[1] <= segment_end[1]:
-                    slope = (segment_end[0] - segment_start[0]) / (segment_end[1] - segment_start[1])
-                    lat_intercept = segment_start[0] - slope * segment_start[1]
-                    y_proj_point_to_segment = slope * point[1] + lat_intercept
-                    if point[0] >= y_proj_point_to_segment:
-                        sign = 1
-                    else:
-                        sign = -1
+                    sign = get_sign_for_inside_point(point, segment_start, segment_end)
         signs.append(sign)
     return signs
 
