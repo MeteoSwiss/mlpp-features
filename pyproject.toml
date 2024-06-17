@@ -12,6 +12,7 @@ pandas = "*"
 xarray = "*"
 pyproj = "*"
 bottleneck = "*"
+numpy = "< 2.0"
 
 [tool.poetry.dev-dependencies]
 black = "*"
