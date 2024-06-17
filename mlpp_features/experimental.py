@@ -119,6 +119,7 @@ def signs_points_to_line(
                 segment_end = line_points[i + 1]
                 if point[1] >= segment_start[1] and point[1] <= segment_end[1]:
                     sign = get_sign_for_inside_point(point, segment_start, segment_end)
+                    break
         signs.append(sign)
     return signs
 
