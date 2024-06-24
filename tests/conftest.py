@@ -324,3 +324,35 @@ def preproc_dataset_ens():
         return test_ds.astype("float32", casting="same_kind")
 
     return _data
+
+
+@pytest.fixture
+def alpine_ridge():
+    ridge = [[45.67975, 6.88306],
+            [45.75149, 6.80643],
+            [45.88912, 7.07724],
+            [45.86909, 7.17029],
+            [46.25074, 8.03064],
+            [46.47280, 8.38946],
+            [46.55972, 8.55968],
+            [46.56318, 8.80080],
+            [46.61256, 8.96059],
+            [46.49712, 9.17104],
+            [46.50524, 9.33031],
+            [46.39905, 9.69325],
+            [46.40885, 10.01963],
+            [46.63982, 10.29218],
+            [46.83630, 10.50783],
+            [46.90567, 11.09742],
+            ]
+    return ridge
+
+@pytest.fixture
+def horizontal_ridge():
+    ridge = [(46, 6.0), (46, 11.0)]
+    return ridge
+
+@pytest.fixture
+def diagonal_ridge():
+    ridge = [(45.5, 6.0), (47.0, 11.0)]
+    return ridge
