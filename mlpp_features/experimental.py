@@ -16,7 +16,7 @@ def reproject_points(
     return [(x, y) for x, y in zip(x_dst, y_dst)]
 
 
-def distance_point_to_segment(
+def distance_point_to_segment_old(
     point: Tuple[float, float],
     segment_start: Tuple[float, float],
     segment_end: Tuple[float, float],
@@ -94,7 +94,7 @@ def haversine(latp, lonp, latp2, lonp2, **kwargs):
     return 2 * 6371 * np.arcsin(np.sqrt(a))
 
 
-def distance_point_to_segment_new(
+def distance_point_to_segment(
     point: Tuple[float, float],
     segment_start: Tuple[float, float],
     segment_end: Tuple[float, float],
@@ -122,12 +122,11 @@ def distance_point_to_segment_new(
         closest_point = segment_start + projection * start_to_end
 
     # Compute the distance from the point to the closest point
-    sign = np.sign(point[0] - closest_point[0])
     
-    return haversine(*point, *closest_point), sign
+    return haversine(*point, *closest_point)
 
 
-'''def get_sign_for_outside_point(point: Tuple[float, float], extreme_line_point) -> int:
+def get_sign_for_outside_point(point: Tuple[float, float], extreme_line_point) -> int:
     """
     For a point outside the line, find the sign of the distance to the line.
     Inputs:
@@ -202,7 +201,7 @@ def signs_points_to_line(
                     sign = get_sign_for_inside_point(point, segment_start, segment_end)
                     break
         signs.append(sign)
-    return signs'''
+    return signs
 
 
 def distances_points_to_line(
@@ -210,15 +209,15 @@ def distances_points_to_line(
 ) -> List[float]:
     """For a list of points, find the minimum distance a polyline."""
     min_distances = []
-    #signs = signs_points_to_line(points, line_points)
+    signs = signs_points_to_line(points, line_points)
     for point in points:
         min_distance = float("inf")
         for i in range(len(line_points) - 1):
             segment_start = line_points[i]
             segment_end = line_points[i + 1]
-            distance, sign = distance_point_to_segment_new(point, segment_start, segment_end)
+            distance = distance_point_to_segment(point, segment_start, segment_end)
             if distance < np.abs(min_distance):
-                min_distance = distance * sign
+                min_distance = distance
 
         min_distances.append(min_distance)
-    return np.array(min_distances)
+    return np.array(min_distances) * signs
