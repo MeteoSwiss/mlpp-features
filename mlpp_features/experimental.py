@@ -166,42 +166,48 @@ def get_sign_for_inside_point(point: Tuple[float, float], segment_start: Tuple[f
     return sign
 
 
-
-def signs_points_to_line(
-    points: List[Tuple[float, float]], line_points: List[Tuple[float, float]]
-) -> List[int]:
+def sign_point_to_segment(
+    point: Tuple[float, float], 
+    segment_start: Tuple[float, float],
+    segment_end: Tuple[float, float],
+) -> int:
     """
-    For a list of points, find the sign of the distance to a polyline.
+    For a given points, find the sign of the distance to a segment.
+    Returns a value only if the point is "inside" the segment.
     Inputs:
-        - points: list of points (latitude, longitude)
+        - point: (latitude, longitude) of the considered station
+        - segment_start: start point of the segment (latitude, longitude)
+        - segment_end: end point of the segment (latitude, longitude)
+
+    Outputs:
+        - sign: +1 or -1 depending if the point is above (north) or below (south) the segment
+                None if the point is outside the segment
+    
+    """
+    
+    if point[1] >= min(segment_start[1], segment_end[1]) and point[1] <= max(segment_start[1], segment_end[1]):
+        sign = get_sign_for_inside_point(point, segment_start, segment_end)
+    else:
+        sign = None
+
+    return sign
+
+
+def line_extreme_points(line_points: List[Tuple[float, float]]) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+    """
+    Find the west-most and east-most points of a polyline.
+    Inputs:
         - line_points: list of points defining the polyline (latitude, longitude)
 
     Outputs:
-        - signs: list of signs (+1 or -1) depending if the point is above (north) or below (south) the polyline
+        - west_most_point: west-most point of the polyline (latitude, longitude)
+        - east_most_point: east-most point of the polyline (latitude, longitude)
     
     """
-    signs = []
-    
-    # Extract the west and east most points
     longitudes = list(zip(*line_points))[1]
-    
     west_most_point = line_points[list(longitudes).index(min(longitudes))]
     east_most_point = line_points[list(longitudes).index(max(longitudes))]
-
-    for point in points:
-        if point[1] < min(longitudes):
-            sign = get_sign_for_outside_point(point, west_most_point)
-        elif point[1] > max(longitudes):
-            sign = get_sign_for_outside_point(point, east_most_point)
-        else:
-            for i in range(len(line_points) - 1):
-                segment_start = line_points[i]
-                segment_end = line_points[i + 1]
-                if point[1] >= segment_start[1] and point[1] <= segment_end[1]:
-                    sign = get_sign_for_inside_point(point, segment_start, segment_end)
-                    break
-        signs.append(sign)
-    return signs
+    return west_most_point, east_most_point
 
 
 def distances_points_to_line(
@@ -209,15 +215,25 @@ def distances_points_to_line(
 ) -> List[float]:
     """For a list of points, find the minimum distance a polyline."""
     min_distances = []
-    signs = signs_points_to_line(points, line_points)
+    west_most_point, east_most_point = line_extreme_points(line_points)
     for point in points:
         min_distance = float("inf")
+        tmp_signs = []
         for i in range(len(line_points) - 1):
             segment_start = line_points[i]
             segment_end = line_points[i + 1]
             distance = distance_point_to_segment(point, segment_start, segment_end)
-            if distance < np.abs(min_distance):
-                min_distance = distance
+            if point[1] < west_most_point[1]:
+                sign = get_sign_for_outside_point(point, west_most_point)
+            elif point[1] > east_most_point[1]:
+                sign = get_sign_for_outside_point(point, east_most_point)
+            else:
+                sign = sign_point_to_segment(point, segment_start, segment_end)
+            if sign is not None:
+                tmp_signs.append(sign)
 
-        min_distances.append(min_distance)
-    return np.array(min_distances) * signs
+            if distance < min_distance:
+                min_distance = distance
+        sign = [k if np.allclose(tmp_signs, k) else -1 for k in set(tmp_signs)][0]
+        min_distances.append(min_distance * sign)
+    return np.array(min_distances)
