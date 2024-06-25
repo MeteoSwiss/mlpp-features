@@ -20,6 +20,9 @@ pytest = "*"
 isort = "*"
 zarr = "*"
 dask = "*"
+seaborn = "*"
+matplotlib = "*"
+jupyter = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.8"]
