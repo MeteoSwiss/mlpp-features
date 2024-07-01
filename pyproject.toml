@@ -23,6 +23,7 @@ dask = "*"
 seaborn = "*"
 matplotlib = "*"
 jupyter = "*"
+cartopy = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.8"]
