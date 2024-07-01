@@ -12,6 +12,7 @@ pandas = "*"
 xarray = "*"
 pyproj = "*"
 bottleneck = "*"
+numpy = "< 2.0"
 
 [tool.poetry.dev-dependencies]
 black = "*"
@@ -19,7 +20,10 @@ pytest = "*"
 isort = "*"
 zarr = "*"
 dask = "*"
-
+seaborn = "*"
+matplotlib = "*"
+jupyter = "*"
+cartopy = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.8"]

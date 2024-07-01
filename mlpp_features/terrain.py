@@ -106,6 +106,7 @@ def cos_valley_index_10000m(
     return cos_valley.preproc.interp(stations).astype("float32")
 
 
+@inputs()
 @out_format()
 def distance_to_alpine_ridge(
     data: Dict[str, xr.Dataset], stations, *args, **kwargs
@@ -115,9 +116,6 @@ def distance_to_alpine_ridge(
 
     **Experimental feature, use with caution!**
     """
-    # raise KeyError during discover
-    if all([len(ds) == 0 for ds in data.values()]):
-        raise KeyError([])
     alpine_crest_wgs84 = [
         [45.67975, 6.88306],
         [45.75149, 6.80643],
@@ -139,7 +137,7 @@ def distance_to_alpine_ridge(
     points = [(lat, lon) for lat, lon in zip(stations.latitude, stations.longitude)]
     points_proj = exp.reproject_points(points, "epsg:2056")
     line_proj = exp.reproject_points(alpine_crest_wgs84, "epsg:2056")
-    distances = exp.distances_points_to_line(points_proj, line_proj)
+    distances = exp.distances_points_to_line(points_proj, line_proj) / 1000 # convert to km
     return xr.Dataset(
         coords={
             "station": stations.index,
