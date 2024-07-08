@@ -206,6 +206,23 @@ def wind_speed_3hmax(
 
 
 @out_format(units="m s-1")
+def wind_speed_3hmean(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Observed 3-hourly mean wind speed in m/s
+    """
+    return (
+        data["obs"]
+        .preproc.get("wind_speed")
+        .rolling(time=3, center=True, min_periods=1)
+        .mean()
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format(units="m s-1")
 def wind_speed_of_gust(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
