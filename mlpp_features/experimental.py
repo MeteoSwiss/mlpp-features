@@ -6,6 +6,9 @@ import numpy as np
 from pyproj import CRS, Transformer
 
 
+RADIUS_EARTH_KM = 6371.0
+
+
 def reproject_points(
     latlon_wgs84: List[Tuple[float, float]], dst_epsg: str
 ) -> List[Tuple[float, float]]:
@@ -16,82 +19,52 @@ def reproject_points(
     return [(x, y) for x, y in zip(x_dst, y_dst)]
 
 
-def distance_point_to_segment_old(
-    point: Tuple[float, float],
-    segment_start: Tuple[float, float],
-    segment_end: Tuple[float, float],
+def calculate_haversine_distance(
+    lat1: float, lon1: float, lat2: float, lon2: float
 ) -> float:
-    """Calculate the distance from a point to a line segment."""
-    point = np.array(point)
-    segment_start = np.array(segment_start)
-    segment_end = np.array(segment_end)
+    """
+    Haversine formula for calculating distance between two points (latp, lonp) and
+    (latp2, lonp2). This function can handle 2D lat/lon lists, but has been used with
+    flattened data
 
-    # Vector from start to point and start to end
-    start_to_point = point - segment_start
-    start_to_end = segment_end - segment_start
-
-    # Project start_to_point onto start_to_end
-    projection = np.dot(start_to_point, start_to_end) / np.dot(
-        start_to_end, start_to_end
-    )
-
-    # Check if projection is in the segment
-    if projection < 0:
-        closest_point = segment_start
-    elif projection > 1:
-        closest_point = segment_end
-    else:
-        closest_point = segment_start + projection * start_to_end
-
-    # Compute the distance from the point to the closest point
-    sign = np.sign(point[1] - closest_point[1])
-
-    return np.linalg.norm(point - closest_point), sign
+    Based on:
+    https://medium.com/@petehouston/calculate-distance-of-two-locations-on-earth-using-python-1501b1944d97
 
 
-def haversine(latp, lonp, latp2, lonp2, **kwargs):
-    """──────────────────────────────────────────────────────────────────────────┐
-      Haversine formula for calculating distance between two points (latp,
-      lonp) and (latp2, lonp2). This function can handle
-      2D lat/lon lists, but has been used with flattened data
+    Args:
+        lat1 (float): Latitude of the first point in degrees.
+        lon1 (float): Longitude of the first point in degrees.
+        lat2 (float): Latitude of the second point in degrees.
+        lon2 (float): Longitude of the second point in degrees.
 
-      Based on:
-      https://medium.com/@petehouston/calculate-distance-of-two-locations-on-earth-using-python-1501b1944d97
+    Returns:
+        float: Distance between the two points in kilometers.
 
+    """
+    # Convert degrees to radians
+    lat1 = np.radians(lat1)
+    lon1 = np.radians(lon1)
+    lat2 = np.radians(lat2)
+    lon2 = np.radians(lon2)
 
-      Inputs:
-          latp - latitude of target point
+    # Compute differences
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
 
-          lonp - longitude of target point
+    # Apply Haversine formula
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) + np.sin(dlon / 2) ** 2
 
-          latp2 - latitude of second point
-
-          lonp2 - longitude of second point
-
-      Outputs:
-
-    └──────────────────────────────────────────────────────────────────────────"""
-    kwargs.get("epsilon", 1e-6)
-
-    latp = np.radians(latp)
-    lonp = np.radians(lonp)
-    latp2 = np.radians(latp2)
-    lonp2 = np.radians(lonp2)
-
-    dlon = lonp - lonp2
-    dlat = latp - latp2
-    a = np.power(np.sin(dlat / 2), 2) + np.cos(latp2) * np.cos(latp) * np.power(
-        np.sin(dlon / 2), 2
-    )
-
-    # Assert that sqrt(a) is within machine precision of 1
-    # assert np.all(np.sqrt(a) <= 1 + epsilon), 'Invalid argument for arcsin'
+    # Ensure the argument for arcsin is within the valid range [-1, 1]
+    a = np.clip(a, -1, 1)
 
     # Check if square root of a is a valid argument for arcsin within machine precision
     # If not, set to 1 or -1 depending on sign of a
     a = np.where(np.sqrt(a) <= 1, a, np.sign(a))
 
-    return 2 * 6371 * np.arcsin(np.sqrt(a))
+    # Calculate distance
+    distance = 2 * RADIUS_EARTH_KM * np.arcsin(np.sqrt(a))
+
+    return distance
 
 
 def distance_point_to_segment(
@@ -122,8 +95,7 @@ def distance_point_to_segment(
         closest_point = segment_start + projection * start_to_end
 
     # Compute the distance from the point to the closest point
-
-    return haversine(*point, *closest_point)
+    return calculate_haversine_distance(*point, *closest_point)
 
 
 def get_sign_for_outside_point(point: Tuple[float, float], extreme_line_point) -> int:
