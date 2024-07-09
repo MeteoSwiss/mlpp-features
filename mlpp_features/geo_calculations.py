@@ -1,4 +1,4 @@
-"""This module implements experimental features"""
+"""This module provides functions for geospatial calculations."""
 
 from typing import List, Tuple
 
