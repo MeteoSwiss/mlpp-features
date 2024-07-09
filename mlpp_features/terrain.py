@@ -135,9 +135,9 @@ def distance_to_alpine_ridge(
         [46.90567, 11.09742],
     ]
     points = [(lat, lon) for lat, lon in zip(stations.latitude, stations.longitude)]
-    #points_proj = exp.reproject_points(points, "epsg:2056")
-    #line_proj = exp.reproject_points(alpine_crest_wgs84, "epsg:2056")
-    #distances = exp.distances_points_to_line(points_proj, line_proj) / 1000 # convert to km
+    # points_proj = exp.reproject_points(points, "epsg:2056")
+    # line_proj = exp.reproject_points(alpine_crest_wgs84, "epsg:2056")
+    # distances = exp.distances_points_to_line(points_proj, line_proj) / 1000 # convert to km
     distances = exp.distances_points_to_line(points, alpine_crest_wgs84)
     return xr.Dataset(
         coords={

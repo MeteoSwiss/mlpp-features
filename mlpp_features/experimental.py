@@ -45,7 +45,7 @@ def distance_point_to_segment_old(
 
     # Compute the distance from the point to the closest point
     sign = np.sign(point[1] - closest_point[1])
-    
+
     return np.linalg.norm(point - closest_point), sign
 
 
@@ -122,7 +122,7 @@ def distance_point_to_segment(
         closest_point = segment_start + projection * start_to_end
 
     # Compute the distance from the point to the closest point
-    
+
     return haversine(*point, *closest_point)
 
 
@@ -135,7 +135,7 @@ def get_sign_for_outside_point(point: Tuple[float, float], extreme_line_point) -
 
     Outputs:
         - sign: sign (+1 or -1) depending if the point is above (north) or below (south) the extreme point
-    
+
     """
 
     s = np.sign(point[0] - extreme_line_point[0])
@@ -143,9 +143,13 @@ def get_sign_for_outside_point(point: Tuple[float, float], extreme_line_point) -
     return s
 
 
-def get_sign_for_inside_point(point: Tuple[float, float], segment_start: Tuple[float, float], segment_end: Tuple[float, float]) -> int:
+def get_sign_for_inside_point(
+    point: Tuple[float, float],
+    segment_start: Tuple[float, float],
+    segment_end: Tuple[float, float],
+) -> int:
     """
-    For a point inside a segment of the line (i.e., lon_segment_start <= lon_point <= long_segment_end), 
+    For a point inside a segment of the line (i.e., lon_segment_start <= lon_point <= long_segment_end),
     find the sign of the distance to the line.
     Inputs:
         - point: point inside the line (latitude, longitude)
@@ -154,7 +158,7 @@ def get_sign_for_inside_point(point: Tuple[float, float], segment_start: Tuple[f
 
     Outputs:
         - sign: sign (+1 or -1) depending if the point is above (north) or below (south) the segment
-    
+
     """
     slope = (segment_end[0] - segment_start[0]) / (segment_end[1] - segment_start[1])
     lat_intercept = segment_start[0] - slope * segment_start[1]
@@ -167,7 +171,7 @@ def get_sign_for_inside_point(point: Tuple[float, float], segment_start: Tuple[f
 
 
 def sign_point_to_segment(
-    point: Tuple[float, float], 
+    point: Tuple[float, float],
     segment_start: Tuple[float, float],
     segment_end: Tuple[float, float],
 ) -> int:
@@ -182,10 +186,12 @@ def sign_point_to_segment(
     Outputs:
         - sign: +1 or -1 depending if the point is above (north) or below (south) the segment
                 None if the point is outside the segment
-    
+
     """
-    
-    if point[1] >= min(segment_start[1], segment_end[1]) and point[1] <= max(segment_start[1], segment_end[1]):
+
+    if point[1] >= min(segment_start[1], segment_end[1]) and point[1] <= max(
+        segment_start[1], segment_end[1]
+    ):
         sign = get_sign_for_inside_point(point, segment_start, segment_end)
     else:
         sign = None
@@ -193,7 +199,9 @@ def sign_point_to_segment(
     return sign
 
 
-def line_extreme_points(line_points: List[Tuple[float, float]]) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+def line_extreme_points(
+    line_points: List[Tuple[float, float]]
+) -> Tuple[Tuple[float, float], Tuple[float, float]]:
     """
     Find the west-most and east-most points of a polyline.
     Inputs:
@@ -202,7 +210,7 @@ def line_extreme_points(line_points: List[Tuple[float, float]]) -> Tuple[Tuple[f
     Outputs:
         - west_most_point: west-most point of the polyline (latitude, longitude)
         - east_most_point: east-most point of the polyline (latitude, longitude)
-    
+
     """
     longitudes = list(zip(*line_points))[1]
     west_most_point = line_points[list(longitudes).index(min(longitudes))]
