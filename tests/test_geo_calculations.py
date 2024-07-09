@@ -82,10 +82,10 @@ def test_distance_alpine_ridge(alpine_ridge):
     test_stations_on_ridge = [(lat, lon) for lat, lon in alpine_ridge]
     test_stations = [
         (45.7, 7.0),
-        (46.65256, 8.96059),
-        (46.58256, 8.96059),
-        (45.90912, 7.07724),
-        (45.86912, 7.07724),
+        (46.7, 8.96059),
+        (46.4, 8.96059),
+        (45.9, 7.07724),
+        (45.8, 7.07724),
     ]
 
     d_on_ridge = geo.distances_points_to_line(test_stations_on_ridge, alpine_ridge)
