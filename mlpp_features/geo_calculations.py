@@ -58,18 +58,14 @@ def calculate_haversine_distance(
     lon2 = np.radians(lon2)
 
     # Compute differences
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
+    dlon = lon1 - lon2
+    dlat = lat1 - lat2
 
     # Apply Haversine formula
-    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) + np.sin(dlon / 2) ** 2
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
 
     # Ensure the argument for arcsin is within the valid range [-1, 1]
     a = np.clip(a, -1, 1)
-
-    # Check if square root of a is a valid argument for arcsin within machine precision
-    # If not, set to 1 or -1 depending on sign of a
-    a = np.where(np.sqrt(a) <= 1, a, np.sign(a))
 
     # Calculate distance
     distance = 2 * RADIUS_EARTH_KM * np.arcsin(np.sqrt(a))
