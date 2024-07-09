@@ -12,6 +12,16 @@ RADIUS_EARTH_KM = 6371.0
 def reproject_points(
     latlon_wgs84: List[Tuple[float, float]], dst_epsg: str
 ) -> List[Tuple[float, float]]:
+    """
+    Reproject a list of latitude/longitude points from WGS84 to a specified EPSG coordinate system.
+
+    Args:
+        latlon_wgs84 (List[Tuple[float, float]]): List of points in WGS84 format (latitude, longitude).
+        dst_epsg (str): EPSG code of the target coordinate system.
+
+    Returns:
+        List[Tuple[float, float]]: List of reprojected points in the target coordinate system.
+    """
     transformer = Transformer.from_crs(CRS("epsg:4326"), CRS(dst_epsg), always_xy=True)
     lon_src = [p[1] for p in latlon_wgs84]
     lat_src = [p[0] for p in latlon_wgs84]
@@ -23,9 +33,9 @@ def calculate_haversine_distance(
     lat1: float, lon1: float, lat2: float, lon2: float
 ) -> float:
     """
-    Haversine formula for calculating distance between two points (latp, lonp) and
-    (latp2, lonp2). This function can handle 2D lat/lon lists, but has been used with
-    flattened data
+    Calculate the great-circle distance between two points on the Earth's surface using the Haversine formula.
+
+    This function can handle 2D lat/lon lists, but has been used with flattened data.
 
     Based on:
     https://medium.com/@petehouston/calculate-distance-of-two-locations-on-earth-using-python-1501b1944d97
@@ -72,7 +82,17 @@ def distance_point_to_segment(
     segment_start: Tuple[float, float],
     segment_end: Tuple[float, float],
 ) -> float:
-    """Calculate the distance from a point to a line segment."""
+    """
+    Calculate the minimum distance from a point to a line segment.
+
+    Args:
+        point (Tuple[float, float]): The point (latitude, longitude).
+        segment_start (Tuple[float, float]): The start point of the segment (latitude, longitude).
+        segment_end (Tuple[float, float]): The end point of the segment (latitude, longitude).
+
+    Returns:
+        float: The minimum distance from the point to the line segment.
+    """
     point = np.array(point)
     segment_start = np.array(segment_start)
     segment_end = np.array(segment_end)
@@ -100,14 +120,14 @@ def distance_point_to_segment(
 
 def get_sign_for_outside_point(point: Tuple[float, float], extreme_line_point) -> int:
     """
-    For a point outside the line, find the sign of the distance to the line.
-    Inputs:
-        - point: point outside (west or east to the west-most/east-most point) the line (latitude, longitude)
-        - extreme_line_point: extreme point of the line (latitude, longitude)
+    For a point outside the line, determine the sign of the distance to the line.
 
-    Outputs:
-        - sign: sign (+1 or -1) depending if the point is above (north) or below (south) the extreme point
+    Args:
+        point (Tuple[float, float]): Point outside the line (latitude, longitude).
+        extreme_line_point (Tuple[float, float]): Extreme point of the line (latitude, longitude).
 
+    Returns:
+        int: +1 if the point is north of the line, -1 if the point is south of the line.
     """
 
     s = np.sign(point[0] - extreme_line_point[0])
@@ -121,16 +141,17 @@ def get_sign_for_inside_point(
     segment_end: Tuple[float, float],
 ) -> int:
     """
-    For a point inside a segment of the line (i.e., lon_segment_start <= lon_point <= long_segment_end),
-    find the sign of the distance to the line.
-    Inputs:
-        - point: point inside the line (latitude, longitude)
-        - segment_start: start point of the segment (latitude, longitude)
-        - segment_end: end point of the segment (latitude, longitude)
+    For a point inside the line, determine the sign of the distance to the line.
 
-    Outputs:
-        - sign: sign (+1 or -1) depending if the point is above (north) or below (south) the segment
+    Inside the line means that lon_segment_start <= lon_point <= long_segment_end.
 
+    Args:
+        point (Tuple[float, float]): Point inside the segment (latitude, longitude).
+        segment_start (Tuple[float, float]): Start point of the segment (latitude, longitude).
+        segment_end (Tuple[float, float]): End point of the segment (latitude, longitude).
+
+    Returns:
+        int: +1 if the point is north of the segment, -1 if the point is south of the segment.
     """
     slope = (segment_end[0] - segment_start[0]) / (segment_end[1] - segment_start[1])
     lat_intercept = segment_start[0] - slope * segment_start[1]
@@ -148,17 +169,15 @@ def sign_point_to_segment(
     segment_end: Tuple[float, float],
 ) -> int:
     """
-    For a given points, find the sign of the distance to a segment.
-    Returns a value only if the point is "inside" the segment.
-    Inputs:
-        - point: (latitude, longitude) of the considered station
-        - segment_start: start point of the segment (latitude, longitude)
-        - segment_end: end point of the segment (latitude, longitude)
+    Determine the sign of the distance from a point to a segment if the point is within the segment's longitude bounds.
 
-    Outputs:
-        - sign: +1 or -1 depending if the point is above (north) or below (south) the segment
-                None if the point is outside the segment
+    Args:
+        point (Tuple[float, float]): The point (latitude, longitude).
+        segment_start (Tuple[float, float]): Start point of the segment (latitude, longitude).
+        segment_end (Tuple[float, float]): End point of the segment (latitude, longitude).
 
+    Returns:
+        int: +1 if the point is north of the segment, -1 if the point is south of the segment, None if outside the segment.
     """
 
     if point[1] >= min(segment_start[1], segment_end[1]) and point[1] <= max(
@@ -176,13 +195,12 @@ def line_extreme_points(
 ) -> Tuple[Tuple[float, float], Tuple[float, float]]:
     """
     Find the west-most and east-most points of a polyline.
-    Inputs:
-        - line_points: list of points defining the polyline (latitude, longitude)
 
-    Outputs:
-        - west_most_point: west-most point of the polyline (latitude, longitude)
-        - east_most_point: east-most point of the polyline (latitude, longitude)
+    Args:
+        line_points (List[Tuple[float, float]]): List of points defining the polyline (latitude, longitude).
 
+    Returns:
+        Tuple[Tuple[float, float], Tuple[float, float]]: West-most and east-most points of the polyline.
     """
     longitudes = list(zip(*line_points))[1]
     west_most_point = line_points[list(longitudes).index(min(longitudes))]
@@ -193,7 +211,16 @@ def line_extreme_points(
 def distances_points_to_line(
     points: List[Tuple[float, float]], line_points: List[Tuple[float, float]]
 ) -> List[float]:
-    """For a list of points, find the minimum distance a polyline."""
+    """
+    Calculate the minimum distance from each point in a list to a polyline.
+
+    Args:
+        points (List[Tuple[float, float]]): List of points (latitude, longitude).
+        line_points (List[Tuple[float, float]]): List of points defining the polyline (latitude, longitude).
+
+    Returns:
+        List[float]: List of minimum distances from each point to the polyline.
+    """
     min_distances = []
     west_most_point, east_most_point = line_extreme_points(line_points)
     for point in points:
