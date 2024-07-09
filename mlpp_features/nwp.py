@@ -724,7 +724,7 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     return ds.astype("float32")
 
 
-@cache()
+@cache
 def _mass_fraction_of_cloud_liquid_water_in_air_ens(
     data: Dict[str, xr.Dataset], stations, **kwargs
 ) -> xr.Dataset:
