@@ -28,6 +28,21 @@ def air_temperature(
     )
 
 
+@out_format()
+def cloud_area_fraction(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of total cloud cover (fraction)
+    """
+    return (
+        data["sat"]
+        .preproc.get("cloud_area_fraction")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
 @inputs("obs:air_temperature", "obs:dew_point_temperature")
 @out_format(units="degC")
 def dew_point_depression(
