@@ -157,7 +157,7 @@ def _cloud_area_fraction_ens(
     data: Dict[str, xr.Dataset], stations, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble of total cloud cover in %
+    Ensemble of total cloud cover (fraction)
     """
     return (
         data["nwp"]
@@ -172,7 +172,7 @@ def cloud_area_fraction_ens(
     data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble of total cloud cover in %
+    Ensemble of total cloud cover (fraction)
     """
     ens_data = _cloud_area_fraction_ens(data, stations, **kwargs)
     ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
@@ -184,7 +184,7 @@ def cloud_area_fraction_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of total cloud cover in %
+    Ensemble mean of total cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_ens(data, stations, **kwargs)
     return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
@@ -195,7 +195,7 @@ def cloud_area_fraction_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble control of total cloud cover in %
+    Ensemble control of total cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_ens(data, stations, **kwargs)
     return (
@@ -210,7 +210,7 @@ def cloud_area_fraction_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble standard deviation of total cloud cover in %
+    Ensemble standard deviation of total cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_ens(data, stations, **kwargs)
     return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
@@ -233,7 +233,7 @@ def cloud_area_fraction_high_ens(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble of high cloud cover in %
+    Ensemble of high cloud cover (fraction)
     """
     ens_data = _cloud_area_fraction_high_ens(data, stations, **kwargs)
     ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
@@ -245,7 +245,7 @@ def cloud_area_fraction_high_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of high cloud cover in %
+    Ensemble mean of high cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_high_ens(data, stations, **kwargs)
     return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
@@ -256,7 +256,7 @@ def cloud_area_fraction_high_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble control of high cloud cover in %
+    Ensemble control of high cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_high_ens(data, stations, **kwargs)
     return (
@@ -271,7 +271,7 @@ def cloud_area_fraction_high_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble standard deviation of high cloud cover in %
+    Ensemble standard deviation of high cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_high_ens(data, stations, **kwargs)
     return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
@@ -294,7 +294,7 @@ def cloud_area_fraction_low_ens(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble of low cloud cover in %
+    Ensemble of low cloud cover (fraction)
     """
     ens_data = _cloud_area_fraction_low_ens(data, stations, **kwargs)
     ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
@@ -306,7 +306,7 @@ def cloud_area_fraction_low_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of low cloud cover in %
+    Ensemble mean of low cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_low_ens(data, stations, **kwargs)
     return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
@@ -317,7 +317,7 @@ def cloud_area_fraction_low_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble control of low cloud cover in %
+    Ensemble control of low cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_low_ens(data, stations, **kwargs)
     return (
@@ -332,7 +332,7 @@ def cloud_area_fraction_low_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble standard deviation of low cloud cover in %
+    Ensemble standard deviation of low cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_low_ens(data, stations, **kwargs)
     return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
@@ -355,7 +355,7 @@ def cloud_area_fraction_medium_ens(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble of medium cloud cover in %
+    Ensemble of medium cloud cover (fraction)
     """
     ens_data = _cloud_area_fraction_medium_ens(data, stations, **kwargs)
     ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
@@ -367,7 +367,7 @@ def cloud_area_fraction_medium_ensavg(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble mean of medium cloud cover in %
+    Ensemble mean of medium cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_medium_ens(data, stations, **kwargs)
     return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
@@ -378,7 +378,7 @@ def cloud_area_fraction_medium_ensctrl(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble control of medium cloud cover in %
+    Ensemble control of medium cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_medium_ens(data, stations, **kwargs)
     return (
@@ -393,7 +393,7 @@ def cloud_area_fraction_medium_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Ensemble standard deviation of medium cloud cover in %
+    Ensemble standard deviation of medium cloud cover (fraction)
     """
     ens_data = cloud_area_fraction_medium_ens(data, stations, **kwargs)
     return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
