@@ -10,7 +10,7 @@ import xarray as xr
 
 LOGGER = logging.getLogger(__name__)
 
-KEEP_STA_COORDS = ["longitude", "latitude", "elevation", "owner_id"]
+KEEP_STA_COORDS = ["longitude", "latitude", "elevation", "id", "owner_id"]
 
 
 CACHEDIR_PREFIX = os.environ.get("MLPP_CACHE")
