@@ -36,7 +36,7 @@ def cloud_area_fraction(
     Ensemble of total cloud cover (fraction)
     """
     return (
-        data["sat"]
+        data["obs"]
         .preproc.get("cloud_area_fraction")
         .preproc.unstack_time(reftimes, leadtimes)
         .astype("float32")
