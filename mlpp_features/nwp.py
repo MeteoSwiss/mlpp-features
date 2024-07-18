@@ -12,7 +12,6 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
-
 STA_D4W_NAMES = {
     "BAS": "1_75",
     "GVE": "1_58",
@@ -619,8 +618,8 @@ def pressure_difference_BAS_LUG_ensavg(
     Ensemble mean of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    stations = [STA_D4W_NAMES["BAS"], STA_D4W_NAMES["LUG"]]
-    pdiff = p.sel(station=stations).diff("station")
+    sel_sta = [STA_D4W_NAMES["BAS"], STA_D4W_NAMES["LUG"]]
+    pdiff = p.sel(station=sel_sta).diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .mean("realization")
@@ -637,8 +636,8 @@ def pressure_difference_BAS_LUG_ensctrl(
     Ensemble control of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    stations = [STA_D4W_NAMES["BAS"], STA_D4W_NAMES["LUG"]]
-    pdiff = p.sel(station=stations).diff("station")
+    sel_sta = [STA_D4W_NAMES["BAS"], STA_D4W_NAMES["LUG"]]
+    pdiff = p.sel(station=sel_sta).diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .isel(realization=0, drop=True)
@@ -655,8 +654,8 @@ def pressure_difference_GVE_GUT_ensavg(
     Ensemble mean of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    stations = [STA_D4W_NAMES["GVE"], STA_D4W_NAMES["GUT"]]
-    pdiff = p.sel(station=stations).diff("station")
+    sel_sta = [STA_D4W_NAMES["GVE"], STA_D4W_NAMES["GUT"]]
+    pdiff = p.sel(station=sel_sta).diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .mean("realization")
@@ -673,8 +672,8 @@ def pressure_difference_GVE_GUT_ensctrl(
     Ensemble control of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    stations = [STA_D4W_NAMES["GVE"], STA_D4W_NAMES["GUT"]]
-    pdiff = p.sel(station=stations).diff("station")
+    sel_sta = [STA_D4W_NAMES["GVE"], STA_D4W_NAMES["GUT"]]
+    pdiff = p.sel(station=sel_sta).diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .isel(realization=0, drop=True)
