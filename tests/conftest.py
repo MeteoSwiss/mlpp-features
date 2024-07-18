@@ -10,44 +10,54 @@ from mlpp_features.terrain import ALPINE_SOUTHERN_CREST_WGS84
 
 
 def _stations_dataframe(outlier=False):
+    # fmt: off
     stations = pd.DataFrame(
         [
-            ("BAS", 7.583, 47.541, 328, 75, 1.0, 12.0, 0.0),
-            ("LUG", 8.960, 46.004, 310, 47, 1.0, 10.0, 27.34),
-            ("GVE", 6.122, 46.248, 426, 58, 1.0, 10.0, 0.0),
-            ("GUT", 9.279, 47.602, 452, 79, 1.0, 12.0, 0.0),
-            ("KLO", 8.536, 47.48, 428, 59, 1.0, 10.5, 0.0),
-            ("SCU", 10.283, 46.793, 1306, 30, 1.0, 10.0, 0.0),
-            ("LUZ", 8.301, 47.036, 456, 68, 1.0, 8.41, 32.51),
-            ("DIS", 8.853, 46.707, 1199, 54, 1.0, 10.0, 0.0),
-            ("PMA", 9.529, 46.577, 2670, 862, 1.0, 10.0, 0.0),
-            ("CEV", 8.603, 46.32, 421, 843, 1.0, 10.0, 6.85),
-            ("MLS", 7.018, 46.546, 1976, 38, 1.0, 10.0, 13.31),
-            ("PAY", 6.942, 46.811, 491, 32, 1.0, 10.0, 0.0),
-            ("NAP", 7.94, 47.005, 1406, 48, 1.0, 15.0, 0.0),
+            ("1_75", 1, 75, "BAS", "Basel / Binningen", 1, "MeteoSchweiz", 7.583, 47.541, 316.14, 12.0, 0.0),
+            ("1_47", 1, 47, "LUG", "Lugano", 1, "MeteoSchweiz", 8.960, 46.004, 272.56, 10.0, 27.34),
+            ("1_58", 1, 58, "GVE", "Gen\u00e8ve / Cointrin", 1, "MeteoSchweiz", 6.122, 46.248, 415.53, 10.0, 0.0),
+            ("1_79", 1, 79, "GUT", "G\u00fcttingen", 1, "MeteoSchweiz", 9.279, 47.602, 439.78, 12.0, 0.0),
+            ("1_59", 1, 59, "KLO", "Z\u00fcrich / Kloten", 1, "MeteoSchweiz", 8.536, 47.48, 435.92, 10.5, 0.0),
+            ("1_30", 1, 30, "SCU", "Scuol", 1, "MeteoSchweiz", 10.283, 46.793, 1304.42, 10.0, 0.0),
+            ("1_68", 1, 68, "LUZ", "Luzern", 1, "MeteoSchweiz", 8.301, 47.036, 454.0, 8.41, 32.51),
+            ("1_54", 1, 54, "DIS", "Disentis", 1, "MeteoSchweiz", 8.853, 46.707, 1198.03, 10.0, 0.0),
+            ("1_862", 1, 862, "PMA", "Piz Martegnas", 1, "MeteoSchweiz", 9.529, 46.577, 2668.34, 10.0, 0.0),
+            ("1_843", 1, 843, "CEV", "Cevio", 1, "MeteoSchweiz", 8.603, 46.32, 420.0, 10.0, 6.85),
+            ("1_38", 1, 38, "MLS", "Le Mol\u00e9son", 1, "MeteoSchweiz", 7.018, 46.546, 1977.0, 10.0, 13.31),
+            ("1_32", 1, 32, "PAY", "Payerne", 1, "MeteoSchweiz", 6.942, 46.811, 489.17, 10.0, 0.0),
+            ("1_48", 1, 48, "NAP", "Napf", 1, "MeteoSchweiz", 7.94, 47.005, 1404.03, 15.0, 0.0),
+
         ],
         columns=[
             "station",
+            "type_id",
+            "point_id",
+            "nat_abbr",
+            "fullname",
+            "owner_id",
+            "owner_name",
             "longitude",
             "latitude",
-            "elevation",
-            "id",
-            "owner_id",
+            "height_masl",
             "pole_height",
             "roof_height",
         ],
     )
+    # fmt: on
     if outlier:
         # a station far away  ...
         outlier_station = pd.DataFrame(
             [
                 {
-                    "station": "Tromso",
+                    "station": "2_9999",
                     "longitude": 18.96,
                     "latitude": 69.6,
-                    "elevation": np.nan,
-                    "id": 9999,
+                    "height_masl": np.nan,
+                    "nat_abbr": np.nan,
+                    "type_id": 2,
+                    "point_id": 9999,
                     "owner_id": 99.0,
+                    "owner_name": np.nan,
                     "pole_height": np.nan,
                     "roof_height": np.nan,
                 }
@@ -235,7 +245,7 @@ def obs_dataset():
                 "station": stations.index,
                 "longitude": ("station", stations.longitude),
                 "latitude": ("station", stations.latitude),
-                "elevation": ("station", stations.elevation),
+                "height_masl": ("station", stations.height_masl),
                 "owner_id": ("station", np.random.randint(1, 5, stations.shape[0])),
                 "pole_height": ("station", np.random.randint(5, 15, stations.shape[0])),
                 "roof_height": ("station", np.zeros(stations.shape[0])),
@@ -268,7 +278,7 @@ def preproc_dataset():
                 "station": stations.index,
                 "longitude": ("station", stations.longitude),
                 "latitude": ("station", stations.latitude),
-                "elevation": ("station", stations.elevation),
+                "height_masl": ("station", stations.height_masl),
                 "forecast_reference_time": ("forecast_reference_time", reftimes),
                 "lead_time": ("lead_time", leadtimes),
             },
@@ -308,7 +318,7 @@ def preproc_dataset_ens():
                 "station": stations.index,
                 "longitude": ("station", stations.longitude),
                 "latitude": ("station", stations.latitude),
-                "elevation": ("station", stations.elevation),
+                "height_masl": ("station", stations.height_masl),
                 "forecast_reference_time": ("forecast_reference_time", reftimes),
                 "lead_time": ("lead_time", leadtimes),
                 "realization": ("realization", realizations),

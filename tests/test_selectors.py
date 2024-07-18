@@ -51,16 +51,16 @@ def test_station_selection_irregular(stations_dataframe, nwp_dataset):
     assert index.size == len(stations) - 1  # Tromso must be excluded
 
     model_on_sta = model.stack(point=("y", "x")).isel(point=index)
-    assert "Tromso" not in model_on_sta.station
+    assert "2_9999" not in model_on_sta.station
+    assert "2_9999" in stations.index
     for name, coords in stations.iterrows():
-        if name == "Tromso":
+        if name == "2_9999":
             continue
         longitude = model_on_sta.longitude.sel(station=name).values
         latitude = model_on_sta.latitude.sel(station=name).values
         latlon_ref = coords[["latitude", "longitude"]]
-        assert (float(latitude), float(longitude)) == pytest.approx(
-            latlon_ref, abs=0.01
-        )
+        assert float(latitude) == pytest.approx(latlon_ref[0], abs=0.01)
+        assert float(longitude) == pytest.approx(latlon_ref[1], abs=0.01)
 
 
 def test_station_selection_sparse(stations_dataframe, obs_dataset):

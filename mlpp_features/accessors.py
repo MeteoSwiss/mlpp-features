@@ -213,7 +213,7 @@ class PreprocDatasetAccessor:
             {
                 "longitude": "neighbor_longitude",
                 "latitude": "neighbor_latitude",
-                "elevation": "neighbor_elevation",
+                "height_masl": "neighbor_height_masl",
                 "distance": "neighbor_distance",
             }
         )
