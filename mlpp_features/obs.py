@@ -133,6 +133,25 @@ def cos_wind_from_direction(
 
 
 @out_format()
+def cos_wind_from_direction_3hmean(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    cosine of observed wind directions averaged over 3 hours
+    """
+    return (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.cos)
+        .rolling(time=3, center=True, min_periods=1)
+        .mean()
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
 def sin_wind_from_direction(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -144,6 +163,25 @@ def sin_wind_from_direction(
         .preproc.get("wind_from_direction")
         .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
         .pipe(np.sin)
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format()
+def sin_wind_from_direction_3hmean(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    sine of observed wind directions averaged over 3 hours
+    """
+    return (
+        data["obs"]
+        .preproc.get("wind_from_direction")
+        .pipe(lambda x: x * 2 * np.pi / 360)  # to radians
+        .pipe(np.sin)
+        .rolling(time=3, center=True, min_periods=1)
+        .mean()
         .preproc.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -215,6 +253,23 @@ def wind_speed_3hmax(
         .preproc.get("wind_speed")
         .rolling(time=3, center=True, min_periods=1)
         .max()
+        .preproc.unstack_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format(units="m s-1")
+def wind_speed_3hmean(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Observed 3-hourly mean wind speed in m/s
+    """
+    return (
+        data["obs"]
+        .preproc.get("wind_speed")
+        .rolling(time=3, center=True, min_periods=1)
+        .mean()
         .preproc.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )

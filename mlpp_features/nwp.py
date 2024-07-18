@@ -1503,6 +1503,17 @@ def wind_speed_ensavg(
     return uv.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
+@out_format(units="m s-1")
+def wind_speed_ensmax(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble max of wind speed
+    """
+    uv = wind_speed_ens(data, stations, **kwargs)
+    return uv.max("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
 @inputs("nwp:eastward_wind", "nwp:northward_wind", "obs:wind_speed")
 @out_format(units="m s-1")
 def wind_speed_ensavg_error(
@@ -1666,6 +1677,17 @@ def wind_speed_of_gust_ensavg(
     """
     ug = wind_speed_of_gust_ens(data, stations, **kwargs)
     return ug.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format(units="m s-1")
+def wind_speed_of_gust_ensmax(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble max of wind speed gust
+    """
+    ug = wind_speed_of_gust_ens(data, stations, **kwargs)
+    return ug.max("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
 @inputs("nwp:wind_speed_of_gust", "obs:wind_speed_of_gust")

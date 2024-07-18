@@ -6,6 +6,8 @@ import pytest
 import xarray as xr
 from pyproj import CRS, Transformer
 
+from mlpp_features.terrain import ALPINE_SOUTHERN_CREST_WGS84
+
 
 def _stations_dataframe(outlier=False):
     stations = pd.DataFrame(
@@ -324,3 +326,20 @@ def preproc_dataset_ens():
         return test_ds.astype("float32", casting="same_kind")
 
     return _data
+
+
+@pytest.fixture
+def alpine_ridge():
+    return ALPINE_SOUTHERN_CREST_WGS84
+
+
+@pytest.fixture
+def horizontal_ridge():
+    ridge = [(46, 6.0), (46, 11.0)]
+    return ridge
+
+
+@pytest.fixture
+def diagonal_ridge():
+    ridge = [(45.5, 6.0), (47.0, 11.0)]
+    return ridge
