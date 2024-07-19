@@ -618,8 +618,9 @@ def pressure_difference_BAS_LUG_ensavg(
     Ensemble mean of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    sel_sta = [STA_D4W_NAMES["BAS"], STA_D4W_NAMES["LUG"]]
-    pdiff = p.sel(station=sel_sta).diff("station")
+    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
+    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .mean("realization")
@@ -636,8 +637,9 @@ def pressure_difference_BAS_LUG_ensctrl(
     Ensemble control of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    sel_sta = [STA_D4W_NAMES["BAS"], STA_D4W_NAMES["LUG"]]
-    pdiff = p.sel(station=sel_sta).diff("station")
+    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
+    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .isel(realization=0, drop=True)
@@ -654,8 +656,9 @@ def pressure_difference_GVE_GUT_ensavg(
     Ensemble mean of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    sel_sta = [STA_D4W_NAMES["GVE"], STA_D4W_NAMES["GUT"]]
-    pdiff = p.sel(station=sel_sta).diff("station")
+    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
+    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .mean("realization")
@@ -672,8 +675,9 @@ def pressure_difference_GVE_GUT_ensctrl(
     Ensemble control of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    sel_sta = [STA_D4W_NAMES["GVE"], STA_D4W_NAMES["GUT"]]
-    pdiff = p.sel(station=sel_sta).diff("station")
+    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
+    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
         .isel(realization=0, drop=True)
