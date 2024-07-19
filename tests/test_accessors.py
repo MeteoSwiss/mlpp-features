@@ -168,16 +168,16 @@ def test_euclidean_nearest_k(stations_dataframe, obs_dataset):
         assert (obs_nearest_k[coord].values == coords).all()
     assert list(obs_nearest_k.dims) == ["time", "station", "neighbor_rank"]
 
-    obs_at_klo_original = obs.wind_speed.sel(station="1_59").values
+    obs_at_klo_original = obs.wind_speed.sel(station="KLO").values
     obs_at_klo_rank_zero = obs_nearest_k.wind_speed.sel(
-        station="1_59", neighbor_rank=0
+        station="KLO", neighbor_rank=0
     ).values
     np.testing.assert_equal(obs_at_klo_original, obs_at_klo_rank_zero)
 
     obs_at_rank_one_for_klo_original = obs.wind_speed.loc[
-        :, obs_nearest_k.neighbor.loc["1_59", 1]
+        :, obs_nearest_k.neighbor.loc["KLO", 1]
     ].values
-    obs_at_rank_one_for_klo = obs_nearest_k.wind_speed.loc[:, "1_59", 1].values
+    obs_at_rank_one_for_klo = obs_nearest_k.wind_speed.loc[:, "KLO", 1].values
     np.testing.assert_equal(obs_at_rank_one_for_klo_original, obs_at_rank_one_for_klo)
 
 
