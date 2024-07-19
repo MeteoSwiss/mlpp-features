@@ -17,6 +17,7 @@ KEEP_STA_COORDS = [
     "point_id",
     "owner_id",
     "nat_abbr",
+    "name",
 ]
 
 
