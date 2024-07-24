@@ -35,6 +35,7 @@ def cloud_area_fraction(
     """
     Ensemble of total cloud cover (fraction)
     """
+    LOGGER.info(f"{reftimes=},\n{leadtimes=}")
     return (
         data["obs"]
         .preproc.get("cloud_area_fraction")

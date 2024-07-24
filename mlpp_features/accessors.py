@@ -199,7 +199,7 @@ class PreprocDatasetAccessor:
             .reindex(station=list(stations.index))
             .assign_coords({c: ("station", v.values) for c, v in stations.items()})
         )
-        return ds_out.chunk({"station": 400})
+        return ds_out
 
     def euclidean_nearest_k(self, stations: pd.DataFrame, k: int) -> xr.Dataset:
         """

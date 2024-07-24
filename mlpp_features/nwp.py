@@ -1296,7 +1296,7 @@ def sx_500m_ensavg(
     sx = sx.drop_vars("wind_from_direction")
     sx = sx.where(is_valid.sel(station=sx.station))
 
-    return sx.chunk({"station" : 400}).astype("float32")
+    return sx
 
 
 @inputs("terrain:SX_50M_RADIUS500", "nwp:eastward_wind", "nwp:northward_wind")
@@ -1330,7 +1330,7 @@ def sx_500m_ensctrl(
     sx = sx.drop_vars("wind_from_direction")
     sx = sx.where(is_valid.sel(station=sx.station))
 
-    return sx.chunk({"station" : 400}).astype("float32")
+    return sx
 
 
 @inputs("nwp:air_temperature", "nwp:surface_air_pressure", "nwp:dew_point_temperature")
