@@ -444,6 +444,21 @@ def cloud_area_fraction_medium_ensstd(
     return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
 
 
+@out_format(units="rank")
+def cloud_area_fraction_rank(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate rank of ensemble of cloud area fraction
+    """
+    d = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        d.to_dataset()
+        .preproc.rankdata(dim="realization")
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
 @out_format()
 def cos_wind_from_direction_ens(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
