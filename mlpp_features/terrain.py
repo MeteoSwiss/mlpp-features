@@ -205,7 +205,7 @@ def distance_to_alpine_ridge(
             "station": stations.index,
             "longitude": ("station", stations.longitude),
             "latitude": ("station", stations.latitude),
-            "elevation": ("station", stations.elevation),
+            "height_masl": ("station", stations.height_masl),
         },
         data_vars={
             "distance_to_alpine_ridge": (

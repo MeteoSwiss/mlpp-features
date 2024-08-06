@@ -27,7 +27,7 @@ class StationSelector(ABC):
         stations: pd.DataFrame
             A collection of stations. The dataframe must include
             the  columns 'longitude', 'latitude', and (optionally)
-            'elevation'.
+            'height_masl'.
 
         Return
         ------
@@ -115,9 +115,9 @@ class EuclideanNearestRegular(StationSelector):
 
         # Include vertical emphasis
         if vertical_weight > 0:
-            sta_elevation = stations["elevation"]
+            sta_height_masl = stations["height_masl"]
             hsurf = self.hsurf[y_index, x_index]
-            height_diff = np.abs(hsurf - sta_elevation)
+            height_diff = np.abs(hsurf - sta_height_masl)
             distance = horizontal_distance + vertical_weight * height_diff
         else:
             distance = horizontal_distance.copy()
@@ -205,9 +205,9 @@ class EuclideanNearestIrregular(StationSelector):
 
         # Include vertical emphasis
         if vertical_weight > 0:
-            sta_elevation = np.expand_dims(stations["elevation"], axis=1)
+            sta_height_masl = np.expand_dims(stations["height_masl"], axis=1)
             hsurf = self.hsurf.ravel()[index]
-            height_diff = np.abs(hsurf - sta_elevation)
+            height_diff = np.abs(hsurf - sta_height_masl)
             distance = horizontal_distance + vertical_weight * height_diff
         else:
             distance = horizontal_distance.copy()
@@ -241,7 +241,7 @@ class EuclideanNearestSparse(StationSelector):
     tranformer: Transformer = field(init=False, repr=False)
     coords: np.ndarray = field(init=False, repr=False)
     tree: Optional[KDTree] = field(init=False, repr=False, default=None)
-    elevation: np.ndarray = field(init=False, repr=False, default=None)
+    height_masl: np.ndarray = field(init=False, repr=False, default=None)
 
     def __post_init__(self):
         latitude = self.dataset["latitude"].values
@@ -253,7 +253,7 @@ class EuclideanNearestSparse(StationSelector):
         self.coords = np.column_stack((x_coords.ravel(), y_coords.ravel()))
         self.tree = KDTree(self.coords)
 
-        self.elevation = self.dataset["elevation"].values
+        self.height_masl = self.dataset["height_masl"].values
 
         del self.dataset
 
@@ -269,8 +269,8 @@ class EuclideanNearestSparse(StationSelector):
 
         # Include vertical emphasis
         if vertical_weight > 0:
-            height_stations = self.elevation[:, None]
-            height = self.elevation.ravel()[index]
+            height_stations = self.height_masl[:, None]
+            height = self.height_masl.ravel()[index]
             height_diff = np.abs(height - height_stations)
             distance = horizontal_distance + vertical_weight * height_diff
         else:

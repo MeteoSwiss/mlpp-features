@@ -12,6 +12,13 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
+STA_D4W_NAMES = {
+    "BAS": "1_75",
+    "GVE": "1_58",
+    "LUG": "1_47",
+    "GUT": "1_79",
+}
+
 
 @cache
 def _air_temperature_ens(data: Dict[str, xr.Dataset], stations, **kwargs) -> xr.Dataset:
@@ -149,6 +156,306 @@ def boundary_layer_height_ensctrl(
         .preproc.interp(stations)
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
+    )
+
+
+@cache
+def _cloud_area_fraction_ens(
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of total cloud cover (fraction)
+    """
+    return (
+        data["nwp"]
+        .preproc.get("cloud_area_fraction")
+        .preproc.interp(stations, **kwargs)
+        .astype("float32")
+    )
+
+
+@out_format()
+def cloud_area_fraction_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of total cloud cover (fraction)
+    """
+    ens_data = _cloud_area_fraction_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
+    return ens_data.astype("float32")
+
+
+@out_format()
+def cloud_area_fraction_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of total cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_ens(data, stations, **kwargs)
+    return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format()
+def cloud_area_fraction_ensavg_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble average total cloud cover
+    """
+    nwp = cloud_area_fraction_ensavg(data, stations, reftimes, leadtimes, **kwargs)
+    obs = (
+        data["obs"]
+        .preproc.get("cloud_area_fraction")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="cloud_area_fraction")
+        .squeeze("variable", drop=True)
+        .astype("float32")
+    )
+    return nwp - obs
+
+
+@out_format()
+def cloud_area_fraction_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of total cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        ens_data.isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_area_fraction_ensctrl_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble control total cloud cover
+    """
+    nwp = cloud_area_fraction_ensctrl(data, stations, reftimes, leadtimes, **kwargs)
+    obs = (
+        data["obs"]
+        .preproc.get("cloud_area_fraction")
+        .preproc.unstack_time(reftimes, leadtimes)
+        .to_array(name="cloud_area_fraction")
+        .squeeze("variable", drop=True)
+        .astype("float32")
+    )
+    return nwp - obs
+
+
+@out_format()
+def cloud_area_fraction_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble standard deviation of total cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_ens(data, stations, **kwargs)
+    return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@cache
+def _cloud_area_fraction_high_ens(
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.DataArray:
+    return (
+        data["nwp"]
+        .preproc.get("cloud_area_fraction_in_high_troposphere")
+        .preproc.interp(stations, **kwargs)
+        .astype("float32")
+    )
+
+
+@out_format()
+def cloud_area_fraction_high_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of high cloud cover (fraction)
+    """
+    ens_data = _cloud_area_fraction_high_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
+    return ens_data.astype("float32")
+
+
+@out_format()
+def cloud_area_fraction_high_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of high cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_high_ens(data, stations, **kwargs)
+    return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format()
+def cloud_area_fraction_high_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of high cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_high_ens(data, stations, **kwargs)
+    return (
+        ens_data.isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_area_fraction_high_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble standard deviation of high cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_high_ens(data, stations, **kwargs)
+    return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@cache
+def _cloud_area_fraction_low_ens(
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.DataArray:
+    return (
+        data["nwp"]
+        .preproc.get("cloud_area_fraction_in_low_troposphere")
+        .preproc.interp(stations, **kwargs)
+        .astype("float32")
+    )
+
+
+@out_format()
+def cloud_area_fraction_low_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of low cloud cover (fraction)
+    """
+    ens_data = _cloud_area_fraction_low_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
+    return ens_data.astype("float32")
+
+
+@out_format()
+def cloud_area_fraction_low_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of low cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_low_ens(data, stations, **kwargs)
+    return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format()
+def cloud_area_fraction_low_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of low cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_low_ens(data, stations, **kwargs)
+    return (
+        ens_data.isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_area_fraction_low_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble standard deviation of low cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_low_ens(data, stations, **kwargs)
+    return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@cache
+def _cloud_area_fraction_medium_ens(
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.DataArray:
+    return (
+        data["nwp"]
+        .preproc.get("cloud_area_fraction_in_medium_troposphere")
+        .preproc.interp(stations, **kwargs)
+        .astype("float32")
+    )
+
+
+@out_format()
+def cloud_area_fraction_medium_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of medium cloud cover (fraction)
+    """
+    ens_data = _cloud_area_fraction_medium_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
+    return ens_data.astype("float32")
+
+
+@out_format()
+def cloud_area_fraction_medium_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of medium cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_medium_ens(data, stations, **kwargs)
+    return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format()
+def cloud_area_fraction_medium_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of medium cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_medium_ens(data, stations, **kwargs)
+    return (
+        ens_data.isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_area_fraction_medium_ensstd(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble standard deviation of medium cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_medium_ens(data, stations, **kwargs)
+    return ens_data.std("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format(units="rank")
+def cloud_area_fraction_rank(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Calculate rank of ensemble of cloud area fraction
+    """
+    d = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        d.to_dataset()
+        .preproc.rankdata(dim="realization")
+        .preproc.align_time(reftimes, leadtimes)
     )
 
 
@@ -477,6 +784,56 @@ def leadtime(data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwarg
     return ds.astype("float32")
 
 
+@cache
+def _mass_fraction_of_cloud_liquid_water_in_air_ens(
+    data: Dict[str, xr.Dataset], stations, **kwargs
+) -> xr.Dataset:
+    return (
+        data["nwp"]
+        .preproc.get("mass_fraction_of_cloud_liquid_water_in_air")
+        .preproc.interp(stations, **kwargs)
+        .astype("float32")
+    )
+
+
+@out_format()
+def mass_fraction_of_cloud_liquid_water_in_air_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of mass fraction of cloud liquid water in air
+    """
+    ens_data = _mass_fraction_of_cloud_liquid_water_in_air_ens(data, stations, **kwargs)
+    ens_data = ens_data.preproc.align_time(reftimes, leadtimes)
+    return ens_data
+
+
+@out_format()
+def mass_fraction_of_cloud_liquid_water_in_air_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of mass fraction of cloud liquid water in air
+    """
+    ens_data = mass_fraction_of_cloud_liquid_water_in_air_ens(data, stations, **kwargs)
+    return ens_data.mean("realization").to_dataset().preproc.align_time(reftimes, leadtimes)
+
+
+@out_format()
+def mass_fraction_of_cloud_liquid_water_in_air_ensctrl(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble control of mass fraction of cloud liquid water in air
+    """
+    ens_data = mass_fraction_of_cloud_liquid_water_in_air_ens(data, stations, **kwargs)
+    return (
+        ens_data.isel(realization=0, drop=True)
+        .to_dataset()
+        .preproc.align_time(reftimes, leadtimes)
+    )
+
+
 @inputs("nwp:surface_altitude", "terrain:DEM")
 @out_format(units="m")
 def model_height_difference(
@@ -611,9 +968,12 @@ def pressure_difference_BAS_LUG_ensavg(
     Ensemble mean of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
+    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
+    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
-        pdiff.mean("realization")
+        pdiff.squeeze("station", drop=True)
+        .mean("realization")
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -627,9 +987,12 @@ def pressure_difference_BAS_LUG_ensctrl(
     Ensemble control of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
+    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
+    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
-        pdiff.isel(realization=0, drop=True)
+        pdiff.squeeze("station", drop=True)
+        .isel(realization=0, drop=True)
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -643,9 +1006,12 @@ def pressure_difference_GVE_GUT_ensavg(
     Ensemble mean of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
+    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
+    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
-        pdiff.mean("realization")
+        pdiff.squeeze("station", drop=True)
+        .mean("realization")
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -659,9 +1025,12 @@ def pressure_difference_GVE_GUT_ensctrl(
     Ensemble control of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
+    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
+    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
-        pdiff.isel(realization=0, drop=True)
+        pdiff.squeeze("station", drop=True)
+        .isel(realization=0, drop=True)
         .preproc.align_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -942,7 +1311,7 @@ def sx_500m_ensavg(
     sx = sx.drop_vars("wind_from_direction")
     sx = sx.where(is_valid.sel(station=sx.station))
 
-    return sx.astype("float32")
+    return sx
 
 
 @inputs("terrain:SX_50M_RADIUS500", "nwp:eastward_wind", "nwp:northward_wind")
@@ -976,7 +1345,7 @@ def sx_500m_ensctrl(
     sx = sx.drop_vars("wind_from_direction")
     sx = sx.where(is_valid.sel(station=sx.station))
 
-    return sx.astype("float32")
+    return sx
 
 
 @inputs("nwp:air_temperature", "nwp:surface_air_pressure", "nwp:dew_point_temperature")
