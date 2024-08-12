@@ -24,11 +24,11 @@ warnings.filterwarnings(
 )
 
 
-@xr.register_dataset_accessor("preproc")
+@xr.register_dataset_accessor("mlpp")
 @dataclass
 class PreprocDatasetAccessor:
     """
-    Access methods for Datasets with preprocessing methods.
+    Access methods for Datasets with mlpp preprocessing methods.
     """
 
     ds: xr.Dataset
