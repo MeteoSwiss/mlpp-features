@@ -192,7 +192,7 @@ def test_select_rank(stations_dataframe, obs_dataset):
     obs_nearest = obs_nearest_k[["wind_speed"]].mlpp.select_rank(rank)
     assert isinstance(obs_nearest, xr.Dataset)
     assert (obs_nearest.station.values == stations.index).all()
-    for coord, coords in stations[["longitude", "latitude", "elevation"]].items():
+    for coord, coords in stations[["longitude", "latitude", "height_masl"]].items():
         assert (obs_nearest[coord].values == coords).all()
         assert f"neighbor_{rank}_{coord}" in obs_nearest.coords
     assert list(obs_nearest.dims) == ["time", "station"]

@@ -12,6 +12,13 @@ LOGGER = logging.getLogger(__name__)
 # Set global options
 xr.set_options(keep_attrs=True)
 
+STA_D4W_NAMES = {
+    "BAS": "1_75",
+    "GVE": "1_58",
+    "LUG": "1_47",
+    "GUT": "1_79",
+}
+
 
 @cache
 def _air_temperature_ens(data: Dict[str, xr.Dataset], stations, **kwargs) -> xr.Dataset:
@@ -609,9 +616,14 @@ def pressure_difference_BAS_LUG_ensavg(
     Ensemble mean of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
+    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
+    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
-        pdiff.mean("realization").mlpp.align_time(reftimes, leadtimes).astype("float32")
+        pdiff.squeeze("station", drop=True)
+        .mean("realization")
+        .mlpp.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
@@ -623,9 +635,12 @@ def pressure_difference_BAS_LUG_ensctrl(
     Ensemble control of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["BAS", "LUG"]).diff("station").squeeze("station", drop=True)
+    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
+    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
-        pdiff.isel(realization=0, drop=True)
+        pdiff.squeeze("station", drop=True)
+        .isel(realization=0, drop=True)
         .mlpp.align_time(reftimes, leadtimes)
         .astype("float32")
     )
@@ -639,9 +654,14 @@ def pressure_difference_GVE_GUT_ensavg(
     Ensemble mean of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
+    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
+    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
-        pdiff.mean("realization").mlpp.align_time(reftimes, leadtimes).astype("float32")
+        pdiff.squeeze("station", drop=True)
+        .mean("realization")
+        .mlpp.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
@@ -653,9 +673,12 @@ def pressure_difference_GVE_GUT_ensctrl(
     Ensemble control of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pdiff = p.sel(station=["GVE", "GUT"]).diff("station").squeeze("station", drop=True)
+    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
+    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
-        pdiff.isel(realization=0, drop=True)
+        pdiff.squeeze("station", drop=True)
+        .isel(realization=0, drop=True)
         .mlpp.align_time(reftimes, leadtimes)
         .astype("float32")
     )
