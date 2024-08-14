@@ -37,8 +37,8 @@ def cloud_area_fraction(
     """
     return (
         data["obs"]
-        .preproc.get("cloud_area_fraction")
-        .preproc.unstack_time(reftimes, leadtimes)
+        .mlpp.get("cloud_area_fraction")
+        .mlpp.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
 
