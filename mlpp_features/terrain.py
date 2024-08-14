@@ -106,8 +106,8 @@ def aspect_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Da
     """
     return (
         data["terrain"]
-        .preproc.get("ASPECT_500M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("ASPECT_500M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -119,8 +119,8 @@ def aspect_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.D
     """
     return (
         data["terrain"]
-        .preproc.get("ASPECT_2000M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("ASPECT_2000M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -135,15 +135,15 @@ def cos_valley_index_1000m(
     """
     norm_valley = (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_1000M_SMTHFACT0.5")
+        .mlpp.get("VALLEY_NORM_1000M_SMTHFACT0.5")
         .rename({"VALLEY_NORM_1000M_SMTHFACT0.5": "cos_valley"})
     )
     dir_valley = np.cos(
-        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_1000M_SMTHFACT0.5")
+        2 * np.pi / 180 * data["terrain"].mlpp.get("VALLEY_DIR_1000M_SMTHFACT0.5")
     ).rename({"VALLEY_DIR_1000M_SMTHFACT0.5": "cos_valley"})
     cos_valley = norm_valley * dir_valley
     cos_valley.attrs.update(data["terrain"].attrs)
-    return cos_valley.preproc.interp(stations).astype("float32")
+    return cos_valley.mlpp.interp(stations).astype("float32")
 
 
 @inputs("terrain:VALLEY_NORM_2000M_SMTHFACT0.5", "terrain:VALLEY_DIR_2000M_SMTHFACT0.5")
@@ -156,15 +156,15 @@ def cos_valley_index_2000m(
     """
     norm_valley = (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_2000M_SMTHFACT0.5")
+        .mlpp.get("VALLEY_NORM_2000M_SMTHFACT0.5")
         .rename({"VALLEY_NORM_2000M_SMTHFACT0.5": "cos_valley"})
     )
     dir_valley = np.cos(
-        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_2000M_SMTHFACT0.5")
+        2 * np.pi / 180 * data["terrain"].mlpp.get("VALLEY_DIR_2000M_SMTHFACT0.5")
     ).rename({"VALLEY_DIR_2000M_SMTHFACT0.5": "cos_valley"})
     cos_valley = norm_valley * dir_valley
     cos_valley.attrs.update(data["terrain"].attrs)
-    return cos_valley.preproc.interp(stations).astype("float32")
+    return cos_valley.mlpp.interp(stations).astype("float32")
 
 
 @inputs(
@@ -179,15 +179,15 @@ def cos_valley_index_10000m(
     """
     norm_valley = (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_10000M_SMTHFACT0.5")
+        .mlpp.get("VALLEY_NORM_10000M_SMTHFACT0.5")
         .rename({"VALLEY_NORM_10000M_SMTHFACT0.5": "cos_valley"})
     )
     dir_valley = np.cos(
-        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_10000M_SMTHFACT0.5")
+        2 * np.pi / 180 * data["terrain"].mlpp.get("VALLEY_DIR_10000M_SMTHFACT0.5")
     ).rename({"VALLEY_DIR_10000M_SMTHFACT0.5": "cos_valley"})
     cos_valley = norm_valley * dir_valley
     cos_valley.attrs.update(data["terrain"].attrs)
-    return cos_valley.preproc.interp(stations).astype("float32")
+    return cos_valley.mlpp.interp(stations).astype("float32")
 
 
 @inputs()
@@ -221,7 +221,7 @@ def elevation_50m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.
     """
     Terrain elevation at 50m resolution.
     """
-    return data["terrain"].preproc.get("DEM").preproc.interp(stations).astype("float32")
+    return data["terrain"].mlpp.get("DEM").mlpp.interp(stations).astype("float32")
 
 
 @inputs("terrain:VALLEY_NORM_1000M_SMTHFACT0.5", "terrain:VALLEY_DIR_1000M_SMTHFACT0.5")
@@ -234,15 +234,15 @@ def sin_valley_index_1000m(
     """
     norm_valley = (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_1000M_SMTHFACT0.5")
+        .mlpp.get("VALLEY_NORM_1000M_SMTHFACT0.5")
         .rename({"VALLEY_NORM_1000M_SMTHFACT0.5": "sin_valley"})
     )
     dir_valley = np.sin(
-        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_1000M_SMTHFACT0.5")
+        2 * np.pi / 180 * data["terrain"].mlpp.get("VALLEY_DIR_1000M_SMTHFACT0.5")
     ).rename({"VALLEY_DIR_1000M_SMTHFACT0.5": "sin_valley"})
     sin_valley = norm_valley * dir_valley
     sin_valley.attrs.update(data["terrain"].attrs)
-    return sin_valley.preproc.interp(stations).astype("float32")
+    return sin_valley.mlpp.interp(stations).astype("float32")
 
 
 @inputs("terrain:VALLEY_NORM_2000M_SMTHFACT0.5", "terrain:VALLEY_DIR_2000M_SMTHFACT0.5")
@@ -255,15 +255,15 @@ def sin_valley_index_2000m(
     """
     norm_valley = (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_2000M_SMTHFACT0.5")
+        .mlpp.get("VALLEY_NORM_2000M_SMTHFACT0.5")
         .rename({"VALLEY_NORM_2000M_SMTHFACT0.5": "sin_valley"})
     )
     dir_valley = np.sin(
-        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_2000M_SMTHFACT0.5")
+        2 * np.pi / 180 * data["terrain"].mlpp.get("VALLEY_DIR_2000M_SMTHFACT0.5")
     ).rename({"VALLEY_DIR_2000M_SMTHFACT0.5": "sin_valley"})
     sin_valley = norm_valley * dir_valley
     sin_valley.attrs.update(data["terrain"].attrs)
-    return sin_valley.preproc.interp(stations).astype("float32")
+    return sin_valley.mlpp.interp(stations).astype("float32")
 
 
 @inputs(
@@ -278,15 +278,15 @@ def sin_valley_index_10000m(
     """
     norm_valley = (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_10000M_SMTHFACT0.5")
+        .mlpp.get("VALLEY_NORM_10000M_SMTHFACT0.5")
         .rename({"VALLEY_NORM_10000M_SMTHFACT0.5": "sin_valley"})
     )
     dir_valley = np.sin(
-        2 * np.pi / 180 * data["terrain"].preproc.get("VALLEY_DIR_10000M_SMTHFACT0.5")
+        2 * np.pi / 180 * data["terrain"].mlpp.get("VALLEY_DIR_10000M_SMTHFACT0.5")
     ).rename({"VALLEY_DIR_10000M_SMTHFACT0.5": "sin_valley"})
     sin_valley = norm_valley * dir_valley
     sin_valley.attrs.update(data["terrain"].attrs)
-    return sin_valley.preproc.interp(stations).astype("float32")
+    return sin_valley.mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -296,8 +296,8 @@ def slope_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dat
     """
     return (
         data["terrain"]
-        .preproc.get("SLOPE_500M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("SLOPE_500M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -309,8 +309,8 @@ def slope_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Da
     """
     return (
         data["terrain"]
-        .preproc.get("SLOPE_2000M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("SLOPE_2000M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -324,8 +324,8 @@ def sn_derivative_500m(
     """
     return (
         data["terrain"]
-        .preproc.get("SN_DERIVATIVE_500M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("SN_DERIVATIVE_500M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -339,8 +339,8 @@ def sn_derivative_2000m(
     """
     return (
         data["terrain"]
-        .preproc.get("SN_DERIVATIVE_2000M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("SN_DERIVATIVE_2000M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -354,8 +354,8 @@ def sn_derivative_100000m(
     """
     return (
         data["terrain"]
-        .preproc.get("SN_DERIVATIVE_100000M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("SN_DERIVATIVE_100000M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -365,12 +365,7 @@ def std_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Datas
     """
     Terrain STD at a 500m scale
     """
-    return (
-        data["terrain"]
-        .preproc.get("STD_500M")
-        .preproc.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("STD_500M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -378,12 +373,7 @@ def std_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
     """
     Terrain STD at a 2000m scale
     """
-    return (
-        data["terrain"]
-        .preproc.get("STD_2000M")
-        .preproc.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("STD_2000M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -391,12 +381,7 @@ def tpi_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Datas
     """
     Terrain TPI at a 500m scale
     """
-    return (
-        data["terrain"]
-        .preproc.get("TPI_500M")
-        .preproc.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("TPI_500M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -404,12 +389,7 @@ def tpi_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
     """
     Terrain TPI at a 2000m scale
     """
-    return (
-        data["terrain"]
-        .preproc.get("TPI_2000M")
-        .preproc.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("TPI_2000M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -421,8 +401,8 @@ def valley_norm_2000m(
     """
     return (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_2000M_SMTHFACT0.5")
-        .preproc.interp(stations)
+        .mlpp.get("VALLEY_NORM_2000M_SMTHFACT0.5")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -436,8 +416,8 @@ def valley_norm_20000m(
     """
     return (
         data["terrain"]
-        .preproc.get("VALLEY_NORM_20000M_SMTHFACT0.5")
-        .preproc.interp(stations)
+        .mlpp.get("VALLEY_NORM_20000M_SMTHFACT0.5")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -451,8 +431,8 @@ def we_derivative_500m(
     """
     return (
         data["terrain"]
-        .preproc.get("WE_DERIVATIVE_500M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("WE_DERIVATIVE_500M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )
 
@@ -466,7 +446,7 @@ def we_derivative_2000m(
     """
     return (
         data["terrain"]
-        .preproc.get("WE_DERIVATIVE_2000M_SIGRATIO1")
-        .preproc.interp(stations)
+        .mlpp.get("WE_DERIVATIVE_2000M_SIGRATIO1")
+        .mlpp.interp(stations)
         .astype("float32")
     )

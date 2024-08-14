@@ -18,7 +18,7 @@ def test_align_time(preproc_dataset):
     reftimes = [t0 + (1 + n) * timedelta(hours=time_shift) for n in range(n_reftimes)]
     reftimes = pd.DatetimeIndex(reftimes)
     leadtimes = np.array([0, 1], dtype="timedelta64[h]")
-    ds_aligned = ds.preproc.align_time(reftimes, leadtimes)
+    ds_aligned = ds.mlpp.align_time(reftimes, leadtimes)
     assert isinstance(ds_aligned, xr.Dataset)
     assert ds_aligned.sizes["forecast_reference_time"] == len(reftimes)
     assert ds_aligned.sizes["lead_time"] == len(leadtimes)
@@ -48,9 +48,7 @@ def test_align_time_dims(preproc_dataset):
     reftimes = [t0 + n * timedelta(hours=time_shift) for n in range(n_reftimes)]
     reftimes = pd.DatetimeIndex(reftimes)
     leadtimes = [0, 1]
-    ds_aligned = ds.preproc.align_time(
-        reftimes, leadtimes, return_source_leadtimes=True
-    )
+    ds_aligned = ds.mlpp.align_time(reftimes, leadtimes, return_source_leadtimes=True)
     assert "forecast_reference_time" in ds_aligned.source_leadtime.dims
 
 
@@ -64,11 +62,11 @@ def test_align_time_None(preproc_dataset):
     reftimes = [t0 + (1 + n) * timedelta(hours=time_shift) for n in range(n_reftimes)]
     reftimes = pd.DatetimeIndex(reftimes)
     leadtimes = np.array([0, 1], dtype="timedelta64[h]")
-    ds_aligned = ds.preproc.align_time(reftimes, None)
+    ds_aligned = ds.mlpp.align_time(reftimes, None)
     xr.testing.assert_identical(ds_aligned, ds)
-    ds_aligned = ds.preproc.align_time(None, leadtimes)
+    ds_aligned = ds.mlpp.align_time(None, leadtimes)
     xr.testing.assert_identical(ds_aligned, ds)
-    ds_aligned = ds.preproc.align_time(None, None)
+    ds_aligned = ds.mlpp.align_time(None, None)
     xr.testing.assert_identical(ds_aligned, ds)
 
 
@@ -78,7 +76,7 @@ def test_unstack_time(obs_dataset):
     t0 = pd.Timestamp(ds.time.values[0])
     reftimes = pd.date_range(t0, t0 + timedelta(hours=12), freq="3h")
     leadtimes = np.array([0, 1, 2], dtype="timedelta64[h]")
-    ds_unstacked = ds.preproc.unstack_time(reftimes, leadtimes)
+    ds_unstacked = ds.mlpp.unstack_time(reftimes, leadtimes)
     assert isinstance(ds_unstacked, xr.Dataset)
     assert ds_unstacked.sizes["forecast_reference_time"] == len(reftimes)
     assert ds_unstacked.sizes["lead_time"] == len(leadtimes)
@@ -98,7 +96,7 @@ def test_persist_observations(obs_dataset):
     t0 = pd.Timestamp(ds.time.values[0])
     reftimes = pd.date_range(t0, t0 + timedelta(hours=3), freq="1h")
     leadtimes = np.array([0, 1, 2], dtype="timedelta64[h]")
-    ds_persisted = ds.preproc.persist_observations(reftimes, leadtimes)
+    ds_persisted = ds.mlpp.persist_observations(reftimes, leadtimes)
     assert isinstance(ds_persisted, xr.Dataset)
     assert ds_persisted.sizes["forecast_reference_time"] == len(reftimes)
     assert ds_persisted.sizes["lead_time"] == len(leadtimes)
@@ -126,7 +124,7 @@ def test_daystat(preproc_dataset):
         ds.time > ds.time[0, 0]
     )
 
-    daymax = ds.preproc.daystat(xr.Dataset.max)
+    daymax = ds.mlpp.daystat(xr.Dataset.max)
     daymax_day_one = (
         daymax.where(day_one, drop=True)
         .isel(forecast_reference_time=0, lead_time=1, drop=True)
@@ -147,7 +145,7 @@ def test_interp(stations_dataframe, nwp_dataset):
 
     stations = stations_dataframe()
     ds = nwp_dataset(grid_res_meters=1000)
-    ds_interp = ds.preproc.interp(stations)
+    ds_interp = ds.mlpp.interp(stations)
 
     assert isinstance(ds_interp, xr.Dataset)
     assert (ds_interp.station.values == stations.index).all()
@@ -159,7 +157,7 @@ def test_euclidean_nearest_k(stations_dataframe, obs_dataset):
     k = 5
     stations = stations_dataframe()
     obs = obs_dataset()
-    obs_nearest_k = obs.preproc.euclidean_nearest_k(stations, k)
+    obs_nearest_k = obs.mlpp.euclidean_nearest_k(stations, k)
     assert isinstance(obs_nearest_k, xr.Dataset)
     assert obs_nearest_k.sizes["neighbor_rank"] == k
     assert isinstance(obs_nearest_k, xr.Dataset)
@@ -186,12 +184,12 @@ def test_select_rank(stations_dataframe, obs_dataset):
     k = 5
     stations = stations_dataframe()
     obs = obs_dataset()
-    obs_nearest_k = obs.preproc.euclidean_nearest_k(stations, k)
+    obs_nearest_k = obs.mlpp.euclidean_nearest_k(stations, k)
     with pytest.raises(ValueError):
-        obs_nearest_k.preproc.select_rank(k)
+        obs_nearest_k.mlpp.select_rank(k)
     with pytest.raises(ValueError):
-        obs_nearest_k.preproc.select_rank(rank)
-    obs_nearest = obs_nearest_k[["wind_speed"]].preproc.select_rank(rank)
+        obs_nearest_k.mlpp.select_rank(rank)
+    obs_nearest = obs_nearest_k[["wind_speed"]].mlpp.select_rank(rank)
     assert isinstance(obs_nearest, xr.Dataset)
     assert (obs_nearest.station.values == stations.index).all()
     for coord, coords in stations[["longitude", "latitude", "height_masl"]].items():
@@ -223,7 +221,7 @@ def test_select_rank(stations_dataframe, obs_dataset):
 
 def test_rankdata(preproc_dataset_ens):
     ds = preproc_dataset_ens()
-    ds_ranked = ds.preproc.rankdata()
+    ds_ranked = ds.mlpp.rankdata()
 
     assert ds_ranked.sizes["realization"] == ds.sizes["realization"]
     assert set(ds_ranked.to_array().values.ravel()) == set(
