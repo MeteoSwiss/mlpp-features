@@ -106,10 +106,15 @@ def nwp_dataset():
             var_names = [
                 "air_temperature",
                 "atmosphere_boundary_layer_thickness",
+                "cloud_area_fraction",
+                "cloud_area_fraction_in_high_troposphere",
+                "cloud_area_fraction_in_medium_troposphere",
+                "cloud_area_fraction_in_low_troposphere",
                 "dew_point_temperature",
                 "duration_of_sunshine",
                 "eastward_wind",
                 "northward_wind",
+                "mass_fraction_of_cloud_liquid_water_in_air",
                 "specific_humidity",
                 "surface_air_pressure",
                 "surface_downwelling_longwave_flux_in_air",
@@ -225,6 +230,7 @@ def obs_dataset():
 
         variables = [
             "air_temperature",
+            "cloud_area_fraction",
             "dew_point_temperature",
             "relative_humidity",
             "surface_air_pressure",

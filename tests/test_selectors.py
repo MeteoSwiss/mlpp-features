@@ -59,8 +59,8 @@ def test_station_selection_irregular(stations_dataframe, nwp_dataset):
         longitude = model_on_sta.longitude.sel(station=sta).values
         latitude = model_on_sta.latitude.sel(station=sta).values
         latlon_ref = coords[["latitude", "longitude"]]
-        assert float(latitude) == pytest.approx(latlon_ref[0], abs=0.01)
-        assert float(longitude) == pytest.approx(latlon_ref[1], abs=0.01)
+        assert float(latitude) == pytest.approx(latlon_ref.iloc[0], abs=0.01)
+        assert float(longitude) == pytest.approx(latlon_ref.iloc[1], abs=0.01)
 
 
 def test_station_selection_sparse(stations_dataframe, obs_dataset):
