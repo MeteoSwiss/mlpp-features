@@ -90,6 +90,10 @@ def cache(fn):
             LOGGER.debug(f"from cache: {cachedfile}")
             with open(cachedfile, "rb") as f:
                 out = pickle.load(f)
+        # convert object dtypes to string to allow automatic chunking with zarr
+        for coord in list(out.coords):
+            if out[coord].dtype == "object":
+                out[coord] = out[coord].astype(str)
         return out.chunk("auto").persist()
 
     return inner
