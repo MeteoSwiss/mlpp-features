@@ -253,6 +253,38 @@ def cloud_area_fraction_ensctrl_error(
 
 
 @out_format()
+def cloud_area_fraction_ensmedian(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble median of total cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        ens_data.median("realization").to_dataset().mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_area_fraction_ensmedian_error(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Forecast error of the ensemble median total cloud cover
+    """
+    nwp = cloud_area_fraction_ensmedian(data, stations, reftimes, leadtimes, **kwargs)
+    obs = (
+        data["obs"]
+        .mlpp.get("cloud_area_fraction")
+        .mlpp.unstack_time(reftimes, leadtimes)
+        .to_array(name="cloud_area_fraction")
+        .squeeze("variable", drop=True)
+        .astype("float32")
+    )
+    return nwp - obs
+
+
+@out_format()
 def cloud_area_fraction_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -312,6 +344,19 @@ def cloud_area_fraction_high_ensctrl(
         ens_data.isel(realization=0, drop=True)
         .to_dataset()
         .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_area_fraction_high_ensmedian(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble median of high cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_high_ens(data, stations, **kwargs)
+    return (
+        ens_data.median("realization").to_dataset().mlpp.align_time(reftimes, leadtimes)
     )
 
 
@@ -379,6 +424,19 @@ def cloud_area_fraction_low_ensctrl(
 
 
 @out_format()
+def cloud_area_fraction_low_ensmedian(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble median of low cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_low_ens(data, stations, **kwargs)
+    return (
+        ens_data.median("realization").to_dataset().mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
 def cloud_area_fraction_low_ensstd(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -438,6 +496,19 @@ def cloud_area_fraction_medium_ensctrl(
         ens_data.isel(realization=0, drop=True)
         .to_dataset()
         .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_area_fraction_medium_ensmedian(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble median of medium cloud cover (fraction)
+    """
+    ens_data = cloud_area_fraction_medium_ens(data, stations, **kwargs)
+    return (
+        ens_data.median("realization").to_dataset().mlpp.align_time(reftimes, leadtimes)
     )
 
 
