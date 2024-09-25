@@ -1047,8 +1047,10 @@ def pressure_difference_BAS_LUG_ensavg(
     Ensemble mean of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
-    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    iBAS = p.name == STA_D4W_NAMES["BAS"]
+    iLUG = p.name == STA_D4W_NAMES["LUG"]
+    pBAS = p.where(iBAS.compute(), drop=True)
+    pLUG = p.where(iLUG.compute(), drop=True)
     pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
@@ -1066,8 +1068,10 @@ def pressure_difference_BAS_LUG_ensctrl(
     Ensemble control of pressure difference between Basel and Lugano in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pBAS = p.where(p.name == STA_D4W_NAMES["BAS"], drop=True)
-    pLUG = p.where(p.name == STA_D4W_NAMES["LUG"], drop=True)
+    iBAS = p.name == STA_D4W_NAMES["BAS"]
+    iLUG = p.name == STA_D4W_NAMES["LUG"]
+    pBAS = p.where(iBAS.compute(), drop=True)
+    pLUG = p.where(iLUG.compute(), drop=True)
     pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
@@ -1085,8 +1089,10 @@ def pressure_difference_GVE_GUT_ensavg(
     Ensemble mean of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
-    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    iGVE = p.name == STA_D4W_NAMES["GVE"]
+    iGUT = p.name == STA_D4W_NAMES["GUT"]
+    pGVE = p.where(iGVE.compute(), drop=True)
+    pGUT = p.where(iGUT.compute(), drop=True)
     pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
@@ -1104,8 +1110,10 @@ def pressure_difference_GVE_GUT_ensctrl(
     Ensemble control of pressure difference between Geneva and Güttingen in Pascal
     """
     p = surface_air_pressure_ens(data, stations, **kwargs).to_dataset()
-    pGVE = p.where(p.name == STA_D4W_NAMES["GVE"], drop=True)
-    pGUT = p.where(p.name == STA_D4W_NAMES["GUT"], drop=True)
+    iGVE = p.name == STA_D4W_NAMES["GVE"]
+    iGUT = p.name == STA_D4W_NAMES["GUT"]
+    pGVE = p.where(iGVE.compute(), drop=True)
+    pGUT = p.where(iGUT.compute(), drop=True)
     pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
     return (
         pdiff.squeeze("station", drop=True)
