@@ -12,6 +12,7 @@ C_N = 6.108
 R = 287.053  # gas constant for dry air
 Cp = 1004.0  # specific heat of dry air at costant pressure
 P0 = 1000.0  # standard reference pressure in hPa
+g = 9.80665  # gravitational acceleration (~ m/s²)
 
 
 def dew_point_from_t_and_rh(t: xr.DataArray, rh: xr.DataArray) -> xr.DataArray:
@@ -36,6 +37,29 @@ def equivalent_potential_temperature_from_t_rh_p(
     r = mixing_ratio_from_t_rh_p(t, rh, p)
     t_e = t + l_v / Cp * r
     return potential_temperature_from_t_and_p(t_e, p)
+
+
+def mean_sea_level_pressure_from_p_t_z(
+    p: xr.DataArray, t: xr.DataArray, z: xr.DataArray
+) -> xr.DataArray:
+    """
+    Compute mean sea level pressure (MSLP) from surface pressure, temperature, and altitude.
+
+    Parameters:
+    ----------
+    p : xr.DataArray
+        Surface pressure in hPa.
+    t : xr.DataArray
+        Temperature in Celsius.
+    z : xr.DataArray
+        Altitude in meters.
+
+    Returns:
+    --------
+    xr.DataArray
+        Mean sea level pressure in hPa.
+    """
+    return p * np.exp((g * z) / (R * (t + 273.15)))
 
 
 def mixing_ratio_from_t_rh_p(
