@@ -913,6 +913,36 @@ def mass_fraction_of_cloud_liquid_water_in_air_ensctrl(
     )
 
 
+@inputs("nwp:surface_air_pressure", "nwp:air_temperature", "nwp:surface_altitude")
+@out_format(units="hPa")
+def mean_sea_level_pressure_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes=None, leadtimes=None, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of mean sea level pressure in hPa
+    """
+    p = surface_air_pressure_ens(data, stations, **kwargs)
+    p /= 100  # Pa to hPa
+    t = air_temperature_ens(data, stations, **kwargs)
+    z = data["nwp"].mlpp.get("surface_altitude").mlpp.interp(stations)
+    z = z.reset_coords("surface_altitude").to_array().astype("float32")
+    p0 = calc.mean_sea_level_pressure_from_p_t_z(p, t, z).to_dataset(
+        "variable"
+    )  # TODO: is to_dataset() really needed?
+    return p0.mlpp.align_time(reftimes, leadtimes)
+
+
+@out_format(units="hPa")
+def mean_sea_level_pressure_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of sea level pressure in hPa
+    """
+    p = mean_sea_level_pressure_ens(data, stations, **kwargs)
+    return p.mean("realization").to_dataset().mlpp.align_time(reftimes, leadtimes)
+
+
 @inputs("nwp:surface_altitude", "terrain:DEM")
 @out_format(units="m")
 def model_height_difference(
@@ -952,6 +982,48 @@ def model_id(
         * len(reftimes),
         dims="forecast_reference_time",
         coords={"forecast_reference_time": reftimes},
+    )
+
+
+@out_format(units="hPa")
+def mslp_difference_BAS_LUG_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of sea level pressure difference between Basel and Lugano in hPa
+    """
+    p = mean_sea_level_pressure_ens(data, stations, **kwargs).to_dataset()
+    iBAS = p.name == STA_D4W_NAMES["BAS"]
+    iLUG = p.name == STA_D4W_NAMES["LUG"]
+    pBAS = p.where(iBAS.compute(), drop=True)
+    pLUG = p.where(iLUG.compute(), drop=True)
+    pdiff = xr.concat([pBAS, pLUG], dim="station").diff("station")
+    return (
+        pdiff.squeeze("station", drop=True)
+        .mean("realization")
+        .mlpp.align_time(reftimes, leadtimes)
+        .astype("float32")
+    )
+
+
+@out_format(units="hPa")
+def mslp_difference_GVE_GUT_ensavg(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble mean of sea level pressure difference between Geneva and Güttingen in hPa
+    """
+    p = mean_sea_level_pressure_ens(data, stations, **kwargs).to_dataset()
+    iGVE = p.name == STA_D4W_NAMES["GVE"]
+    iGUT = p.name == STA_D4W_NAMES["GUT"]
+    pGVE = p.where(iGVE.compute(), drop=True)
+    pGUT = p.where(iGUT.compute(), drop=True)
+    pdiff = xr.concat([pGVE, pGUT], dim="station").diff("station")
+    return (
+        pdiff.squeeze("station", drop=True)
+        .mean("realization")
+        .mlpp.align_time(reftimes, leadtimes)
+        .astype("float32")
     )
 
 
