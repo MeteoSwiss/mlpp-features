@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 import pickle
@@ -80,7 +81,9 @@ def cache(fn):
     def inner(*args, **kwargs):
         if CACHEDIR_PREFIX is None:
             return fn(*args, **kwargs)
-        cachedfile = Path(CACHEDIR.name) / f"{fn.__name__}.pkl"
+        hash_object = hashlib.sha256(",".join(map(str, args)).encode())
+        hash_hex = hash_object.hexdigest()
+        cachedfile = Path(CACHEDIR.name) / f"{fn.__name__}_{hash_hex}.pkl"
         if not cachedfile.is_file():
             out = fn(*args, **kwargs).compute()
             LOGGER.debug(f"to cache: {cachedfile}")
