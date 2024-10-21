@@ -41,7 +41,6 @@ class PreprocDatasetAccessor:
         try:
             return self.ds[var]
         except KeyError:
-            print([var for var in self.ds.data_vars])
             raise KeyError(var)
 
     def align_time(
