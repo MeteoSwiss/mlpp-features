@@ -411,7 +411,7 @@ def tpi_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
         .astype("float32")
     )
 
-
+@inputs("terrain:TPI_60000M_SMTHFACT1")
 @out_format()
 def tpi_60000m_smth1(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
@@ -424,7 +424,7 @@ def tpi_60000m_smth1(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> 
         .astype("float32")
     )
 
-
+@inputs("terrain:TPI_100000M_SMTHFACT1")
 @out_format()
 def tpi_100000m_smth1(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
