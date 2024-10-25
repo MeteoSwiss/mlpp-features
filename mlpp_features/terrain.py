@@ -413,7 +413,7 @@ def tpi_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
 
 
 @out_format()
-def tpi_60000m_smth1(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+def smooth_tpi_60000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain TPI at a 60000m scale with smooth factor 1
     """
@@ -426,7 +426,7 @@ def tpi_60000m_smth1(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> 
 
 
 @out_format()
-def tpi_100000m_smth1(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+def smooth_tpi_100000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
     """
     Terrain TPI at a 100000m scale with smooth factor 1
     """
