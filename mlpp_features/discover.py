@@ -14,7 +14,7 @@ def discover_inputs(pipelines: Union[str, List[str]]) -> List:
         pipelines = [pipelines]
 
     # pass an empty dataset to trigger a KeyError
-    data = {"nwp": xr.Dataset(), "terrain": xr.Dataset(), "obs": xr.Dataset()}
+    data = {"nwp": xr.Dataset(), "terrain": xr.Dataset(), "obs": xr.Dataset(), "climatology": xr.Dataset()}
     inputs = []
     for pipeline in pipelines:
         try:
