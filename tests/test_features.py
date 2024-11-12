@@ -24,6 +24,7 @@ class TestFeatures:
         self._nwp = nwp_dataset(1e4)
         self._obs = obs_dataset()
         self._terrain = terrain_dataset(1e4)
+        self._climatology = clim_dataset(1e4)
         self._stations = stations_dataframe()
 
     @pytest.mark.parametrize("pipeline,", pipelines)
@@ -33,6 +34,7 @@ class TestFeatures:
             "nwp": xr.Dataset(),
             "terrain": xr.Dataset(),
             "obs": xr.Dataset(),
+            "climatology": xr.Dataset(),
         }
         with pytest.raises(KeyError):
             pipeline(empty_data, None, None, None)
@@ -44,6 +46,7 @@ class TestFeatures:
             "nwp": self._nwp,
             "terrain": self._terrain,
             "obs": self._obs,
+            "climatology": self._climatology,
         }
         stations = self._stations
         reftimes = pd.date_range("2000-01-01T00", "2000-01-01T18", periods=4)
