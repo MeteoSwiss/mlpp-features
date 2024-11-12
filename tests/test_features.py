@@ -24,7 +24,7 @@ class TestFeatures:
         self._nwp = nwp_dataset(1e4)
         self._obs = obs_dataset()
         self._terrain = terrain_dataset(1e4)
-        self._climatology = clim_dataset(1e4)
+        self._climatology = clim_dataset()
         self._stations = stations_dataframe()
 
     @pytest.mark.parametrize("pipeline,", pipelines)
