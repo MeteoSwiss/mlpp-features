@@ -19,7 +19,7 @@ class TestFeatures:
 
     @pytest.fixture(autouse=True)
     def _make_datasets(
-        self, nwp_dataset, obs_dataset, terrain_dataset, stations_dataframe
+        self, nwp_dataset, obs_dataset, terrain_dataset, clim_dataset, stations_dataframe
     ):
         self._nwp = nwp_dataset(1e4)
         self._obs = obs_dataset()
