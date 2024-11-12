@@ -2,10 +2,8 @@ import logging
 from typing import Dict
 
 import xarray as xr
-import numpy as np
 
-from mlpp_features.decorators import cache, inputs, out_format
-from mlpp_features import calc
+from mlpp_features.decorators import out_format
 
 LOGGER = logging.getLogger(__name__)
 
