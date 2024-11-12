@@ -272,6 +272,7 @@ def obs_dataset():
     return _data
 
 
+@pytest.fixture
 def clim_dataset():
     """Create climatology dataset as if loaded from zarr files, still unprocessed."""
 
