@@ -272,6 +272,46 @@ def obs_dataset():
     return _data
 
 
+def clim_dataset():
+    """Create climatology dataset as if loaded from zarr files, still unprocessed."""
+
+    def _data():
+
+        variables = [
+            "cloud_area_fraction",
+        ]
+
+        stations = _stations_dataframe()
+        times = pd.date_range("2000-01-01T00", "2000-01-02T00", freq="1h")
+
+        n_times = len(times)
+        n_stations = len(stations)
+
+        var_shape = (n_times, n_stations)
+        ds = xr.Dataset(
+            None,
+            coords={
+                "time": times,
+                "station": stations.index,
+                "longitude": ("station", stations.longitude),
+                "latitude": ("station", stations.latitude),
+                "height_masl": ("station", stations.height_masl),
+                "owner_id": ("station", np.random.randint(1, 5, stations.shape[0])),
+                "pole_height": ("station", np.random.randint(5, 15, stations.shape[0])),
+                "roof_height": ("station", np.zeros(stations.shape[0])),
+            },
+        )
+        for var in variables:
+            measurements = np.random.randn(*var_shape)
+            nan_idx = [np.random.randint(0, d, 60) for d in var_shape]
+            measurements[nan_idx[0], nan_idx[1]] = np.nan
+            ds[var] = (("time", "station"), measurements)
+        return ds
+
+    return _data
+
+
+
 @pytest.fixture
 def preproc_dataset():
     def _data():
