@@ -12,7 +12,7 @@ xr.set_options(keep_attrs=True)
 
 
 @out_format()
-def cloud_area_fraction(
+def clim_cloud_area_fraction(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
