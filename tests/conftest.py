@@ -279,7 +279,7 @@ def clim_dataset():
     def _data():
 
         variables = [
-            "cloud_area_fraction_rollingmean_1h_10d",
+            "cloud_area_fraction",
         ]
 
         stations = _stations_dataframe()
