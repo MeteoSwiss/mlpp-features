@@ -21,7 +21,6 @@ def cloud_area_fraction_rollingmean_1h_10d(
     return (
         data["climatology"]
         .mlpp.get("cloud_area_fraction")
-        .mlpp.interp(stations, **kwargs)
         .mlpp.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
