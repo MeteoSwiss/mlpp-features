@@ -12,7 +12,7 @@ xr.set_options(keep_attrs=True)
 
 
 @out_format()
-def clim_cloud_area_fraction(
+def cloud_area_fraction_rollingmean_1h_10d(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
@@ -21,6 +21,7 @@ def clim_cloud_area_fraction(
     return (
         data["climatology"]
         .mlpp.get("cloud_area_fraction")
+        .mlpp.interp(stations, **kwargs)
         .mlpp.unstack_time(reftimes, leadtimes)
         .astype("float32")
     )
