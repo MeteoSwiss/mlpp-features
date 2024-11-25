@@ -321,24 +321,32 @@ class PreprocDatasetAccessor:
         ).mean()
 
         ds_rolled_days_list = []
+        days_list = list(range(1, 367))
         for day in range(1, 367):
             days_range = [
                 (day + i) % 366 if (day + i) % 366 != 0 else 366
                 for i in range(-days, days + 1)
             ]
 
-            rolling_mean_day = (
-                rolling_mean_hour.where(
-                    rolling_mean_hour["dayofyear"].isin(days_range), drop=True
+            try:
+                rolling_mean_day = (
+                    rolling_mean_hour.where(
+                        rolling_mean_hour["dayofyear"].isin(days_range), drop=True
+                    )
+                    .groupby("time.hour")
+                    .mean()
                 )
-                .groupby("time.hour")
-                .mean()
-            )
+            except ValueError as e:
+                if "hour must not be empty" in str(e):
+                    days_list.remove(day)
+                    continue
+                else:
+                    raise e
 
             ds_rolled_days_list.append(rolling_mean_day)
 
         rolling_mean_ds = xr.concat(
-            ds_rolled_days_list, dim=xr.DataArray(np.arange(1, 367), dims="dayofyear")
+            ds_rolled_days_list, dim=xr.DataArray(days_list, dims="dayofyear")
         ).rename({"hour": "hourofday"})
 
         return rolling_mean_ds
