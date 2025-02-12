@@ -570,7 +570,7 @@ def _cloud_relative_fraction(
     if k > 1:
         neighbourhood_fraction = (
             relative_fraction
-            mlpp.euclidean_nearest_k(stations = stations, k = k)
+            .mlpp.euclidean_nearest_k(stations = stations, k = k)
             .mean(dim=["realization", "k"], skipna=True)
         )
     else:

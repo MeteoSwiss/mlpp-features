@@ -14,7 +14,7 @@ pyproj = "*"
 bottleneck = "*"
 numpy = "*"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "*"
 pytest = "*"
 isort = "*"
