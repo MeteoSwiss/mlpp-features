@@ -365,12 +365,7 @@ def std_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Datas
     """
     Terrain STD at a 500m scale
     """
-    return (
-        data["terrain"]
-        .mlpp.get("STD_500M")
-        .mlpp.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("STD_500M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -378,12 +373,7 @@ def std_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
     """
     Terrain STD at a 2000m scale
     """
-    return (
-        data["terrain"]
-        .mlpp.get("STD_2000M")
-        .mlpp.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("STD_2000M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -391,12 +381,7 @@ def tpi_500m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Datas
     """
     Terrain TPI at a 500m scale
     """
-    return (
-        data["terrain"]
-        .mlpp.get("TPI_500M")
-        .mlpp.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("TPI_500M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
@@ -404,16 +389,13 @@ def tpi_2000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Data
     """
     Terrain TPI at a 2000m scale
     """
-    return (
-        data["terrain"]
-        .mlpp.get("TPI_2000M")
-        .mlpp.interp(stations)
-        .astype("float32")
-    )
+    return data["terrain"].mlpp.get("TPI_2000M").mlpp.interp(stations).astype("float32")
 
 
 @out_format()
-def smooth_tpi_60000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+def smooth_tpi_60000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
     """
     Terrain TPI at a 60000m scale with smooth factor 1
     """
@@ -426,7 +408,9 @@ def smooth_tpi_60000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) ->
 
 
 @out_format()
-def smooth_tpi_100000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -> xr.Dataset:
+def smooth_tpi_100000m(
+    data: Dict[str, xr.Dataset], stations, *args, **kwargs
+) -> xr.Dataset:
     """
     Terrain TPI at a 100000m scale with smooth factor 1
     """
@@ -436,7 +420,7 @@ def smooth_tpi_100000m(data: Dict[str, xr.Dataset], stations, *args, **kwargs) -
         .mlpp.interp(stations)
         .astype("float32")
     )
-    
+
 
 @out_format()
 def valley_norm_2000m(
