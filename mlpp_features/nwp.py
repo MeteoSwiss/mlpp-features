@@ -3,6 +3,7 @@ from typing import Dict
 
 import xarray as xr
 import numpy as np
+import pandas as pd
 
 from mlpp_features.decorators import cache, inputs, out_format
 from mlpp_features import calc
@@ -534,6 +535,100 @@ def cloud_area_fraction_rank(
     return (
         d.to_dataset()
         .mlpp.rankdata(dim="realization")
+        .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def _cloud_relative_fraction(
+    cloud_in_layer: xr.DataArray,
+    total_clouds: xr.DataArray,
+    stations: pd.Dataframe,
+    constant_fraction: float = 0.5,
+    k: int = 15,
+) -> xr.DataArray:
+    """
+    Parameters
+    ----------
+    total_clouds, cloud_in_layer: xr.DataArray
+        cloud_area_fraction of total cloud and layer respectively
+    stations: pd.DataFrame
+        geoPandas data frame of station locations
+    constant_fraction: float
+        Relative fraction of total cloud cover to be assigned if no clouds in template
+    k: int
+        Number of nearest neighbours to use to avoid division by zero.
+
+    Returns
+    -------
+    xr.DataArray with relative fraction of total clouds in layer in range [0,1]
+    """
+
+    relative_fraction = xr.where(
+        total_clouds > 0.0, cloud_in_layer / total_clouds, np.nan
+    )
+    if k > 1:
+        neighbourhood_fraction = (
+            relative_fraction
+            mlpp.euclidean_nearest_k(stations = stations, k = k)
+            .mean(dim=["realization", "k"], skipna=True)
+        )
+    else:
+        neighbourhood_fraction = relative_fraction.mean(dim="realization", skipna=True)
+
+    relative_fraction = (
+        relative_fraction.fillna(neighbourhood_fraction)
+        .fillna(constant_fraction)
+        .clip(min=0.0, max=1.0)
+    )
+
+    return relative_fraction
+
+
+@out_format()
+def cloud_relative_fraction_low(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Relative cloud area fraction of total cloud cover in lower troposphere
+    """
+    low_clouds = cloud_area_fraction_low_ens(data, stations, **kwargs)
+    total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        _cloud_relative_fraction(low_clouds, total_clouds, stations, **kwargs)
+        .to_dataset()
+        .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_relative_fraction_medium(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Relative cloud area fraction of total cloud cover in medium troposphere
+    """
+    medium_clouds = cloud_area_fraction_medium_ens(data, stations, **kwargs)
+    total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        _cloud_relative_fraction(medium_clouds, total_clouds, **kwargs)
+        .to_dataset()
+        .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_relative_fraction_high(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Relative cloud area fraction of total cloud cover in high troposphere
+    """
+    high_clouds = cloud_area_fraction_high_ens(data, stations, **kwargs)
+    total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        _cloud_relative_fraction(high_clouds, total_clouds, **kwargs)
+        .to_dataset()
         .mlpp.align_time(reftimes, leadtimes)
     )
 
