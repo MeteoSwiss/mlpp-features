@@ -543,7 +543,7 @@ def cloud_area_fraction_rank(
 def _cloud_relative_fraction(
     cloud_in_layer: xr.DataArray,
     total_clouds: xr.DataArray,
-    stations: pd.Dataframe,
+    stations: pd.DataFrame,
     constant_fraction: float = 0.5,
     k: int = 15,
 ) -> xr.DataArray:
