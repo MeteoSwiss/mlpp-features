@@ -543,7 +543,7 @@ def cloud_area_fraction_rank(
 def _cloud_relative_fraction(
     cloud_in_layer: xr.DataArray,
     total_clouds: xr.DataArray,
-    stations: pd.Dataframe,
+    stations: pd.DataFrame,
     constant_fraction: float = 0.5,
     k: int = 15,
 ) -> xr.DataArray:
@@ -567,12 +567,17 @@ def _cloud_relative_fraction(
     relative_fraction = xr.where(
         total_clouds > 0.0, cloud_in_layer / total_clouds, np.nan
     )
+    
     if k > 1:
+        ## safeguard against requesting to large a neighbourhood
+        k = min(k, relative_fraction.station.size)
         neighbourhood_fraction = (
-            relative_fraction
+            relative_fraction.to_dataset()
             .mlpp.euclidean_nearest_k(stations = stations, k = k)
-            .mean(dim=["realization", "k"], skipna=True)
+            .mean(dim=["realization", "neighbor_rank"], skipna=True)
         )
+        var = neighbourhood_fraction.data_vars
+        neighbourhood_fraction = neighbourhood_fraction[list(var.keys())[0]]
     else:
         neighbourhood_fraction = relative_fraction.mean(dim="realization", skipna=True)
 
@@ -611,7 +616,7 @@ def cloud_relative_fraction_medium(
     medium_clouds = cloud_area_fraction_medium_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
     return (
-        _cloud_relative_fraction(medium_clouds, total_clouds, **kwargs)
+        _cloud_relative_fraction(medium_clouds, total_clouds, stations, **kwargs)
         .to_dataset()
         .mlpp.align_time(reftimes, leadtimes)
     )
@@ -627,7 +632,7 @@ def cloud_relative_fraction_high(
     high_clouds = cloud_area_fraction_high_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
     return (
-        _cloud_relative_fraction(high_clouds, total_clouds, **kwargs)
+        _cloud_relative_fraction(high_clouds, total_clouds, stations, **kwargs)
         .to_dataset()
         .mlpp.align_time(reftimes, leadtimes)
     )
