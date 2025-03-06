@@ -567,13 +567,13 @@ def _cloud_relative_fraction(
     relative_fraction = xr.where(
         total_clouds > 0.0, cloud_in_layer / total_clouds, np.nan
     )
-    
+
     if k > 1:
         ## safeguard against requesting to large a neighbourhood
         k = min(k, relative_fraction.station.size)
         neighbourhood_fraction = (
             relative_fraction.to_dataset()
-            .mlpp.euclidean_nearest_k(stations = stations, k = k)
+            .mlpp.euclidean_nearest_k(stations=stations, k=k)
             .mean(dim=["realization", "neighbor_rank"], skipna=True)
         )
         var = neighbourhood_fraction.data_vars
