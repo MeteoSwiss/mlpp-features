@@ -540,11 +540,11 @@ def cloud_area_fraction_rank(
 
 
 @out_format()
-def cloud_relative_fraction_low(
+def cloud_relative_fraction_low_ens(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Relative cloud area fraction of total cloud cover in lower troposphere
+    Ensemble of relative cloud area fraction of total cloud cover in lower troposphere
     """
     low_clouds = cloud_area_fraction_low_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
@@ -556,11 +556,11 @@ def cloud_relative_fraction_low(
 
 
 @out_format()
-def cloud_relative_fraction_medium(
+def cloud_relative_fraction_medium_ens(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Relative cloud area fraction of total cloud cover in medium troposphere
+    Ensemble of relative cloud area fraction of total cloud cover in medium troposphere
     """
     medium_clouds = cloud_area_fraction_medium_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
@@ -572,11 +572,11 @@ def cloud_relative_fraction_medium(
 
 
 @out_format()
-def cloud_relative_fraction_high(
+def cloud_relative_fraction_high_ens(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
     """
-    Relative cloud area fraction of total cloud cover in high troposphere
+    Ensemble of relative cloud area fraction of total cloud cover in high troposphere
     """
     high_clouds = cloud_area_fraction_high_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
