@@ -540,57 +540,6 @@ def cloud_area_fraction_rank(
 
 
 @out_format()
-def _cloud_relative_fraction(
-    cloud_in_layer: xr.DataArray,
-    total_clouds: xr.DataArray,
-    stations: pd.DataFrame,
-    constant_fraction: float = 0.5,
-    k: int = 15,
-) -> xr.DataArray:
-    """
-    Parameters
-    ----------
-    total_clouds, cloud_in_layer: xr.DataArray
-        cloud_area_fraction of total cloud and layer respectively
-    stations: pd.DataFrame
-        geoPandas data frame of station locations
-    constant_fraction: float
-        Relative fraction of total cloud cover to be assigned if no clouds in template
-    k: int
-        Number of nearest neighbours to use to avoid division by zero.
-
-    Returns
-    -------
-    xr.DataArray with relative fraction of total clouds in layer in range [0,1]
-    """
-
-    relative_fraction = xr.where(
-        total_clouds > 0.0, cloud_in_layer / total_clouds, np.nan
-    )
-
-    if k > 1:
-        ## safeguard against requesting to large a neighbourhood
-        k = min(k, relative_fraction.station.size)
-        neighbourhood_fraction = (
-            relative_fraction.to_dataset()
-            .mlpp.euclidean_nearest_k(stations=stations, k=k)
-            .mean(dim=["realization", "neighbor_rank"], skipna=True)
-        )
-        var = neighbourhood_fraction.data_vars
-        neighbourhood_fraction = neighbourhood_fraction[list(var.keys())[0]]
-    else:
-        neighbourhood_fraction = relative_fraction.mean(dim="realization", skipna=True)
-
-    relative_fraction = (
-        relative_fraction.fillna(neighbourhood_fraction)
-        .fillna(constant_fraction)
-        .clip(min=0.0, max=1.0)
-    )
-
-    return relative_fraction
-
-
-@out_format()
 def cloud_relative_fraction_low(
     data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
 ) -> xr.DataArray:
@@ -600,8 +549,8 @@ def cloud_relative_fraction_low(
     low_clouds = cloud_area_fraction_low_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
     return (
-        _cloud_relative_fraction(low_clouds, total_clouds, stations, **kwargs)
-        .to_dataset()
+        low_clouds.to_dataset()
+        .mlpp.cloud_relative_fraction(total_clouds)
         .mlpp.align_time(reftimes, leadtimes)
     )
 
@@ -616,8 +565,8 @@ def cloud_relative_fraction_medium(
     medium_clouds = cloud_area_fraction_medium_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
     return (
-        _cloud_relative_fraction(medium_clouds, total_clouds, stations, **kwargs)
-        .to_dataset()
+        medium_clouds.to_dataset()
+        .mlpp.cloud_relative_fraction(total_clouds)
         .mlpp.align_time(reftimes, leadtimes)
     )
 
@@ -632,8 +581,8 @@ def cloud_relative_fraction_high(
     high_clouds = cloud_area_fraction_high_ens(data, stations, **kwargs)
     total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
     return (
-        _cloud_relative_fraction(high_clouds, total_clouds, stations, **kwargs)
-        .to_dataset()
+        high_clouds.to_dataset()
+        .mlpp.cloud_relative_fraction(total_clouds)
         .mlpp.align_time(reftimes, leadtimes)
     )
 
