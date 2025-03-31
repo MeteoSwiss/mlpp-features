@@ -365,3 +365,59 @@ class PreprocDatasetAccessor:
                 da = da.squeeze("dummy", drop=True)
             output[var] = da
         return output
+
+    def cloud_relative_fraction(
+        self,
+        total_clouds: xr.DataArray,
+        constant_fraction: float = 0.5,
+        k: int = 15,
+    ) -> xr.DataArray:
+        """
+        Compute the relative fraction of total clouds in a cloud layer.
+
+        Parameters
+        ----------
+        total_clouds: xr.DataArray
+            total cloud cover (fraction)
+        stations: pd.DataFrame
+            geoPandas data frame of station locations
+        constant_fraction: float
+            Relative fraction of total cloud cover to be assigned if no clouds in template
+        k: int
+            Number of nearest neighbours to use to avoid division by zero.
+
+        Returns
+        -------
+        xr.DataArray with relative fraction of total clouds in layer in range [0,1]
+        """
+
+        cloud_in_layer = self.ds.to_array()
+        stations = total_clouds.station.to_dataframe()
+
+        relative_fraction = xr.where(
+            total_clouds > 0.0, cloud_in_layer / total_clouds, np.nan
+        )
+
+        if k > 1:
+            ## safeguard against requesting to large a neighbourhood
+            k = min(k, relative_fraction.station.size)
+            neighbourhood_fraction = (
+                relative_fraction.to_dataset()
+                .mlpp.euclidean_nearest_k(stations=stations, k=k)
+                .mean(dim=["realization", "neighbor_rank"], skipna=True)
+            )
+            neighbourhood_fraction = neighbourhood_fraction.to_array().squeeze(
+                "variable"
+            )
+        else:
+            neighbourhood_fraction = relative_fraction.mean(
+                dim="realization", skipna=True
+            )
+
+        relative_fraction = (
+            relative_fraction.fillna(neighbourhood_fraction)
+            .fillna(constant_fraction)
+            .clip(min=0.0, max=1.0)
+        )
+
+        return relative_fraction.to_dataset(name="cloud_relative_fraction")

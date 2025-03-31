@@ -3,6 +3,7 @@ from typing import Dict
 
 import xarray as xr
 import numpy as np
+import pandas as pd
 
 from mlpp_features.decorators import cache, inputs, out_format
 from mlpp_features import calc
@@ -534,6 +535,54 @@ def cloud_area_fraction_rank(
     return (
         d.to_dataset()
         .mlpp.rankdata(dim="realization")
+        .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_relative_fraction_low_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of relative cloud area fraction of total cloud cover in lower troposphere
+    """
+    low_clouds = cloud_area_fraction_low_ens(data, stations, **kwargs)
+    total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        low_clouds.to_dataset()
+        .mlpp.cloud_relative_fraction(total_clouds)
+        .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_relative_fraction_medium_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of relative cloud area fraction of total cloud cover in medium troposphere
+    """
+    medium_clouds = cloud_area_fraction_medium_ens(data, stations, **kwargs)
+    total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        medium_clouds.to_dataset()
+        .mlpp.cloud_relative_fraction(total_clouds)
+        .mlpp.align_time(reftimes, leadtimes)
+    )
+
+
+@out_format()
+def cloud_relative_fraction_high_ens(
+    data: Dict[str, xr.Dataset], stations, reftimes, leadtimes, **kwargs
+) -> xr.DataArray:
+    """
+    Ensemble of relative cloud area fraction of total cloud cover in high troposphere
+    """
+    high_clouds = cloud_area_fraction_high_ens(data, stations, **kwargs)
+    total_clouds = cloud_area_fraction_ens(data, stations, **kwargs)
+    return (
+        high_clouds.to_dataset()
+        .mlpp.cloud_relative_fraction(total_clouds)
         .mlpp.align_time(reftimes, leadtimes)
     )
 

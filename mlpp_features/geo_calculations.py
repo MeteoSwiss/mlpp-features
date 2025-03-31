@@ -187,7 +187,7 @@ def sign_point_to_segment(
 
 
 def line_extreme_points(
-    line_points: List[Tuple[float, float]]
+    line_points: List[Tuple[float, float]],
 ) -> Tuple[Tuple[float, float], Tuple[float, float]]:
     """
     Find the west-most and east-most points of a polyline.
