@@ -6,7 +6,7 @@ authors = ["Daniele Nerini"]
 license = "BSD 3-Clause License"
 
 [tool.poetry.dependencies]
-python = ">= 3.9, < 3.11"  # required by scipy
+python = ">= 3.9, < 3.13"
 scipy = "*"
 pandas = "*"
 xarray = "*"
