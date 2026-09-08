@@ -306,6 +306,51 @@ class PreprocDatasetAccessor:
         da.attrs["units"] = "degrees"
         return da.to_dataset(name="wind_from_direction")
 
+    def rolling_mean_days_and_hours(self, days: int, hours: int) -> xr.Dataset:
+        """
+        Compute the rolling mean of the input dataset over a given number of days and hours.
+        """
+        ds = self.ds
+
+        ds = ds.assign_coords(hourofday=ds["time"].dt.hour).assign_coords(
+            dayofyear=ds["time"].dt.dayofyear
+        )
+
+        rolling_mean_hour = ds.rolling(
+            time=hours * 2 + 1, center=True, min_periods=1
+        ).mean()
+
+        ds_rolled_days_list = []
+        days_list = list(range(1, 367))
+        for day in range(1, 367):
+            days_range = [
+                (day + i) % 366 if (day + i) % 366 != 0 else 366
+                for i in range(-days, days + 1)
+            ]
+
+            try:
+                rolling_mean_day = (
+                    rolling_mean_hour.where(
+                        rolling_mean_hour["dayofyear"].isin(days_range), drop=True
+                    )
+                    .groupby("time.hour")
+                    .mean()
+                )
+            except ValueError as e:
+                if "hour must not be empty" in str(e):
+                    days_list.remove(day)
+                    continue
+                else:
+                    raise e
+
+            ds_rolled_days_list.append(rolling_mean_day)
+
+        rolling_mean_ds = xr.concat(
+            ds_rolled_days_list, dim=xr.DataArray(days_list, dims="dayofyear")
+        ).rename({"hour": "hourofday"})
+
+        return rolling_mean_ds
+
     def rankdata(
         self,
         dim: str = "realization",
